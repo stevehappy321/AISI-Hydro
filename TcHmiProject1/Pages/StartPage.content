@@ -1,0 +1,6 @@
+<div id="StartPage" data-tchmi-type="TcHmi.Controls.System.TcHmiContent" data-tchmi-top="0" data-tchmi-left="0" data-tchmi-width="100" data-tchmi-height="100" data-tchmi-width-unit="%" data-tchmi-height-unit="%">
+<div id="TcHmi_Controls_Beckhoff_TcHmiImage_1" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiImage" data-tchmi-height="594" data-tchmi-height-unit="px" data-tchmi-left="138" data-tchmi-left-unit="px" data-tchmi-src="Imports/Images/Hydro HMI Traffic Flow Display (3).png" data-tchmi-top="1327" data-tchmi-top-unit="px" data-tchmi-width="1056" data-tchmi-width-unit="px">
+</div>
+<div id="TcHmi_Controls_Beckhoff_TcHmiImage_2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiImage" data-tchmi-height="757" data-tchmi-height-unit="px" data-tchmi-left="14" data-tchmi-left-unit="px" data-tchmi-src="Imports/Images/Hydro HMI Traffic Flow Display (1).png" data-tchmi-top="14" data-tchmi-top-unit="px" data-tchmi-width="1345" data-tchmi-width-unit="px">
+</div>
+</div>

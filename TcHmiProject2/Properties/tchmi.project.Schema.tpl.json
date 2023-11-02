@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "definitions": {
+    "SectionStatusPanel": {
+      "frameworkControlNamespace": "TcHmi.Controls.Beckhoff",
+      "frameworkControlType": "TcHmi.Controls.System.TcHmiUserControl",
+      "frameworkInstanceOf": "TcHmi.Controls.System.TcHmiControl",
+      "frameworkUserControlConfig": "UserControls\\SectionStatusPanel.usercontrol.json",
+      "type": "object",
+      "id": "tchmi:project#/definitions/SectionStatusPanel"
+    },
+    "SectionBundlePanel": {
+      "frameworkControlNamespace": "TcHmi.Controls.Beckhoff",
+      "frameworkControlType": "TcHmi.Controls.System.TcHmiUserControl",
+      "frameworkInstanceOf": "TcHmi.Controls.System.TcHmiControl",
+      "frameworkUserControlConfig": "UserControls\\SectionBundlePanel.usercontrol.json",
+      "type": "object",
+      "id": "tchmi:project#/definitions/SectionBundlePanel"
+    }
+  }
+}

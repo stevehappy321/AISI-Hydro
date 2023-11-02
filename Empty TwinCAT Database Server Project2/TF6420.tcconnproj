@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{722812a8-bae7-4341-afe3-82a34a02c69f}</ProjectGuid>
+    <AssemblyName>Empty TwinCAT Database Server Project2</AssemblyName>
+    <Name>TF6420</Name>
+    <RootNamespace>Empty TwinCAT Database Server Project2</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="TcDbServer.tcdbsrv">
+      <SubType>Content</SubType>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <tcdbsrvdbCompile Include="TcDbServer\Area2Events\Area2Events.tcdbsrvdb">
+      <DependentUpon>TcDbServer.tcdbsrv</DependentUpon>
+    </tcdbsrvdbCompile>
+    <tcdbsrvdbCompile Include="TcDbServer\ProductionLog\ProductionLog.tcdbsrvdb">
+      <DependentUpon>TcDbServer.tcdbsrv</DependentUpon>
+    </tcdbsrvdbCompile>
+    <tcdbsrvdbCompile Include="TcDbServer\MasterEvents\MasterEvents.tcdbsrvdb">
+      <DependentUpon>TcDbServer.tcdbsrv</DependentUpon>
+    </tcdbsrvdbCompile>
+  </ItemGroup>
+  <!-- This next bit is required unless the macro used to Import your targets is defined in an MSBuild toolset. -->
+  <ProjectExtensions>
+    <ProjectCapabilities>
+      <ProjectConfigurationsDeclaredAsItems />
+      <TcConnectivity />
+    </ProjectCapabilities>
+  </ProjectExtensions>
+</Project>

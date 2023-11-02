@@ -1,0 +1,569 @@
+<div id="StartPage" data-tchmi-type="TcHmi.Controls.System.TcHmiContent" data-tchmi-top="0" data-tchmi-left="0" data-tchmi-width="100" data-tchmi-height="100" data-tchmi-width-unit="%" data-tchmi-height-unit="%" data-tchmi-height-mode="Value">
+<div id="CellContainer" data-tchmi-type="TcHmi.Controls.System.TcHmiContainer" data-tchmi-height="254" data-tchmi-height-unit="px" data-tchmi-left="0" data-tchmi-left-unit="px" data-tchmi-top="0" data-tchmi-top-unit="px" data-tchmi-width="100" data-tchmi-width-unit="%" data-tchmi-height-mode="Value" data-tchmi-width-mode="Value">
+<div id="TcHmi_Controls_Beckhoff_TcHmiImage_4" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiImage" data-tchmi-left="0" data-tchmi-left-unit="px" data-tchmi-src="Imports/Images/Hydro HMI Traffic Flow Display cropped-0.png" data-tchmi-top="0" data-tchmi-top-unit="px" data-tchmi-width="1480" data-tchmi-width-unit="px" data-tchmi-height-mode="Value" data-tchmi-width-mode="Value" data-tchmi-height-unit="px" data-tchmi-height="228">
+</div>
+<div id="TransitionPaperMarker" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiRectangle" data-tchmi-height="60" data-tchmi-height-unit="px" data-tchmi-left="1300" data-tchmi-left-unit="px" data-tchmi-top="120" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-stroke-thickness="3" data-tchmi-zindex="3" data-tchmi-visibility="Hidden">
+<script data-tchmi-target-attribute="data-tchmi-fill-color" type="application/json">
+{
+  "color": "rgba(0, 255, 91, 0.5647058)"
+}
+</script>
+</div>
+<div id="PaperMarker" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiRectangle" data-tchmi-height="60" data-tchmi-height-unit="px" data-tchmi-left="1080" data-tchmi-left-unit="px" data-tchmi-top="120" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-stroke-thickness="3" data-tchmi-zindex="3" data-tchmi-visibility="Hidden">
+<script data-tchmi-target-attribute="data-tchmi-fill-color" type="application/json">
+{
+  "color": "rgba(0, 255, 91, 0.5647058)"
+}
+</script>
+</div>
+<div id="TransitionCardboardCornerGuardMarker" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiRectangle" data-tchmi-height="60" data-tchmi-height-unit="px" data-tchmi-left="850" data-tchmi-left-unit="px" data-tchmi-top="120" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-stroke-thickness="3" data-tchmi-zindex="3" data-tchmi-visibility="Hidden">
+<script data-tchmi-target-attribute="data-tchmi-fill-color" type="application/json">
+{
+  "color": "rgba(0, 255, 91, 0.5647058)"
+}
+</script>
+</div>
+<div id="CardboardCornerGuardMarker" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiRectangle" data-tchmi-height="60" data-tchmi-height-unit="px" data-tchmi-left="610" data-tchmi-left-unit="px" data-tchmi-top="120" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-stroke-thickness="3" data-tchmi-zindex="3" data-tchmi-visibility="Hidden">
+<script data-tchmi-target-attribute="data-tchmi-fill-color" type="application/json">
+{
+  "color": "rgba(0, 255, 91, 0.5647058)"
+}
+</script>
+</div>
+<div id="ChipboardMarker" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiRectangle" data-tchmi-height="60" data-tchmi-height-unit="px" data-tchmi-left="390" data-tchmi-left-unit="px" data-tchmi-top="120" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-stroke-thickness="3" data-tchmi-zindex="3" data-tchmi-visibility="Hidden">
+<script data-tchmi-target-attribute="data-tchmi-fill-color" type="application/json">
+{
+  "color": "rgba(0, 255, 91, 0.5647058)"
+}
+</script>
+</div>
+<div id="WoodBunkMarker" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiRectangle" data-tchmi-height="60" data-tchmi-height-unit="px" data-tchmi-left="190" data-tchmi-left-unit="px" data-tchmi-top="120" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-stroke-thickness="3" data-tchmi-zindex="3" data-tchmi-visibility="Hidden">
+<script data-tchmi-target-attribute="data-tchmi-fill-color" type="application/json">
+{
+  "color": "rgba(0, 255, 91, 0.5647058)"
+}
+</script>
+</div>
+
+
+
+
+<div id="OutputBundle" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiRectangle" data-tchmi-left="10" data-tchmi-left-unit="px" data-tchmi-top="120" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-stroke-thickness="3" data-tchmi-zindex="3" data-tchmi-width-mode="Value" data-tchmi-height-mode="Value" data-tchmi-height-unit="px" data-tchmi-height="60" data-tchmi-visibility="Hidden">
+<script data-tchmi-target-attribute="data-tchmi-fill-color" type="application/json">
+{
+  "color": "rgba(0, 255, 91, 0.5647058)"
+}
+</script>
+</div>
+
+
+
+
+
+
+</div>
+<div id="TcHmiContainer_2" data-tchmi-type="TcHmi.Controls.System.TcHmiContainer" data-tchmi-height="100" data-tchmi-height-unit="%" data-tchmi-left="30" data-tchmi-left-unit="px" data-tchmi-top="254" data-tchmi-top-unit="px" data-tchmi-width="100" data-tchmi-width-unit="%" data-tchmi-height-mode="Content"><div id="PaperStatusPanelMain" data-tchmi-type="TcHmi.Controls.System.TcHmiUserControlHost" data-tchmi-height="190" data-tchmi-height-unit="px" data-tchmi-left="1080" data-tchmi-left-unit="px" data-tchmi-target-user-control="UserControls/SectionStatusPanel.usercontrol" data-tchmi-top="36" data-tchmi-top-unit="px" data-tchmi-width="120" data-tchmi-width-unit="px">
+</div>
+<div id="TcHmiTextblock_22" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="1080" data-tchmi-left-unit="px" data-tchmi-text="Paper" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="120" data-tchmi-width-unit="px" data-tchmi-word-wrap="true">
+</div>
+<div id="CardboardCornerGuardStatusPanelMain" data-tchmi-type="TcHmi.Controls.System.TcHmiUserControlHost" data-tchmi-height="190" data-tchmi-height-unit="px" data-tchmi-left="610" data-tchmi-left-unit="px" data-tchmi-target-user-control="UserControls/SectionStatusPanel.usercontrol" data-tchmi-top="36" data-tchmi-top-unit="px" data-tchmi-width="120" data-tchmi-width-unit="px">
+</div>
+<div id="TcHmiTextblock_21" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="610" data-tchmi-left-unit="px" data-tchmi-text="Cardboard/Corner Guard" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="120" data-tchmi-width-unit="px" data-tchmi-word-wrap="true">
+</div>
+<div id="ChipboardStatusPanelMain" data-tchmi-type="TcHmi.Controls.System.TcHmiUserControlHost" data-tchmi-height="190" data-tchmi-height-unit="px" data-tchmi-left="387" data-tchmi-left-unit="px" data-tchmi-target-user-control="UserControls/SectionStatusPanel.usercontrol" data-tchmi-top="36" data-tchmi-top-unit="px" data-tchmi-width="120" data-tchmi-width-unit="px">
+</div>
+<div id="TcHmiTextblock_19" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="387" data-tchmi-left-unit="px" data-tchmi-text="Chipboard" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="120" data-tchmi-width-unit="px" data-tchmi-word-wrap="true">
+</div>
+<div id="WoodBunkStatusPanelMain" data-tchmi-type="TcHmi.Controls.System.TcHmiUserControlHost" data-tchmi-height="190" data-tchmi-height-unit="px" data-tchmi-left="200" data-tchmi-left-unit="px" data-tchmi-target-user-control="UserControls/SectionStatusPanel.usercontrol" data-tchmi-top="36" data-tchmi-top-unit="px" data-tchmi-width="120" data-tchmi-width-unit="px">
+</div>
+<div id="TcHmiTextblock_20" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="200" data-tchmi-left-unit="px" data-tchmi-text="Wood Bunk" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="120" data-tchmi-width-unit="px" data-tchmi-word-wrap="true">
+</div>
+<div id="TcHmiTextblock_16" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="10" data-tchmi-left-unit="px" data-tchmi-text="Output" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="120" data-tchmi-width-unit="px" data-tchmi-word-wrap="true">
+</div>
+
+<div id="OutputStatusPanelMain" data-tchmi-type="TcHmi.Controls.System.TcHmiUserControlHost" data-tchmi-height="190" data-tchmi-height-unit="px" data-tchmi-left="10" data-tchmi-left-unit="px" data-tchmi-target-user-control="UserControls/SectionStatusPanel.usercontrol" data-tchmi-top="36" data-tchmi-top-unit="px" data-tchmi-width="120" data-tchmi-width-unit="px">
+</div>
+<div id="TcHmiButton_3" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiButton" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="610" data-tchmi-left-unit="px" data-tchmi-text="+Status" data-tchmi-top="226" data-tchmi-top-unit="px" data-tchmi-width="120" data-tchmi-width-unit="px" data-tchmi-word-wrap="true">
+
+<script data-tchmi-target-attribute="data-tchmi-trigger" type="application/json">
+[
+  {
+    "event": "TcHmiButton_3.onMouseClick",
+    "actions": [
+      {
+        "objectType": "SwitchCase",
+        "active": true,
+        "compare": {
+          "objectType": "Symbol",
+          "valueType": "tchmi:server#/definitions/PLC1.SectionStatus",
+          "symbolExpression": "%s%PLC1.MAIN.cardboardCornerGuardSection::status%/s%"
+        },
+        "cases": [
+          {
+            "caseValue": {
+              "objectType": "StaticValue",
+              "valueType": "tchmi:server#/definitions/PLC1.SectionStatus",
+              "value": 1
+            },
+            "actions": [
+              {
+                "objectType": "WriteToSymbol",
+                "active": true,
+                "symbolExpression": "%s%PLC1.MAIN.cardboardCornerGuardSection::status%/s%",
+                "value": {
+                  "objectType": "StaticValue",
+                  "valueType": "tchmi:server#/definitions/PLC1.SectionStatus",
+                  "value": 2
+                },
+                "asyncWait": true
+              }
+            ]
+          },
+          {
+            "caseValue": {
+              "objectType": "StaticValue",
+              "valueType": "tchmi:server#/definitions/PLC1.SectionStatus",
+              "value": 2
+            },
+            "actions": [
+              {
+                "objectType": "WriteToSymbol",
+                "active": true,
+                "symbolExpression": "%s%PLC1.MAIN.cardboardCornerGuardSection::status%/s%",
+                "value": {
+                  "objectType": "StaticValue",
+                  "valueType": "tchmi:server#/definitions/PLC1.SectionStatus",
+                  "value": 3
+                },
+                "asyncWait": true
+              }
+            ]
+          },
+          {
+            "caseValue": {
+              "objectType": "StaticValue",
+              "valueType": "tchmi:server#/definitions/PLC1.SectionStatus",
+              "value": 0
+            },
+            "actions": [
+              {
+                "objectType": "WriteToSymbol",
+                "active": true,
+                "symbolExpression": "%s%PLC1.MAIN.cardboardCornerGuardSection::status%/s%",
+                "value": {
+                  "objectType": "StaticValue",
+                  "valueType": "tchmi:server#/definitions/PLC1.SectionStatus",
+                  "value": 2
+                },
+                "asyncWait": true
+              }
+            ]
+          }
+        ],
+        "asyncWait": true
+      }
+    ]
+  }
+]
+</script>
+</div>
+<div id="TcHmiButton_2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiButton" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="387" data-tchmi-left-unit="px" data-tchmi-text="+Status" data-tchmi-top="226" data-tchmi-top-unit="px" data-tchmi-width="120" data-tchmi-width-unit="px" data-tchmi-word-wrap="true">
+
+<script data-tchmi-target-attribute="data-tchmi-trigger" type="application/json">
+[
+  {
+    "event": "TcHmiButton_2.onMouseClick",
+    "actions": [
+      {
+        "objectType": "SwitchCase",
+        "active": true,
+        "compare": {
+          "objectType": "Symbol",
+          "valueType": "tchmi:server#/definitions/PLC1.SectionStatus",
+          "symbolExpression": "%s%PLC1.MAIN.chipboardSection::status%/s%"
+        },
+        "cases": [
+          {
+            "caseValue": {
+              "objectType": "StaticValue",
+              "valueType": "tchmi:server#/definitions/PLC1.SectionStatus",
+              "value": 1
+            },
+            "actions": [
+              {
+                "objectType": "WriteToSymbol",
+                "active": true,
+                "symbolExpression": "%s%PLC1.MAIN.chipboardSection::status%/s%",
+                "value": {
+                  "objectType": "StaticValue",
+                  "valueType": "tchmi:server#/definitions/PLC1.SectionStatus",
+                  "value": 2
+                },
+                "asyncWait": true
+              }
+            ]
+          },
+          {
+            "caseValue": {
+              "objectType": "StaticValue",
+              "valueType": "tchmi:server#/definitions/PLC1.SectionStatus",
+              "value": 2
+            },
+            "actions": [
+              {
+                "objectType": "WriteToSymbol",
+                "active": true,
+                "symbolExpression": "%s%PLC1.MAIN.chipboardSection::status%/s%",
+                "value": {
+                  "objectType": "StaticValue",
+                  "valueType": "tchmi:server#/definitions/PLC1.SectionStatus",
+                  "value": 3
+                },
+                "asyncWait": true
+              }
+            ]
+          },
+          {
+            "caseValue": {
+              "objectType": "StaticValue",
+              "valueType": "tchmi:server#/definitions/PLC1.SectionStatus",
+              "value": 0
+            },
+            "actions": [
+              {
+                "objectType": "WriteToSymbol",
+                "active": true,
+                "symbolExpression": "%s%PLC1.MAIN.chipboardSection::status%/s%",
+                "value": {
+                  "objectType": "StaticValue",
+                  "valueType": "tchmi:server#/definitions/PLC1.SectionStatus",
+                  "value": 2
+                },
+                "asyncWait": true
+              }
+            ]
+          }
+        ],
+        "asyncWait": true
+      }
+    ]
+  }
+]
+</script>
+</div>
+<div id="TcHmiButton_4" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiButton" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="1080" data-tchmi-left-unit="px" data-tchmi-text="+Status" data-tchmi-top="226" data-tchmi-top-unit="px" data-tchmi-width="120" data-tchmi-width-unit="px" data-tchmi-word-wrap="true">
+
+<script data-tchmi-target-attribute="data-tchmi-trigger" type="application/json">
+[
+  {
+    "event": "TcHmiButton_4.onMouseClick",
+    "actions": [
+      {
+        "objectType": "SwitchCase",
+        "active": true,
+        "compare": {
+          "objectType": "Symbol",
+          "valueType": "tchmi:server#/definitions/PLC1.SectionStatus",
+          "symbolExpression": "%s%PLC1.MAIN.paperSection::status%/s%"
+        },
+        "cases": [
+          {
+            "caseValue": {
+              "objectType": "StaticValue",
+              "valueType": "tchmi:server#/definitions/PLC1.SectionStatus",
+              "value": 1
+            },
+            "actions": [
+              {
+                "objectType": "WriteToSymbol",
+                "active": true,
+                "symbolExpression": "%s%PLC1.MAIN.paperSection::status%/s%",
+                "value": {
+                  "objectType": "StaticValue",
+                  "valueType": "tchmi:server#/definitions/PLC1.SectionStatus",
+                  "value": 2
+                },
+                "asyncWait": true
+              }
+            ]
+          },
+          {
+            "caseValue": {
+              "objectType": "StaticValue",
+              "valueType": "tchmi:server#/definitions/PLC1.SectionStatus",
+              "value": 2
+            },
+            "actions": [
+              {
+                "objectType": "WriteToSymbol",
+                "active": true,
+                "symbolExpression": "%s%PLC1.MAIN.paperSection::status%/s%",
+                "value": {
+                  "objectType": "StaticValue",
+                  "valueType": "tchmi:server#/definitions/PLC1.SectionStatus",
+                  "value": 3
+                },
+                "asyncWait": true
+              }
+            ]
+          },
+          {
+            "caseValue": {
+              "objectType": "StaticValue",
+              "valueType": "tchmi:server#/definitions/PLC1.SectionStatus",
+              "value": 0
+            },
+            "actions": [
+              {
+                "objectType": "WriteToSymbol",
+                "active": true,
+                "symbolExpression": "%s%PLC1.MAIN.paperSection::status%/s%",
+                "value": {
+                  "objectType": "StaticValue",
+                  "valueType": "tchmi:server#/definitions/PLC1.SectionStatus",
+                  "value": 2
+                },
+                "asyncWait": true
+              }
+            ]
+          }
+        ],
+        "asyncWait": true
+      }
+    ]
+  }
+]
+</script>
+</div>
+<div id="TcHmiButton_1" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiButton" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="200" data-tchmi-left-unit="px" data-tchmi-text="+Status" data-tchmi-top="226" data-tchmi-top-unit="px" data-tchmi-width="120" data-tchmi-width-unit="px" data-tchmi-word-wrap="true">
+
+<script data-tchmi-target-attribute="data-tchmi-trigger" type="application/json">
+[
+  {
+    "event": "TcHmiButton_1.onMouseClick",
+    "actions": [
+      {
+        "objectType": "SwitchCase",
+        "active": true,
+        "compare": {
+          "objectType": "Symbol",
+          "valueType": "tchmi:server#/definitions/PLC1.SectionStatus",
+          "symbolExpression": "%s%PLC1.MAIN.woodBunkSection::status%/s%"
+        },
+        "cases": [
+          {
+            "caseValue": {
+              "objectType": "StaticValue",
+              "valueType": "tchmi:server#/definitions/PLC1.SectionStatus",
+              "value": 1
+            },
+            "actions": [
+              {
+                "objectType": "WriteToSymbol",
+                "active": true,
+                "symbolExpression": "%s%PLC1.MAIN.woodBunkSection::status%/s%",
+                "value": {
+                  "objectType": "StaticValue",
+                  "valueType": "tchmi:server#/definitions/PLC1.SectionStatus",
+                  "value": 2
+                },
+                "asyncWait": true
+              }
+            ]
+          },
+          {
+            "caseValue": {
+              "objectType": "StaticValue",
+              "valueType": "tchmi:server#/definitions/PLC1.SectionStatus",
+              "value": 2
+            },
+            "actions": [
+              {
+                "objectType": "WriteToSymbol",
+                "active": true,
+                "symbolExpression": "%s%PLC1.MAIN.woodBunkSection::status%/s%",
+                "value": {
+                  "objectType": "StaticValue",
+                  "valueType": "tchmi:server#/definitions/PLC1.SectionStatus",
+                  "value": 3
+                },
+                "asyncWait": true
+              }
+            ]
+          },
+          {
+            "caseValue": {
+              "objectType": "StaticValue",
+              "valueType": "tchmi:server#/definitions/PLC1.SectionStatus",
+              "value": 0
+            },
+            "actions": [
+              {
+                "objectType": "WriteToSymbol",
+                "active": true,
+                "symbolExpression": "%s%PLC1.MAIN.woodBunkSection::status%/s%",
+                "value": {
+                  "objectType": "StaticValue",
+                  "valueType": "tchmi:server#/definitions/PLC1.SectionStatus",
+                  "value": 2
+                },
+                "asyncWait": true
+              }
+            ]
+          }
+        ],
+        "asyncWait": true
+      }
+    ]
+  }
+]
+</script>
+</div>
+<div id="TcHmiButton" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiButton" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="10" data-tchmi-left-unit="px" data-tchmi-text="+Status" data-tchmi-top="226" data-tchmi-top-unit="px" data-tchmi-width="120" data-tchmi-width-unit="px" data-tchmi-word-wrap="true">
+
+<script data-tchmi-target-attribute="data-tchmi-trigger" type="application/json">
+[
+  {
+    "event": "TcHmiButton.onMouseClick",
+    "actions": [
+      {
+        "objectType": "SwitchCase",
+        "active": true,
+        "compare": {
+          "objectType": "Symbol",
+          "valueType": "tchmi:server#/definitions/PLC1.SectionStatus",
+          "symbolExpression": "%s%PLC1.MAIN.outputSection::status%/s%"
+        },
+        "cases": [
+          {
+            "caseValue": {
+              "objectType": "StaticValue",
+              "valueType": "tchmi:server#/definitions/PLC1.SectionStatus",
+              "value": 1
+            },
+            "actions": [
+              {
+                "objectType": "WriteToSymbol",
+                "active": true,
+                "symbolExpression": "%s%PLC1.MAIN.outputSection::status%/s%",
+                "value": {
+                  "objectType": "StaticValue",
+                  "valueType": "tchmi:server#/definitions/PLC1.SectionStatus",
+                  "value": 2
+                },
+                "asyncWait": true
+              }
+            ]
+          },
+          {
+            "caseValue": {
+              "objectType": "StaticValue",
+              "valueType": "tchmi:server#/definitions/PLC1.SectionStatus",
+              "value": 2
+            },
+            "actions": [
+              {
+                "objectType": "WriteToSymbol",
+                "active": true,
+                "symbolExpression": "%s%PLC1.MAIN.outputSection::status%/s%",
+                "value": {
+                  "objectType": "StaticValue",
+                  "valueType": "tchmi:server#/definitions/PLC1.SectionStatus",
+                  "value": 3
+                },
+                "asyncWait": true
+              }
+            ]
+          },
+          {
+            "caseValue": {
+              "objectType": "StaticValue",
+              "valueType": "tchmi:server#/definitions/PLC1.SectionStatus",
+              "value": 0
+            },
+            "actions": [
+              {
+                "objectType": "WriteToSymbol",
+                "active": true,
+                "symbolExpression": "%s%PLC1.MAIN.outputSection::status%/s%",
+                "value": {
+                  "objectType": "StaticValue",
+                  "valueType": "tchmi:server#/definitions/PLC1.SectionStatus",
+                  "value": 2
+                },
+                "asyncWait": true
+              }
+            ]
+          }
+        ],
+        "asyncWait": true
+      }
+    ]
+  }
+]
+</script>
+</div>
+<div id="TcHmiButton_5" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiButton" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="1330" data-tchmi-left-unit="px" data-tchmi-text="+Bundle" data-tchmi-top="0" data-tchmi-top-unit="px" data-tchmi-width="120" data-tchmi-width-unit="px" data-tchmi-word-wrap="true">
+<script data-tchmi-target-attribute="data-tchmi-trigger" type="application/json">
+[
+  {
+    "event": "TcHmiButton_5.onMouseClick",
+    "actions": [
+      {
+        "objectType": "SwitchCase",
+        "active": true,
+        "compare": {
+          "objectType": "Symbol",
+          "valueType": "tchmi:server#/definitions/PLC1.SectionStatus",
+          "symbolExpression": "%s%PLC1.MAIN.paperSection::status%/s%"
+        },
+        "cases": [
+          {
+            "caseValue": {
+              "objectType": "StaticValue",
+              "valueType": "tchmi:server#/definitions/PLC1.SectionStatus",
+              "value": 1
+            },
+            "actions": [
+              {
+                "objectType": "WriteToSymbol",
+                "active": true,
+                "symbolExpression": "%s%PLC1.MAIN.paperSection::status%/s%",
+                "value": {
+                  "objectType": "FunctionExpression",
+                  "functionExpression": "2"
+                },
+                "asyncWait": true
+              }
+            ]
+          },
+          {
+            "caseValue": {
+              "objectType": "StaticValue",
+              "valueType": "tchmi:server#/definitions/PLC1.SectionStatus",
+              "value": 2
+            },
+            "actions": [
+              {
+                "objectType": "WriteToSymbol",
+                "active": true,
+                "symbolExpression": "%s%PLC1.MAIN.paperSection::status%/s%",
+                "value": {
+                  "objectType": "StaticValue",
+                  "valueType": "tchmi:server#/definitions/PLC1.SectionStatus",
+                  "value": 3
+                },
+                "asyncWait": true
+              }
+            ]
+          }
+        ],
+        "asyncWait": true
+      }
+    ]
+  }
+]
+</script>
+</div>
+</div>
+</div>
