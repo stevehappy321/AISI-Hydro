@@ -1,0 +1,239 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="FindBundlesFromDB" Id="{75a3777c-6837-4547-91ca-cb43edd084bf}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM FindBundlesFromDB EXTENDS SqldbReadWrite
+VAR_INPUT
+	id : STRING;
+END_VAR
+VAR_OUTPUT
+	basicBundlesArr : ARRAY[0..20-1] OF BasicBundle;
+END_VAR
+VAR
+	fbSQLCommand : FB_SQLCommandEvt(sNetID := '', tTimeout := T#5S);
+	fbSQLDatabase : FB_SQLDatabaseEvt (sNetID := '', tTimeout := T#5S);
+	fbSQLResult : FB_SQLResultEvt(sNetID:='', tTimeout:=T#5S);
+	
+	query : STRING(1000);
+	//step : (RESET, CONNECT, IDLE, EXECUTE, LOAD_DATA, DISCONNECT);
+END_VAR
+VAR
+	stringBuilder : StringBuilder;
+	i : INT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF NOT ready THEN
+	setup();
+	RETURN;
+END_IF
+
+CASE step OF
+	(*
+	RESET:
+		step := DISCONNECT;
+		
+	CONNECT:
+		IF fbSQLDatabase.Connect(1) THEN
+			IF NOT fbSqlDatabase.bError THEN
+				step := IDLE;
+			END_IF
+		END_IF
+	*)
+	IDLE:
+		IF fbSQLDatabase.CreateCmd(ADR(fbSQLCommand)) THEN
+			step := EXECUTE;
+		END_IF
+	
+	EXECUTE:
+		createQuery();
+		IF fbSQLCommand.ExecuteDataReturn(ADR(query), SIZEOF(query), ADR(fbSqlResult)) THEN
+			step := IDLE;
+		END_IF
+	
+	LOAD_DATA:
+		(*
+		fbSqlResult.Read(0, 1, ADR(existingID), SIZEOF(existingID), TRUE, FALSE);
+		IF BundleData.id = existingID THEN
+			bundleExists := TRUE;
+		ELSE
+			bundleExists := FALSE;
+		END_IF
+		IF fbSQLDatabase.Disconnect() THEN
+			fbSqlResult.Release();
+			checkExistingBundles := TRUE;
+			dbCheckStep := CONNECT;
+		END_IF
+		*)
+		
+	DISCONNECT:
+		IF fbSQLDatabase.Disconnect() THEN
+			step := CONNECT;
+		END_IF
+END_CASE]]></ST>
+    </Implementation>
+    <Method Name="createQuery" Id="{efb6b343-7941-431a-a6cb-c4561387dac4}">
+      <Declaration><![CDATA[METHOD PRIVATE createQuery : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF id = '' THEN //FINISH WITH OTHER BASIC ATTRIBUTES
+	CONCAT2(ADR(query), ADR('SELECT BundleID FROM "Bundle Data - Prototype"'), ADR(query), SIZEOF(query));
+ELSE
+	CONCAT2(ADR(query), ADR('SELECT BundleID FROM "Bundle Data - Prototype" WHERE BundleID = $''), ADR(query), SIZEOF(query));
+	CONCAT2(ADR(query), ADR(id), ADR(query), SIZEOF(query));
+	CONCAT2(ADR(query), ADR('$''), ADR(query), SIZEOF(query));
+END_IF
+
+createQuery := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="queryBasicAttributes" Id="{91de8155-f84d-48ba-a38c-31179aab634d}">
+      <Declaration><![CDATA[METHOD queryBasicAttributes : BOOL
+VAR_INPUT
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="queryPackagingRecipe" Id="{71f08b57-21b8-4d7a-905d-a4f7abcc7830}">
+      <Declaration><![CDATA[METHOD queryPackagingRecipe : BOOL
+VAR_INPUT
+	material : MaterialType;
+END_VAR
+VAR
+	sMaterial : STRING;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[sMaterial := TO_STRING(material);
+
+IF i >= GVL.maxPairs THEN
+	i := 0;
+END_IF
+
+sMaterial := stringBuilder
+	.concatWith(
+		'SELECT
+		(position, top, sides, bottom, upperCorners, upperCorners_foldRatio, lowerCorners, lowerCorners_foldRatio)
+		FROM ______ 
+		WHERE (')
+		
+	.concatWith('bundleID = ')
+	.concatWith('$'')
+	.concatWith(TO_STRING(id))
+	.concatWith('$'')
+	
+	.concatWith(' AND ')
+	
+	.concatWith('arrayIndex = ')
+	.concatWith(TO_STRING(i))
+	.concatWith(')')
+	.getResult();
+(*
+
+FOR i:=0 TO 16 BY 1 DO
+
+
+select (position, top, sides, bottom, upperCorners, upperCorners_foldRatio, lowerCorners, lowerCorners_foldRatio) from 
+where (bundleID = bundle.id and arrayIndex = 1)
+
+//copy the resulting cache into a bundle.<material>[i] (a PositionMaterial struct)
+//do this for all material arrays
+
+
+END_FORR
+
+*)]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="setup" Id="{2da3e218-e980-4fce-bd7a-62dcc22cc354}">
+      <Declaration><![CDATA[METHOD setup : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CASE step OF
+	RESET:
+		step := DISCONNECT;
+		
+	CONNECT:
+		IF fbSQLDatabase.Connect(1) THEN
+			IF NOT fbSqlDatabase.bError THEN
+				step := IDLE;
+				setup := TRUE;
+			END_IF
+		END_IF
+		
+	DISCONNECT:
+		IF fbSQLDatabase.Disconnect() THEN
+			step := CONNECT;
+		END_IF
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FindBundlesFromDB">
+      <LineId Id="195" Count="0" />
+      <LineId Id="200" Count="0" />
+      <LineId Id="197" Count="1" />
+      <LineId Id="196" Count="0" />
+      <LineId Id="116" Count="0" />
+      <LineId Id="202" Count="0" />
+      <LineId Id="140" Count="2" />
+      <LineId Id="117" Count="16" />
+      <LineId Id="158" Count="1" />
+      <LineId Id="171" Count="0" />
+      <LineId Id="161" Count="9" />
+      <LineId Id="160" Count="0" />
+      <LineId Id="134" Count="0" />
+      <LineId Id="172" Count="0" />
+      <LineId Id="135" Count="3" />
+      <LineId Id="54" Count="0" />
+    </LineIds>
+    <LineIds Name="FindBundlesFromDB.createQuery">
+      <LineId Id="21" Count="2" />
+      <LineId Id="26" Count="2" />
+      <LineId Id="25" Count="0" />
+      <LineId Id="29" Count="0" />
+      <LineId Id="19" Count="0" />
+    </LineIds>
+    <LineIds Name="FindBundlesFromDB.queryBasicAttributes">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FindBundlesFromDB.queryPackagingRecipe">
+      <LineId Id="29" Count="0" />
+      <LineId Id="59" Count="0" />
+      <LineId Id="32" Count="0" />
+      <LineId Id="60" Count="2" />
+      <LineId Id="31" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="44" Count="0" />
+      <LineId Id="43" Count="0" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="63" Count="0" />
+      <LineId Id="50" Count="0" />
+      <LineId Id="53" Count="0" />
+      <LineId Id="47" Count="0" />
+      <LineId Id="54" Count="1" />
+      <LineId Id="48" Count="0" />
+      <LineId Id="58" Count="0" />
+      <LineId Id="57" Count="0" />
+      <LineId Id="40" Count="0" />
+      <LineId Id="52" Count="0" />
+      <LineId Id="66" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="15" Count="2" />
+      <LineId Id="21" Count="0" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="18" Count="2" />
+      <LineId Id="14" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="FindBundlesFromDB.setup">
+      <LineId Id="6" Count="7" />
+      <LineId Id="21" Count="0" />
+      <LineId Id="14" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="17" Count="3" />
+      <LineId Id="16" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

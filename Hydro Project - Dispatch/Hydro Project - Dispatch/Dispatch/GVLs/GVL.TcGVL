@@ -1,0 +1,64 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <GVL Name="GVL" Id="{cd4bbf90-35e7-4ef6-9f55-dd1e548fe410}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL CONSTANT
+	numAreas : USINT := 6;
+	
+	maxPairs : USINT := 16;
+	initArraySize : USINT := 4;
+	
+	nullPos : REAL := -1;
+	
+	numMaterials : INT := 32;
+	allMaterials : ARRAY[0..numMaterials] OF Material := [
+		(code := 'PAP28', width := 28, length := -1),
+		
+		(code := 'CAR20S', width := 20, length := 30),
+		(code := 'CAR20M', width := 20, length := 45),
+		(code := 'CAR20L', width := 20, length := 60),
+		(code := 'CAR28S', width := 28, length := 30),
+		(code := 'CAR28M', width := 28, length := 45),
+		(code := 'CAR28L', width := 28, length := 60),
+		
+		(code := 'COR48', width := 1.5, length := 48),
+		(code := 'COR96', width := 1.5, length := 96),
+		
+		(code := 'CIP18', width := 20, length := 18),
+		(code := 'CIP54', width := 20, length := 54),
+		
+		(code := 'WDT20', width := 20, length := 2.5),
+		(code := 'WDT22', width := 22, length := 2.5),
+		(code := 'WDT28', width := 28, length := 2.5),
+		
+		(code := 'WDB20', width := 20, length := 2.5),
+		(code := 'WDB22', width := 22, length := 2.5),
+		(code := 'WDB28', width := 28, length := 2.5),
+		
+		(code := 'WDS08', width := 8, length := 2.5),
+		(code := 'WDS10', width := 10, length := 2.5),
+		(code := 'WDS12', width := 12, length := 2.5),
+		(code := 'WDS14', width := 14, length := 2.5),
+		(code := 'WDS8x8', width := 16, length := 2.5),
+		(code := 'WDS8x10', width := 18, length := 2.5),
+		(code := 'WDS20', width := 20, length := 2.5),
+		(code := 'WDS22', width := 22, length := 2.5),
+		(code := 'WDS12x12', width := 24, length := 2.5),
+		(code := 'WDS12x14', width := 26, length := 2.5),
+		(code := 'WDS28', width := 28, length := 2.5),
+		(code := 'WDS20x10', width := 30, length := 2.5),
+		(code := 'WDS20x12', width := 32, length := 2.5),
+		
+		(code := 'WDW20', width := 20, length := 6),
+		(code := 'WDW22', width := 22, length := 6)]; //+1 null material
+	
+	conveyorLength : REAL;
+	precisionTolerance : REAL := 0.05; //in inches
+END_VAR
+VAR_GLOBAL
+	newBundle : Bundle;
+	bundleIn AT %I* : Bundle;
+	bundleOut AT %Q* : Bundle;
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

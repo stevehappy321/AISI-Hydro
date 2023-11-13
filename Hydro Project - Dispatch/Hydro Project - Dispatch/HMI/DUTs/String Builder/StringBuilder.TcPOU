@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="StringBuilder" Id="{22f9fe77-0400-479d-89ca-12725f28136a}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK StringBuilder
+VAR
+	result : STRING(1000);
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="concatStringArray" Id="{6d4d58b1-72e5-4e1d-aedb-b37876c0d39b}">
+      <Declaration><![CDATA[METHOD concatStringArray : STRING(1000)
+VAR_IN_OUT
+	arr : ARRAY[*] OF STRING;
+END_VAR
+VAR
+	temp : STRING(1000);
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="concatWith" Id="{ad17e71b-95ca-4f38-a153-4c45f5f8fd3c}">
+      <Declaration><![CDATA[METHOD concatWith : REFERENCE TO StringBuilder
+VAR_INPUT
+	target : STRING;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CONCAT2(ADR(result), ADR(target), ADR(result), SIZEOF(result));
+concatWith REF= THIS^;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="getResult" Id="{27cff9f3-46ca-49f6-be7b-07517171a027}">
+      <Declaration><![CDATA[METHOD getResult : STRING(1000)
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[getResult := result;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="reset" Id="{c2e2ebfe-dcac-45ca-9376-8551eeb7ba0d}">
+      <Declaration><![CDATA[METHOD reset : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[result := '';]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="StringBuilder">
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="StringBuilder.concatStringArray">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="StringBuilder.concatWith">
+      <LineId Id="14" Count="0" />
+      <LineId Id="8" Count="0" />
+    </LineIds>
+    <LineIds Name="StringBuilder.getResult">
+      <LineId Id="4" Count="0" />
+    </LineIds>
+    <LineIds Name="StringBuilder.reset">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -1083,8 +1083,8 @@ External Setpoint Generation:
 			<Settings MaxCpus="12" MaxStackSize="4096"/>
 			<Licenses>
 				<Target>
-					<ManualSelect>{796D380F-D49E-4C0C-A05F-500052FAC883}</ManualSelect>
 					<ManualSelect>{92583661-35AE-45CE-BD4F-C35BFE16F07E}</ManualSelect>
+					<ManualSelect>{796D380F-D49E-4C0C-A05F-500052FAC883}</ManualSelect>
 					<ManualSelect>{3EBB9639-5FF3-42B6-8847-35C70DC013C8}</ManualSelect>
 				</Target>
 			</Licenses>
@@ -1096,7 +1096,7 @@ External Setpoint Generation:
 		</System>
 		<Plc>
 			<Project GUID="{E4C31D2B-679A-4B63-A160-76D77225E648}" Name="Area2" PrjFilePath="Area2\Area2.plcproj" TmcFilePath="Area2\Area2.tmc" ReloadTmc="true" AmsPort="851" FileArchiveSettings="#x000e" SymbolicMapping="true">
-				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcPath="Area2\Area2.tmc" TmcHash="{CFE24BA3-8FC8-B6A6-B1B7-D7ECC66FC960}">
+				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcPath="Area2\Area2.tmc" TmcHash="{C0B655A4-9333-4C3F-A486-A0DAAC5FA515}">
 					<Name>Area2 Instance</Name>
 					<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
 					<Vars VarGrpType="1">
@@ -2062,6 +2062,22 @@ External Setpoint Generation:
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
+							<Name>Hardware.suctionA22TopLeft.readback</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.suctionA22TopRight.readback</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.suctionA22BottomLeft.readback</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.suctionA22BottomRight.readback</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
 							<Name>Hardware.toolStorageA21Left.pos1ChipboardEOAT</Name>
 							<Type>BOOL</Type>
 						</Var>
@@ -2091,6 +2107,18 @@ External Setpoint Generation:
 						</Var>
 						<Var>
 							<Name>Hardware.toolStorageA21Right.pos2WoodBunkEOAT</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.suctionA21Top[1].readback</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.suctionA21Top[2].readback</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.suctionA21Top[3].readback</Name>
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
@@ -2147,6 +2175,66 @@ External Setpoint Generation:
 						</Var>
 						<Var>
 							<Name>Hardware.strapperA21.home</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.insertionA21Bottom.contact</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.insertionA21Bottom.home</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.insertionA21Bottom.outerLimit</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.insertionA21Bottom.innerLimit</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.insertionA21Bottom.done</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.suctionA21Left[1].readback</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.suctionA21Left[2].readback</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.suctionA21Left[3].readback</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.suctionA21Left[4].readback</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.suctionA21Right[1].readback</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.suctionA21Right[2].readback</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.suctionA21Right[3].readback</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.suctionA21Right[4].readback</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.suctionA21Bottom[1].readback</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.suctionA21Bottom[2].readback</Name>
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
@@ -2219,26 +2307,6 @@ External Setpoint Generation:
 						</Var>
 						<Var>
 							<Name>Hardware.insertionA21Right.screw.innerLimit</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>Hardware.insertionA21Bottom.contact</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>Hardware.insertionA21Bottom.home</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>Hardware.insertionA21Bottom.outerLimit</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>Hardware.insertionA21Bottom.innerLimit</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>Hardware.insertionA21Bottom.done</Name>
 							<Type>BOOL</Type>
 						</Var>
 					</Vars>
@@ -3200,6 +3268,34 @@ External Setpoint Generation:
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
+							<Name>Hardware.suctionA22TopLeft.enable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.suctionA22TopRight.enable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.suctionA22BottomLeft.enable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.suctionA22BottomRight.enable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.suctionA21Top[1].enable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.suctionA21Top[2].enable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.suctionA21Top[3].enable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
 							<Name>Hardware.strapperA21.execute</Name>
 							<Type>BOOL</Type>
 						</Var>
@@ -3217,6 +3313,65 @@ External Setpoint Generation:
 						</Var>
 						<Var>
 							<Name>Hardware.strapperA21.bottomSuction</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.insertionA21Bottom.enable</Name>
+							<Comment><![CDATA[enable + pulses]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.insertionA21Bottom.A</Name>
+							<Comment><![CDATA[direction (F = inwards, T = outwards)]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.insertionA21Bottom.B</Name>
+							<Comment><![CDATA[home bit]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.insertionA21Bottom.brakeRelease</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.suctionA21Left[1].enable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.suctionA21Left[2].enable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.suctionA21Left[3].enable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.suctionA21Left[4].enable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.suctionA21Right[1].enable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.suctionA21Right[2].enable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.suctionA21Right[3].enable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.suctionA21Right[4].enable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.suctionA21Bottom[1].enable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Hardware.suctionA21Bottom[2].enable</Name>
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
@@ -3239,11 +3394,11 @@ External Setpoint Generation:
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
-							<Name>Hardware.insertionA21Left.screw.valveIn</Name>
+							<Name>Hardware.insertionA21Left.screw.valveExtend</Name>
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
-							<Name>Hardware.insertionA21Left.screw.valveOut</Name>
+							<Name>Hardware.insertionA21Left.screw.valveRetract</Name>
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
@@ -3266,30 +3421,11 @@ External Setpoint Generation:
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
-							<Name>Hardware.insertionA21Right.screw.valveIn</Name>
+							<Name>Hardware.insertionA21Right.screw.valveExtend</Name>
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
-							<Name>Hardware.insertionA21Right.screw.valveOut</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>Hardware.insertionA21Bottom.enable</Name>
-							<Comment><![CDATA[enable + pulses]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>Hardware.insertionA21Bottom.A</Name>
-							<Comment><![CDATA[direction (F = inwards, T = outwards)]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>Hardware.insertionA21Bottom.B</Name>
-							<Comment><![CDATA[home bit]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>Hardware.insertionA21Bottom.brakeRelease</Name>
+							<Name>Hardware.insertionA21Right.screw.valveRetract</Name>
 							<Type>BOOL</Type>
 						</Var>
 					</Vars>

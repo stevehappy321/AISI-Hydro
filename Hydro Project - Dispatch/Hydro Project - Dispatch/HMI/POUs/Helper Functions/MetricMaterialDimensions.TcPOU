@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="MetricMaterialDimensions" Id="{c8d53307-fb53-44cd-9a7d-5bedc1c5b165}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION MetricMaterialDimensions : BOOL
+VAR_IN_OUT
+	materials : ARRAY[*] OF Material;
+END_VAR
+VAR
+	i : DINT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[FOR i:=LOWER_BOUND(materials, 1) TO UPPER_BOUND(materials, 1) BY 1 DO
+	materials[i].lengthMM := TO_INT(materials[i].length * 25.4);
+	materials[i].widthMM := TO_INT(materials[i].width * 25.4);
+END_FOR]]></ST>
+    </Implementation>
+    <LineIds Name="MetricMaterialDimensions">
+      <LineId Id="7" Count="0" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="12" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

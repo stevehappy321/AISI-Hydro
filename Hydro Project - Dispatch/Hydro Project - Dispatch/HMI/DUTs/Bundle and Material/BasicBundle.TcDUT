@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="BasicBundle" Id="{a4a3ae99-90b4-49ad-8340-1932034af35e}">
+    <Declaration><![CDATA[TYPE BasicBundle :
+STRUCT
+	id : STRING;
+	
+	weight : REAL;
+	
+	length : USINT;
+	width : USINT;
+	height : USINT;
+	
+	extrusionWeight : REAL;
+	extrusionWidth : USINT;
+	extrusionHeight : USINT;
+	
+	pieces : USINT;
+	layers : USINT;
+	piecesPerLayer : USINT;
+END_STRUCT
+END_TYPE
+
+(*
+barebones structure for essential bundle data that can be displayed on the HMI
+refer to full structure for full recipe
+*)]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="IntervalIsvalid" Id="{19981972-3874-45d7-bd5a-0c23cbdf8609}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION IntervalIsvalid : BOOL
+VAR_INPUT
+	pair : REFERENCE TO Interval;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IntervalIsValid := (
+	pair.startPos <> GVL.nullPos AND 
+	pair.endPos <> GVL.nullPos AND 
+	pair.startPos < pair.endPos);]]></ST>
+    </Implementation>
+    <LineIds Name="IntervalIsvalid">
+      <LineId Id="7" Count="0" />
+      <LineId Id="11" Count="2" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

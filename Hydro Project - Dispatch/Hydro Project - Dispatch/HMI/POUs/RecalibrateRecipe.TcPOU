@@ -1,0 +1,360 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="RecalibrateRecipe" Id="{c2718c0c-6fde-428a-b2ec-c686980510d2}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM RecalibrateRecipe
+VAR_INPUT
+	original : REFERENCE TO Bundle;
+	confirmed : REFERENCE TO Bundle;
+END_VAR
+VAR
+	lengthDifference : REAL;
+	minAllowableLength : REAL;
+	lengthShortenedDifferenceMax : REAL;
+	
+	lengthDifferenceFactor : REAL;
+	
+	cipLength : REAL;
+	
+	i : INT;
+END_VAR
+VAR_OUTPUT
+	reject : BOOL;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[//original REF= GVL.originalBundle;
+//confirmed REF= GVL.confirmedBundle;
+
+lengthDifference := confirmed.length - original.length;
+minAllowableLength := cipLength + (2 * GVL.cipBuffer);
+lengthShortenedDifferenceMax := original.length - minAllowableLength;
+
+lengthDifferenceFactor := confirmed.length/original.length;
+
+reject := FALSE; //reset rejection status
+IF confirmed.length < original.length THEN	
+	calibrate(confirmed.chipboard);
+	calibrate(confirmed.cornerGuard);
+	optimize(confirmed.cardboard);
+	//optimize(confirmed.paperTop);
+ELSIF confirmed.length > original.length THEN
+	(*
+	split the bundle in half
+	keep all materials at the same distance from the closer edge (front/back)
+	or
+	//THIS
+	keep first and last material in place
+	scale the position of everything else in the middle
+	*)
+	scale(confirmed.cardboard);
+	scale(confirmed.cornerGuard);
+	scale(confirmed.chipboard);
+END_IF]]></ST>
+    </Implementation>
+    <Folder Name="Obsolete" Id="{4e91eb66-3ad8-4da4-9167-6286b8792538}" />
+    <Method Name="calibrate" Id="{4a0eb81e-f42e-4a65-836c-88c9cf12ee77}">
+      <Declaration><![CDATA[METHOD calibrate : BOOL
+VAR_IN_OUT
+	pairsArr : ARRAY[*] OF PositionMaterials;
+END_VAR
+VAR
+	currPair : REFERENCE TO PositionMaterials;
+	prevPair : REFERENCE TO PositionMaterials;
+	
+	accumulatedGaps : REAL;
+	currMaterialFrontPos : REAL;
+	prevMaterialBackPos : REAL;	
+	currGap : REAL;
+	
+	tempReject : BOOL;
+END_VAR
+(*
+this method is for materials that cannot overlap and have strict acceptance/rejection criteria
+currently only used by cornerboard and chipboard
+*)]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[cipLength := 0;
+
+FOR i:=0 TO GVL.maxPairs BY 1 DO
+	currPair REF= pairsArr[i];
+	IF currPair.position = GVL.nullPos THEN
+		CONTINUE;
+	END_IF
+	
+	cipLength := cipLength + GetMasterLength(currPair);
+END_FOR
+
+IF confirmed.length < minAllowableLength THEN
+	tempReject := TRUE;
+	RETURN;
+END_IF //guard clause
+
+FOR i:=1 TO GVL.maxPairs BY 1 DO
+	currPair REF= pairsArr[i];
+	prevPair REF= pairsArr[i-1];
+	
+	IF currPair.position = GVL.nullPos THEN
+		CONTINUE;
+	END_IF
+	
+	
+	currMaterialFrontPos := currPair.position - GetMasterLength(currPair)/2; //- front, + back
+	prevMaterialBackPos := prevPair.position + GetMasterLength(prevPair)/2;
+	
+	currGap := currMaterialFrontPos - prevMaterialBackPos;
+	
+	currPair.position := currPair.position - (((1 - lengthDifference/lengthShortenedDifferenceMax) * currGap) - accumulatedGaps);
+	accumulatedGaps := accumulatedGaps + currGap;
+END_FOR
+tempReject := FALSE;
+
+reject := MAX(reject, tempReject);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="chipboard" Id="{d0ddc8cc-4ea1-41bf-a0d5-0472a9795f56}" FolderPath="Obsolete\">
+      <Declaration><![CDATA[METHOD chipboard : BOOL
+VAR
+	currPair : REFERENCE TO PositionMaterials;
+	prevPair : REFERENCE TO PositionMaterials;
+	
+	accumulatedGaps : REAL;
+	currMaterialFrontPos : REAL;
+	prevMaterialBackPos : REAL;	
+	currGap : REAL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[cipLength := 0;
+
+FOR i:=0 TO GVL.maxPairs BY 1 DO
+	currPair REF= confirmed.chipboard[i];
+	IF currPair.position = GVL.nullPos THEN
+		CONTINUE;
+	END_IF
+	
+	cipLength := cipLength + GetMasterLength(currPair);
+END_FOR
+
+IF confirmed.length < minAllowableLength THEN
+	reject := TRUE;
+	RETURN;
+END_IF //guard clause
+
+FOR i:=1 TO GVL.maxPairs BY 1 DO
+	currPair REF= confirmed.chipboard[i];
+	prevPair REF= confirmed.chipboard[i-1];
+	
+	IF currPair.position = GVL.nullPos THEN
+		CONTINUE;
+	END_IF
+	
+	
+	currMaterialFrontPos := currPair.position - GetMasterLength(currPair)/2; //- front, + back
+	prevMaterialBackPos := prevPair.position + GetMasterLength(prevPair)/2;
+	
+	currGap := currMaterialFrontPos - prevMaterialBackPos;
+	
+	currPair.position := currPair.position - (((1 - lengthDifference/lengthShortenedDifferenceMax) * currGap) - accumulatedGaps);
+	accumulatedGaps := accumulatedGaps + currGap;
+END_FOR
+reject := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="cornerboard" Id="{0b0bb6df-cf11-4c17-a4b0-797d6604e954}" FolderPath="Obsolete\">
+      <Declaration><![CDATA[METHOD cornerboard : BOOL
+VAR
+	currPair : REFERENCE TO PositionMaterials;
+	prevPair : REFERENCE TO PositionMaterials;
+	
+	accumulatedGaps : REAL;
+	currMaterialFrontPos : REAL;
+	prevMaterialBackPos : REAL;	
+	currGap : REAL;
+	i : BOOL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="optimize" Id="{d0aed5ec-ab77-4eb1-b8bb-1b63a842774e}">
+      <Declaration><![CDATA[METHOD optimize : BOOL
+VAR_IN_OUT
+	pairsArr : ARRAY[*] OF PositionMaterials;
+END_VAR
+VAR
+	currPair : REFERENCE TO PositionMaterials;
+	prevPair : REFERENCE TO PositionMaterials;
+	
+	accumulatedGaps : REAL;
+	currMaterialFrontPos : REAL;
+	prevMaterialBackPos : REAL;	
+	currGap : REAL;
+	
+	tempReject : BOOL;
+END_VAR
+(*
+this method is for materials are allowed to overlap
+acceptance/rejection conditions may be more lax
+currently used by paper, cardboard
+*)]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="scale" Id="{56b0565a-5b41-46de-8957-513154bc1109}">
+      <Declaration><![CDATA[METHOD scale : BOOL
+VAR_IN_OUT
+	pairsArr : ARRAY[*] OF PositionMaterials;
+END_VAR
+VAR
+	currPair : REFERENCE TO PositionMaterials;
+	firstPair : REFERENCE TO PositionMaterials;
+	lastPair : REFERENCE TO PositionMaterials;
+	firstPairIndex : INT;
+	lastPairIndex : INT;
+	
+	lastPairLength : REAL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i:=0 TO GVL.maxPairs BY 1 DO //find first and last pair
+	currPair REF= pairsArr[i];
+	
+	IF PositionIsValid(currPair) THEN
+		IF NOT __ISVALIDREF(firstPair) THEN //set first pair once only
+			firstPair REF= pairsArr[i];
+			firstPairIndex := i;
+		END_IF
+		lastPair REF= pairsArr[i]; //keep setting last pair
+		lastPairIndex := i;
+	END_IF
+END_FOR
+
+FOR i:=firstPairIndex+1 TO lastPairIndex-1 BY 1 DO
+	pairsArr[i].position := pairsArr[i].position * lengthDifferenceFactor;
+END_FOR
+
+//leave first pair untouched, recalculate last pair position
+lastPair.position := confirmed.length - GetMasterLength(lastPair)/2;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="scalePaper" Id="{d44080f3-9425-44f2-812a-8d7cf676cdd6}">
+      <Declaration><![CDATA[METHOD scalePaper : BOOL
+VAR_IN_OUT
+	paperArr : ARRAY[*] OF Interval;
+END_VAR
+VAR
+	currPair : REFERENCE TO Interval;
+	firstPair : REFERENCE TO Interval;
+	lastPair : REFERENCE TO Interval;
+	firstPairIndex : INT;
+	lastPairIndex : INT;
+	
+	lastPairEnd : REAL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i:=0 TO GVL.maxPairs BY 1 DO //find first and last pair
+	currPair REF= paperArr[i];
+	
+	IF IntervalIsValid(currPair) THEN
+		IF NOT __ISVALIDREF(firstPair) THEN //set first pair once only
+			firstPair REF= paperArr[i];
+			firstPairIndex := i;
+		END_IF
+		lastPair REF= paperArr[i]; //keep setting last pair
+		lastPairIndex := i;
+	END_IF
+END_FOR
+
+FOR i:=firstPairIndex+1 TO lastPairIndex-1 BY 1 DO
+	paperArr[i].startPos := paperArr[i].startPos * lengthDifferenceFactor;
+	paperArr[i].endPos := paperArr[i].endPos * lengthDifferenceFactor;
+END_FOR
+
+//leave first pair start pos
+firstPair.endPos := firstPair.endPos * lengthDifferenceFactor;
+
+lastPair.startPos := lastPair.startPos * lengthDifferenceFactor;
+//leave last pair end pos]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="RecalibrateRecipe">
+      <LineId Id="95" Count="1" />
+      <LineId Id="156" Count="2" />
+      <LineId Id="155" Count="0" />
+      <LineId Id="159" Count="0" />
+      <LineId Id="163" Count="0" />
+      <LineId Id="201" Count="0" />
+      <LineId Id="115" Count="0" />
+      <LineId Id="114" Count="0" />
+      <LineId Id="135" Count="2" />
+      <LineId Id="116" Count="0" />
+      <LineId Id="113" Count="0" />
+      <LineId Id="143" Count="0" />
+      <LineId Id="138" Count="0" />
+      <LineId Id="140" Count="0" />
+      <LineId Id="142" Count="0" />
+      <LineId Id="151" Count="0" />
+      <LineId Id="147" Count="1" />
+      <LineId Id="146" Count="0" />
+      <LineId Id="149" Count="0" />
+      <LineId Id="182" Count="0" />
+      <LineId Id="150" Count="0" />
+      <LineId Id="139" Count="0" />
+    </LineIds>
+    <LineIds Name="RecalibrateRecipe.calibrate">
+      <LineId Id="60" Count="32" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="96" Count="0" />
+      <LineId Id="95" Count="0" />
+    </LineIds>
+    <LineIds Name="RecalibrateRecipe.chipboard">
+      <LineId Id="85" Count="0" />
+      <LineId Id="129" Count="0" />
+      <LineId Id="86" Count="0" />
+      <LineId Id="130" Count="0" />
+      <LineId Id="87" Count="5" />
+      <LineId Id="94" Count="0" />
+      <LineId Id="115" Count="0" />
+      <LineId Id="95" Count="2" />
+      <LineId Id="121" Count="0" />
+      <LineId Id="99" Count="10" />
+      <LineId Id="116" Count="0" />
+      <LineId Id="111" Count="3" />
+      <LineId Id="20" Count="0" />
+      <LineId Id="131" Count="0" />
+    </LineIds>
+    <LineIds Name="RecalibrateRecipe.cornerboard">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="RecalibrateRecipe.optimize">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="RecalibrateRecipe.scale">
+      <LineId Id="5" Count="0" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="24" Count="1" />
+      <LineId Id="30" Count="1" />
+      <LineId Id="36" Count="0" />
+      <LineId Id="28" Count="0" />
+      <LineId Id="26" Count="0" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="27" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="32" Count="0" />
+      <LineId Id="38" Count="1" />
+      <LineId Id="60" Count="0" />
+      <LineId Id="40" Count="0" />
+      <LineId Id="47" Count="0" />
+    </LineIds>
+    <LineIds Name="RecalibrateRecipe.scalePaper">
+      <LineId Id="15" Count="14" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="30" Count="0" />
+      <LineId Id="32" Count="0" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="40" Count="0" />
+      <LineId Id="39" Count="0" />
+      <LineId Id="35" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

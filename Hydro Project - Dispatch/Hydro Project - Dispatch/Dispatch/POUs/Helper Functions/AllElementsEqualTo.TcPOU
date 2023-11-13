@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="AllElementsEqualTo" Id="{26fdef38-f4a7-4280-ad00-fa6835f22b30}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION AllElementsEqualTo : BOOL
+VAR_IN_OUT
+	arr : ARRAY[*] OF INT;
+END_VAR
+VAR_INPUT
+	firstIndex : SINT;
+	lastIndex : SINT;
+	value : INT;
+END_VAR
+VAR
+	i : SINT := 0;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[FOR i:=firstIndex TO lastIndex BY 1 DO
+	IF NOT arr[i] = value THEN
+		allElementsEqualTo := FALSE;
+		RETURN;
+	END_IF
+END_FOR
+
+allElementsEqualTo := TRUE;
+RETURN;]]></ST>
+    </Implementation>
+    <LineIds Name="AllElementsEqualTo">
+      <LineId Id="18" Count="7" />
+      <LineId Id="7" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

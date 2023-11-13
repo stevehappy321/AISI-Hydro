@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="FB_Area" Id="{cd10b598-7a8c-4b57-8c3c-62834945eee3}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_Area
+VAR
+	name : STRING; //fully area name
+	id : INT; //area number only
+	
+	queue : PtrQueue := (dataSize := SIZEOF(POINTER TO Bundle));
+	activeBundles : ARRAY[0..10] OF Bundle; //most will only use 1
+	capacity : USINT;
+	
+	ready : BOOL; //ready to receive
+	done : BOOL; //finished current bundle new bundle
+	
+	socket : AdsSocket;
+END_VAR
+VAR CONSTANT
+	test : INT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="transfer" Id="{6890ed38-c4b0-403c-9342-b4dcfc2d0725}">
+      <Declaration><![CDATA[METHOD transfer : BOOL
+VAR_INPUT
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_Area">
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_Area.transfer">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,300 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="DatabaseLogger" Id="{fa1760be-7990-4165-9d1d-f79272c940f7}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK DatabaseLogger//database logging, to be replaced with inbuilt eventlogger
+VAR_INPUT
+	//client : REFERENCE TO AdsUnit;
+END_VAR
+VAR
+	events : IntQueue := (SIZEOF(INT)); //planned events log to remove events queue in GVL
+	
+	fbSQLCommand : FB_SQLCommandEvt(sNetID := '', tTimeout := T#5S);
+	fbSQLDatabase : FB_SQLDatabaseEvt (sNetID := '', tTimeout := T#5S);
+	fbSQLResult: FB_SQLResultEvt(sNetID:='', tTimeout:=T#5S);
+	
+	CMD_0 : STRING(5000) := '$' INSERT INTO EventLog(Timestamp, Machine, Event, Type) VALUES(';
+	sCMD : STRING(5000);
+	strSFCErrorStep : STRING;
+	
+	ntSystemTime : NT_GetTime;
+    timeAsStruct : TIMESTRUCT;
+	
+	exeIn : ARRAY [0..2] OF STRING(255);
+	
+	//iterators
+	i : SINT := 0;
+	
+	//step switch
+	step : (IDLE,
+			CONNECT_TO_DB, CREATE_CMD, INSERT_CMD, CLOSE_CONNECTION, 
+			CONNECT_TO_LOCAL_DB, CREATE_LOCAL_CMD, INSERT_LOCAL_CMD, CLOSE_LOCAL_CONNECTION,
+			ERROR);
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[CASE step OF //1-4 for local DB, 11-14 for plant DB
+	//local EventLog DB should store all events for diagnosis
+	IDLE:
+		IF NOT events.isEmpty() THEN
+			step := CONNECT_TO_DB;
+		END_IF
+		
+	CONNECT_TO_DB: //open connection to local EventLog DB
+		IF connectToDb() THEN
+			step := 1;
+		END_IF
+		
+	CREATE_CMD: //create command
+		IF createCommand() THEN
+			step := 2;
+		END_IF
+		
+	INSERT_CMD: //insert command
+		//timestamp, event, machine, type
+		//ntSystemTime(NETID := , START := TRUE, TMOUT := DEFAULT_ADS_TIMEOUT, BUSY => , ERR =>, ERRID =>, TIMESTR => timeAsStruct);
+		
+		sCMD := CONCAT(CMD_0, '$''); //timestamp
+		sCMD := CONCAT(sCMD, TimestructToString(GVL.bundleOut^.timeDone));
+		sCMD := CONCAT(sCMD, '$', ');
+		
+		exeIn[0] := CONCAT(CMD_0, '$''); //timestamp
+		exeIn[0] := CONCAT(sCMD, TimestructToString(timeAsStruct));
+		exeIn[0] := CONCAT(sCMD, '$', ');
+		
+		CASE GVL.events.get(i:=0) OF //event
+			(*EventsEnum.BUNDLE_SENT:
+				exeIn[1] := CONCAT(exeIn[1], '$'Bundle Sent (');
+				exeIn[1] := CONCAT(exeIn[1], GVL.bundleOut^.id);
+				exeIn[1] := CONCAT(exeIn[1], ')$'');*)
+			EventsEnum.BACKLOG:
+				exeIn[1] := CONCAT(exeIn[1], '$'Backlog$'');
+			EventsEnum.MACHINE_FAILURE: //and other specific events to be logged
+				exeIn[1] := CONCAT(exeIn[1], '$'Machine Failure$'');
+			EventsEnum.DELAY:
+				exeIn[1] := CONCAT(exeIn[1], '$'Delay (');
+				exeIn[1] := CONCAT(exeIn[1], GVL.bundleOut^.id);
+				exeIn[1] := CONCAT(exeIn[1], ')$'');
+			EventsEnum.BUNDLE_LATE_RECEIVED:
+				exeIn[1] := CONCAT(exeIn[1], '$'Late Arrival (');
+				exeIn[1] := CONCAT(exeIn[1], GVL.bundleOut^.id);
+				exeIn[1] := CONCAT(exeIn[1], ')$'');
+			EventsEnum.BUNDLE_EARLY_RECEIVED:
+				exeIn[1] := CONCAT(exeIn[1], '$'Early Arrival (');
+				exeIn[1] := CONCAT(exeIn[1], GVL.bundleOut^.id);
+				exeIn[1] := CONCAT(exeIn[1], ')$'');
+			ELSE
+				exeIn[1] := CONCAT(exeIn[1], '$'Other/Unknown$'');
+		END_CASE
+		
+		exeIn[2] := CONCAT(exeIn[2], '$'Area 2$')'); //machine
+		
+		//ADSLOGSTR(msgCtrlMask := ADSLOG_MSGTYPE_ERROR OR ADSLOG_MSGTYPE_MSGBOX, msgFmtStr := sCMD, strArg := strSFCErrorStep);
+		
+		FOR i:=0 TO 2 BY 1 DO
+			sCMD := CONCAT(sCMD, exeIn[i]);
+		END_FOR
+		
+		IF fbSQLCommand.Execute(ADR(sCMD), SIZEOF(sCMD)) THEN
+			step := 3;
+		END_IF
+	
+	//3: //send data to system EventLog DB via TCP client
+		(*IF client.send(sAction := 'log event', sData := sCMD) THEN
+			step := 4;
+		END_IF*)
+		
+	CLOSE_CONNECTION: //close connection
+		GVL.events.poll();
+		IF fbSQLDatabase.Disconnect() THEN
+			step := 100;
+		END_IF
+	
+	//system EventLog DB should only store simplified events
+	(*100:
+		IF NOT GVL.events.isEmpty() THEN
+			IF fbSQLDatabase.Connect(5) THEN
+				step := 11;
+			END_IF
+		END_IF
+	
+	101:
+		IF fbSQLDatabase.CreateCmd(ADR(fbSQLCommand)) THEN
+			step := 12;
+		END_IF
+	
+	102:
+		sCMD := CONCAT(CMD_0, '$''); //timestamp
+		sCMD := CONCAT(sCMD, helper.timestructToString(timeAsStruct));
+		sCMD := CONCAT(sCMD, '$', ');
+		
+		CASE GVL.events.get(i := 0) OF //event
+			EventsEnum.BUNDLE_SENT:
+				sCMD := CONCAT(sCMD, '$'Bundle Sent (');
+				sCMD := CONCAT(sCMD, GVL.bundleOut^.id);
+				sCMD := CONCAT(sCMD, ')$'');
+			EventsEnum.BACKLOG:
+				sCMD := CONCAT(sCMD, '$'Backlog$'');
+			EventsEnum.MACHINE_FAILURE:
+				sCMD := CONCAT(sCMD, '$'Machine Failure$'');
+			EventsEnum.DELAY:
+				sCMD := CONCAT(sCMD, '$'Delay (');
+				sCMD := CONCAT(sCMD, GVL.bundleOut^.id);
+				sCMD := CONCAT(sCMD, ')$'');
+			EventsEnum.BUNDLE_LATE_RECEIVED:
+				sCMD := CONCAT(sCMD, '$'Late Arrival (');
+				sCMD := CONCAT(sCMD, GVL.bundleOut^.id);
+				sCMD := CONCAT(sCMD, ')$'');
+			EventsEnum.BUNDLE_EARLY_RECEIVED:
+				sCMD := CONCAT(sCMD, '$'Early Arrival (');
+				sCMD := CONCAT(sCMD, GVL.bundleOut^.id);
+				sCMD := CONCAT(sCMD, ')$'');
+			ELSE
+				sCMD := CONCAT(sCMD, '$'Other/Unknown$'');
+		END_CASE
+		
+		sCMD := CONCAT(sCMD, '$'Area 2$')'); //machine
+		
+		ADSLOGSTR(msgCtrlMask := ADSLOG_MSGTYPE_ERROR OR ADSLOG_MSGTYPE_MSGBOX, msgFmtStr := sCMD, strArg := strSFCErrorStep);
+		
+		IF fbSQLCommand.Execute(ADR(sCMD), SIZEOF(sCMD)) THEN
+			step := 3;
+		END_IF
+	
+	103:
+		
+	104:*)
+		
+		
+END_CASE]]></ST>
+    </Implementation>
+    <Method Name="addEvent" Id="{de4ecb43-58d7-4da9-9bbc-374c2b71b620}">
+      <Declaration><![CDATA[METHOD addEvent : BOOL
+VAR_INPUT
+	event: INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[events.push(event);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="connectToDb" Id="{3a470fe7-6baa-4961-a102-3bebbb73ae5d}">
+      <Declaration><![CDATA[METHOD connectToDb : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF fbSQLDatabase.Connect(1) THEN
+	connectToDb := TRUE;
+	RETURN;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="createCommand" Id="{38dc54dc-7e7c-425f-8f08-7617b42635fe}">
+      <Declaration><![CDATA[METHOD createCommand : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF fbSQLDatabase.CreateCmd(ADR(fbSQLCommand)) THEN
+	createCommand := TRUE;
+	RETURN;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="insertCommand" Id="{0582eb5e-727e-42fd-bdda-d8c8a1d9c1ad}">
+      <Declaration><![CDATA[METHOD insertCommand : BOOL
+VAR_INPUT
+END_VAR
+VAR_INST
+	tempPtr : POINTER TO Bundle;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//for bundle completion events use bundle.timeDone, otherwise use system time
+IF GVL.events.get(i:=0) = EventsEnum.BUNDLE_COMPLETE THEN
+	tempPtr := GVL.bundlesCompleted.poll();
+	timeAsStruct := tempPtr^.timeDone;
+	__DELETE(tempPtr);
+ELSE
+	ntSystemTime(NETID := , START := TRUE, TMOUT := DEFAULT_ADS_TIMEOUT, BUSY => , ERR =>, ERRID =>, TIMESTR => timeAsStruct);
+END_IF
+
+sCMD := CONCAT(CMD_0, '$''); //timestamp
+sCMD := CONCAT(sCMD, TimestructToString(GVL.bundleOut^.timeDone));
+sCMD := CONCAT(sCMD, '$', ');
+
+exeIn[0] := CONCAT(CMD_0, '$''); //timestamp
+exeIn[0] := CONCAT(sCMD, TimestructToString(timeAsStruct));
+exeIn[0] := CONCAT(sCMD, '$', ');
+
+CASE GVL.events.get(i:=0) OF //event
+	(*EventsEnum.BUNDLE_SENT:
+		exeIn[1] := CONCAT(exeIn[1], '$'Bundle Sent (');
+		exeIn[1] := CONCAT(exeIn[1], GVL.bundleOut^.id);
+		exeIn[1] := CONCAT(exeIn[1], ')$'');*)
+	EventsEnum.BACKLOG:
+		exeIn[1] := CONCAT(exeIn[1], '$'Backlog$'');
+	EventsEnum.MACHINE_FAILURE: //and other specific events to be logged
+		exeIn[1] := CONCAT(exeIn[1], '$'Machine Failure$'');
+	EventsEnum.DELAY:
+		exeIn[1] := CONCAT(exeIn[1], '$'Delay (');
+		exeIn[1] := CONCAT(exeIn[1], GVL.bundleOut^.id);
+		exeIn[1] := CONCAT(exeIn[1], ')$'');
+	EventsEnum.BUNDLE_LATE_RECEIVED:
+		exeIn[1] := CONCAT(exeIn[1], '$'Late Arrival (');
+		exeIn[1] := CONCAT(exeIn[1], GVL.bundleOut^.id);
+		exeIn[1] := CONCAT(exeIn[1], ')$'');
+	EventsEnum.BUNDLE_EARLY_RECEIVED:
+		exeIn[1] := CONCAT(exeIn[1], '$'Early Arrival (');
+		exeIn[1] := CONCAT(exeIn[1], GVL.bundleOut^.id);
+		exeIn[1] := CONCAT(exeIn[1], ')$'');
+	ELSE
+		exeIn[1] := CONCAT(exeIn[1], '$'Other/Unknown$'');
+END_CASE
+
+exeIn[2] := CONCAT(exeIn[2], '$'Area 2$')'); //machine
+
+//ADSLOGSTR(msgCtrlMask := ADSLOG_MSGTYPE_ERROR OR ADSLOG_MSGTYPE_MSGBOX, msgFmtStr := sCMD, strArg := strSFCErrorStep);]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="DatabaseLogger">
+      <LineId Id="508" Count="1" />
+      <LineId Id="730" Count="4" />
+      <LineId Id="510" Count="0" />
+      <LineId Id="698" Count="2" />
+      <LineId Id="516" Count="7" />
+      <LineId Id="693" Count="3" />
+      <LineId Id="524" Count="0" />
+      <LineId Id="654" Count="0" />
+      <LineId Id="656" Count="1" />
+      <LineId Id="655" Count="0" />
+      <LineId Id="529" Count="28" />
+      <LineId Id="658" Count="3" />
+      <LineId Id="558" Count="71" />
+      <LineId Id="215" Count="0" />
+    </LineIds>
+    <LineIds Name="DatabaseLogger.addEvent">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="DatabaseLogger.connectToDb">
+      <LineId Id="7" Count="1" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="DatabaseLogger.createCommand">
+      <LineId Id="5" Count="1" />
+      <LineId Id="8" Count="0" />
+      <LineId Id="7" Count="0" />
+    </LineIds>
+    <LineIds Name="DatabaseLogger.insertCommand">
+      <LineId Id="5" Count="0" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="14" Count="0" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="15" Count="1" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="19" Count="35" />
+      <LineId Id="18" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

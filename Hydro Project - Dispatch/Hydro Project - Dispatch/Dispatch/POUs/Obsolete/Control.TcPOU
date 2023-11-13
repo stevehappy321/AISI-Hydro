@@ -1,0 +1,160 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="Control" Id="{4fea9500-a015-4b46-b948-0209cdfaf822}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK Control
+VAR
+	newBundle : Bundle; //new bundle, connected to HMI
+	
+	areas : ARRAY[1..6] OF Area;
+	
+	bundleIDs : ARRAY[1..6] OF ARRAY[0..16] OF STRING; //for HMI tracking only
+	numBundleIDs : ARRAY[1..6] OF ARRAY[0..16] OF UINT; //bundleIDs counter
+	
+	completedBundles : PtrQueue := (dataSize := SIZEOF(Bundle));
+	
+	
+	//dbLogger : EventLogger;
+	//getBundleFromDB : GetBundleRecipe;
+	
+	fbSystemTime : FB_LocalSystemTime;
+	temp : POINTER TO Bundle; //to push into area queue
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[//reecive() is called manually by the dispatch operator through the HMI
+
+process(); //track and move bundles between stations
+
+transfer(); //production line output
+
+//HMI parallel processing
+//getBundleFromDB(newBundle := newBundle, finished => );]]></ST>
+    </Implementation>
+    <Method Name="process" Id="{aea9f9c8-449b-427e-aca7-fc9f0b6cf083}">
+      <Declaration><![CDATA[METHOD process : BOOL
+VAR_INST
+	i : DINT;
+	tempBundlePointer : POINTER TO Bundle; //to move data around
+	tempBundle : Bundle; //if dereferencing is needed
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[(*
+FOR i:=1 TO 6 BY 1 DO
+	IF areas[i].finished THEN
+		CASE i OF //add event
+			1: dbLogger.addEvent(TO_INT(EventsEnum.AREA_1_COMPLETE));
+			2: dbLogger.addEvent(TO_INT(EventsEnum.AREA_2_COMPLETE));
+			3: dbLogger.addEvent(TO_INT(EventsEnum.AREA_3_COMPLETE));
+			4: dbLogger.addEvent(TO_INT(EventsEnum.AREA_4_COMPLETE));
+			5: dbLogger.addEvent(TO_INT(EventsEnum.AREA_5_COMPLETE));
+			6: dbLogger.addEvent(TO_INT(EventsEnum.AREA_6_COMPLETE));
+		END_CASE
+		
+		IF i = 1 OR i = 3 OR i = 5 OR i = 6 THEN
+			//find next area
+			(*
+			IF area[next].ready THEN
+				temp := areas[i].queue.poll();
+				
+				//begin transfer, move physical components
+				
+				area[next].queue.push(temp);
+				area[next].ready := FALSE;
+				area[next].done := FALSE;
+				
+				areas[i].done := FALSE;
+				areas[i].ready := TRUE;
+			END_IF
+			*)
+		ELSIF i = 2 OR i = 4 THEN //this area is a production endpoint
+			tempBundlePointer := areas[i].queue.poll();
+			completedBundles.push(tempBundlePointer);
+		END_IF
+	END_IF
+END_FOR
+*)]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="receive" Id="{6f9cdbb4-9aab-4aed-bf43-5db76888a9a5}">
+      <Declaration><![CDATA[{attribute 'TcRpcEnable'}
+METHOD receive : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fbSystemTime(
+	sNetID := ,
+	bEnable := TRUE,
+	dwCycle := 5,
+	dwOpt := 1,
+	tTimeout := DEFAULT_ADS_TIMEOUT,
+	bValid => ,
+	systemTime => newBundle.timeStart,
+	tzId => );
+
+temp := __NEW(Bundle);
+MEMCPY(temp, ADR(newBundle), SIZEOF(Bundle));
+areas[3].queue.push(temp);
+
+MEMSET(ADR(newBundle), 0, SIZEOF(Bundle)); //clear HMI value
+
+//dbLogger.addEvent(TO_INT(EventsEnum.BUNDLE_ADDED_TO_PRODUCTION));]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="transfer" Id="{85c137f5-dc54-4d9e-90e6-43b2d25928b1}">
+      <Declaration><![CDATA[METHOD transfer : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//dbLogger.addEvent(TO_INT(EventsEnum.BUNDLE_ADDED_TO_PRODUCTION));]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="Control">
+      <LineId Id="29" Count="0" />
+      <LineId Id="31" Count="0" />
+      <LineId Id="38" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="32" Count="0" />
+      <LineId Id="67" Count="1" />
+      <LineId Id="116" Count="0" />
+    </LineIds>
+    <LineIds Name="Control.process">
+      <LineId Id="70" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="50" Count="1" />
+      <LineId Id="53" Count="6" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="60" Count="0" />
+      <LineId Id="35" Count="0" />
+      <LineId Id="20" Count="0" />
+      <LineId Id="32" Count="1" />
+      <LineId Id="61" Count="1" />
+      <LineId Id="29" Count="2" />
+      <LineId Id="25" Count="0" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="27" Count="0" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="36" Count="0" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="24" Count="0" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="8" Count="0" />
+      <LineId Id="69" Count="0" />
+    </LineIds>
+    <LineIds Name="Control.receive">
+      <LineId Id="22" Count="0" />
+      <LineId Id="24" Count="1" />
+      <LineId Id="37" Count="1" />
+      <LineId Id="26" Count="2" />
+      <LineId Id="39" Count="0" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="8" Count="1" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="14" Count="0" />
+      <LineId Id="21" Count="0" />
+      <LineId Id="20" Count="0" />
+    </LineIds>
+    <LineIds Name="Control.transfer">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

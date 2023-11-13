@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="ConcatStrings" Id="{a680f869-5d97-4700-8d94-791d083cc0a3}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION ConcatStrings : STRING(5000)
+VAR_IN_OUT
+	stringsArr : ARRAY[*] OF STRING(5000);
+END_VAR
+VAR_INPUT
+	opening : STRING(5000);
+	closing : STRING(5000);
+	separator : STRING(5000);
+END_VAR
+VAR
+	fullString : STRING(5000);
+	i : DINT := 0;	
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[fullString := opening; //opening segment
+
+FOR i:=LOWER_BOUND(stringsArr, 1) TO UPPER_BOUND(stringsArr, 1)-1 BY 1 DO //first element to 2nd last element
+	CONCAT2(ADR(fullString), ADR(stringsArr[i]), ADR(fullString), SIZEOF(fullString));
+	CONCAT2(ADR(fullString), ADR(separator), ADR(fullString), SIZEOF(fullString));
+END_FOR
+CONCAT2(ADR(fullString), ADR(stringsArr[UPPER_BOUND(stringsArr, 1)]), ADR(fullString), SIZEOF(fullString)); //final element
+
+CONCAT2(ADR(fullString), ADR(closing), ADR(fullString), SIZEOF(fullString)); //closing segment
+
+concatStrings := fullString;]]></ST>
+    </Implementation>
+    <LineIds Name="ConcatStrings">
+      <LineId Id="8" Count="9" />
+      <LineId Id="7" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <Itf Name="SocketA" Id="{2b29b4c7-983f-4531-8914-9a16bf207a39}">
+    <Declaration><![CDATA[INTERFACE SocketA
+VAR
+	localAdr : T_AmsNetId;
+	localPort : T_AmsPort;
+END_VAR
+VAR
+	remoteAdr : T_AmsNetId;
+	remotePort : T_AmsPort;
+END_VAR]]></Declaration>
+  </Itf>
+</TcPlcObject>

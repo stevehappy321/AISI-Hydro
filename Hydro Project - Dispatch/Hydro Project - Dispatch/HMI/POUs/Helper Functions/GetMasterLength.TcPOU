@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="GetMasterLength" Id="{0dbc5c3d-8234-498e-9047-a9c8ff962688}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION GetMasterLength : REAL
+VAR_INPUT
+	currentPair : REFERENCE TO PositionMaterials;
+END_VAR
+VAR
+	topLength : REAL;
+	leftLength : REAL;
+	rightLength : REAL;
+	bottomLength : REAL;
+	
+	topLeftLength : REAL;
+	topRightLength : REAL;
+	bottomLeftLength : REAL;
+	bottomRightLength : REAL;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[topLength := GetMaterialLength(currentPair.top);
+leftLength := GetMaterialLength(currentPair.left);
+rightLength := GetMaterialLength(currentPair.right);
+bottomLength := GetMaterialLength(currentPair.bottom);
+
+topLeftLength := GetMaterialLength(currentPair.topLeft);
+topRightLength := GetMaterialLength(currentPair.topRight);
+bottomLeftLength := GetMaterialLength(currentPair.bottomLeft);
+bottomRightLength := GetMaterialLength(currentPair.bottomRight);
+
+GetMasterLength := MAX(topLength, leftLength, rightLength, bottomLength, topLeftLength, topRightLength, bottomLeftLength, bottomRightLength);]]></ST>
+    </Implementation>
+    <LineIds Name="GetMasterLength">
+      <LineId Id="55" Count="9" />
+      <LineId Id="39" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

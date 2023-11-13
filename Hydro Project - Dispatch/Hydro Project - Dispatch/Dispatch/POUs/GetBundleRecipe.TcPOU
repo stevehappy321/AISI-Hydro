@@ -1,0 +1,68 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="GetBundleRecipe" Id="{b2d71f13-e538-42dd-b4b7-65a63f9d2191}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK GetBundleRecipe //get bundle data using ID from HMI
+VAR_INPUT
+	newBundle : REFERENCE TO Bundle;
+END_VAR
+VAR
+	cmd : ARRAY[0..18] OF STRING(5000);
+	query : STRING(5000);
+	
+	fbSQLCommand : FB_SQLCommandEvt(sNetID := '', tTimeout := T#5S);
+	fbSQLDatabase : FB_SQLDatabaseEvt(sNetID := '', tTimeout := T#5S);
+	fbSQLResult: FB_SQLResultEvt(sNetID := '', tTimeout := T#5S);
+	
+	dbCheckStep : (CONNECT, READY, EXECUTE, FINISH);
+END_VAR
+VAR_OUTPUT
+	finished : BOOL;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[CASE dbCheckStep OF
+	CONNECT:
+		IF fbSQLDatabase.Connect(1) THEN
+			IF NOT fbSqlDatabase.bError THEN
+				dbCheckStep := READY;
+			END_IF
+		END_IF
+		
+	READY:
+		IF fbSQLDatabase.CreateCmd(ADR(fbSQLCommand)) THEN
+			dbCheckStep := EXECUTE;
+		END_IF
+	
+	EXECUTE:
+		cmd[0] := 'SELECT ';
+		cmd[1] := 'weight, length, width, height, pieces, layers, piecesPerLayer, extrusionWeight, extrusionHeight, extrusionWidth, processes'; 
+		cmd[2] := 'FROM "Bundle Data - Prototype" WHERE BundleID = $'';
+		cmd[3] := TO_STRING(GVL.newBundle.id);
+		cmd[4] := '$'';
+		query := ConcatStrings(cmd, '', '', '');
+		
+		IF fbSQLCommand.ExecuteDataReturn(ADR(query), SIZEOF(query), ADR(fbSqlResult)) THEN
+			dbCheckStep := FINISH;
+		END_IF
+		
+	FINISH:
+		fbSqlResult.Read(0, 1, ADR(newBundle), SIZEOF(Bundle), TRUE, FALSE);
+			
+		IF fbSQLDatabase.Disconnect() THEN
+			fbSqlResult.Release();
+			finished := TRUE;
+			dbCheckStep := CONNECT;
+		END_IF
+END_CASE]]></ST>
+    </Implementation>
+    <LineIds Name="GetBundleRecipe">
+      <LineId Id="59" Count="14" />
+      <LineId Id="118" Count="0" />
+      <LineId Id="117" Count="0" />
+      <LineId Id="74" Count="9" />
+      <LineId Id="99" Count="0" />
+      <LineId Id="89" Count="4" />
+      <LineId Id="9" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

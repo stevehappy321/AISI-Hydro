@@ -22,7 +22,6 @@ VAR
 	holdPost : TON;
 	delay : TON;
 	
-	start : BOOL;
 	step : (SETUP, RUN, WAIT);
 END_VAR
 VAR_STAT CONSTANT
@@ -37,7 +36,7 @@ delay(IN:= step > 0, PT:= maxDelay, Q=> , ET=> );
 IF delay.Q THEN
 	delay.IN := FALSE;
 	timeout := TRUE;
-	busy := FALSE;
+	
 	step := SETUP;
 END_IF
 
@@ -52,16 +51,15 @@ CASE step OF
 			reset := FALSE;
 			enable := TRUE;
 			
-			IF start THEN
-				start := FALSE;
-				step := RUN;
-			END_IF
-			
 		END_IF
 	
 	RUN:
-		execute := TRUE;
-		IF execute AND NOT home THEN
+		IF NOT execute THEN
+			execute := TRUE;
+			RETURN;
+		END_IF
+		
+		IF execute AND NOT home AND busy THEN
 			execute := FALSE;
 			step := WAIT;
 		END_IF
@@ -130,18 +128,14 @@ VAR_INPUT
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF ready AND NOT busy AND NOT error THEN
-	busy := TRUE;
-	start := TRUE;
-	strap := TRUE;
-END_IF]]></ST>
+        <ST><![CDATA[step := RUN;]]></ST>
       </Implementation>
     </Method>
     <LineIds Name="StrapMachine">
       <LineId Id="497" Count="3" />
       <LineId Id="551" Count="0" />
       <LineId Id="524" Count="0" />
-      <LineId Id="609" Count="0" />
+      <LineId Id="644" Count="0" />
       <LineId Id="562" Count="0" />
       <LineId Id="502" Count="2" />
       <LineId Id="527" Count="0" />
@@ -152,15 +146,14 @@ END_IF]]></ST>
       <LineId Id="541" Count="0" />
       <LineId Id="535" Count="0" />
       <LineId Id="545" Count="0" />
-      <LineId Id="577" Count="0" />
-      <LineId Id="546" Count="0" />
-      <LineId Id="575" Count="0" />
-      <LineId Id="549" Count="0" />
-      <LineId Id="548" Count="0" />
       <LineId Id="538" Count="0" />
       <LineId Id="536" Count="0" />
       <LineId Id="532" Count="0" />
-      <LineId Id="553" Count="3" />
+      <LineId Id="553" Count="0" />
+      <LineId Id="640" Count="1" />
+      <LineId Id="643" Count="0" />
+      <LineId Id="642" Count="0" />
+      <LineId Id="554" Count="2" />
       <LineId Id="558" Count="0" />
       <LineId Id="557" Count="0" />
       <LineId Id="559" Count="2" />
@@ -194,10 +187,6 @@ END_IF]]></ST>
       <LineId Id="31" Count="0" />
     </LineIds>
     <LineIds Name="StrapMachine.strap">
-      <LineId Id="19" Count="0" />
-      <LineId Id="49" Count="0" />
-      <LineId Id="41" Count="0" />
-      <LineId Id="45" Count="0" />
       <LineId Id="24" Count="0" />
     </LineIds>
   </POU>

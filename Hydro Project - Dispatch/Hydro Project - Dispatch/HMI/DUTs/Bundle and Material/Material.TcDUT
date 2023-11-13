@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="Material" Id="{ef483c4c-14a8-4115-a860-a17e4e9df4ef}">
+    <Declaration><![CDATA[TYPE Material :
+STRUCT
+	code : STRING;
+	width : REAL;
+	length : REAL;
+	
+	widthMM : INT;
+	lengthMM : INT;
+END_STRUCT
+END_TYPE
+(*
+use this struct to keep track of where materials are
+materials enter the system when pulled from their magazine/skid and exit the system when placed on the bundle or otherwise lost
+*)]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,476 @@
+<?xml version="1.0"?>
+<TcSmProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.beckhoff.com/schemas/2012/07/TcSmProject" TcSmVersion="1.0" TcVersion="3.1.4024.32">
+	<DataTypes>
+		<DataType>
+			<Name GUID="{E8C0F2AB-51A2-154E-632B-724741712E8C}" AutoDeleteType="true">Interval</Name>
+			<BitSize>64</BitSize>
+			<SubItem>
+				<Name>startPos</Name>
+				<Type GUID="{18071995-0000-0000-0000-00000000000D}">REAL</Type>
+				<BitSize>32</BitSize>
+				<BitOffs>0</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>endPos</Name>
+				<Type GUID="{18071995-0000-0000-0000-00000000000D}">REAL</Type>
+				<BitSize>32</BitSize>
+				<BitOffs>32</BitOffs>
+			</SubItem>
+		</DataType>
+		<DataType>
+			<Name GUID="{003158FF-42F0-CE1F-B2BE-63D14E76BCB6}" AutoDeleteType="true">PositionMaterials</Name>
+			<BitSize>5280</BitSize>
+			<SubItem>
+				<Name>position</Name>
+				<Type GUID="{18071995-0000-0000-0000-00000000000D}">REAL</Type>
+				<Comment><![CDATA[default value is set to predefined constant if bundle needs less than 32 position material pairs]]></Comment>
+				<BitSize>32</BitSize>
+				<BitOffs>0</BitOffs>
+				<Default>
+					<Value>-1</Value>
+				</Default>
+			</SubItem>
+			<SubItem>
+				<Name>top</Name>
+				<Type GUID="{18071995-0000-0000-0000-000100000050}">STRING(80)</Type>
+				<BitSize>648</BitSize>
+				<BitOffs>32</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>left</Name>
+				<Type GUID="{18071995-0000-0000-0000-000100000050}">STRING(80)</Type>
+				<BitSize>648</BitSize>
+				<BitOffs>680</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>right</Name>
+				<Type GUID="{18071995-0000-0000-0000-000100000050}">STRING(80)</Type>
+				<BitSize>648</BitSize>
+				<BitOffs>1328</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>bottom</Name>
+				<Type GUID="{18071995-0000-0000-0000-000100000050}">STRING(80)</Type>
+				<BitSize>648</BitSize>
+				<BitOffs>1976</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>topLeft</Name>
+				<Type GUID="{18071995-0000-0000-0000-000100000050}">STRING(80)</Type>
+				<BitSize>648</BitSize>
+				<BitOffs>2624</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>topLeftFold</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000002}">USINT</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>3272</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>topRight</Name>
+				<Type GUID="{18071995-0000-0000-0000-000100000050}">STRING(80)</Type>
+				<BitSize>648</BitSize>
+				<BitOffs>3280</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>topRightFold</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000002}">USINT</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>3928</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>bottomLeft</Name>
+				<Type GUID="{18071995-0000-0000-0000-000100000050}">STRING(80)</Type>
+				<BitSize>648</BitSize>
+				<BitOffs>3936</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>bottomLeftFold</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000002}">USINT</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>4584</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>bottomRight</Name>
+				<Type GUID="{18071995-0000-0000-0000-000100000050}">STRING(80)</Type>
+				<BitSize>648</BitSize>
+				<BitOffs>4592</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>bottomRightFold</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000002}">USINT</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>5240</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>wrapPoints</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000002}">USINT</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>5248</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>wrapRotations</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000002}">USINT</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>5256</BitOffs>
+			</SubItem>
+		</DataType>
+		<DataType>
+			<Name GUID="{6D1C8CFE-89A1-B3C2-9414-12D6CD53C177}" Namespace="Tc2_Utilities" AutoDeleteType="true">TIMESTRUCT</Name>
+			<Comment><![CDATA[ System Time Structure ]]></Comment>
+			<BitSize>128</BitSize>
+			<SubItem>
+				<Name>wYear</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000004}">WORD</Type>
+				<Comment><![CDATA[ Year: 1970..2106 ]]></Comment>
+				<BitSize>16</BitSize>
+				<BitOffs>0</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>wMonth</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000004}">WORD</Type>
+				<Comment><![CDATA[ Month: 1..12 (January = 1, February = 2 and so on) ]]></Comment>
+				<BitSize>16</BitSize>
+				<BitOffs>16</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>wDayOfWeek</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000004}">WORD</Type>
+				<Comment><![CDATA[ Day of the week: 0..6 (Sunday = 0, Monday = 1, .. , Saturday = 6 and so on) ]]></Comment>
+				<BitSize>16</BitSize>
+				<BitOffs>32</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>wDay</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000004}">WORD</Type>
+				<Comment><![CDATA[ Day of the month: 1..31 ]]></Comment>
+				<BitSize>16</BitSize>
+				<BitOffs>48</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>wHour</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000004}">WORD</Type>
+				<Comment><![CDATA[ Hour: 0..23 ]]></Comment>
+				<BitSize>16</BitSize>
+				<BitOffs>64</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>wMinute</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000004}">WORD</Type>
+				<Comment><![CDATA[ Minute: 0..59 ]]></Comment>
+				<BitSize>16</BitSize>
+				<BitOffs>80</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>wSecond</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000004}">WORD</Type>
+				<Comment><![CDATA[ Second: 0..59 ]]></Comment>
+				<BitSize>16</BitSize>
+				<BitOffs>96</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>wMilliseconds</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000004}">WORD</Type>
+				<Comment><![CDATA[ Milliseconds: 0..999 ]]></Comment>
+				<BitSize>16</BitSize>
+				<BitOffs>112</BitOffs>
+			</SubItem>
+		</DataType>
+		<DataType>
+			<Name GUID="{8D0C570C-ADDB-F46E-2C7D-2436E7D9AE06}" AutoDeleteType="true">Bundle</Name>
+			<BitSize>538816</BitSize>
+			<SubItem>
+				<Name>id</Name>
+				<Type GUID="{18071995-0000-0000-0000-000100000050}">STRING(80)</Type>
+				<BitSize>648</BitSize>
+				<BitOffs>0</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>weight</Name>
+				<Type GUID="{18071995-0000-0000-0000-00000000000D}">REAL</Type>
+				<BitSize>32</BitSize>
+				<BitOffs>672</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>length</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000002}">USINT</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>704</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>width</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000002}">USINT</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>712</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>height</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000002}">USINT</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>720</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>pieces</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000002}">USINT</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>728</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>layers</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000002}">USINT</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>736</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>piecesPerLayer</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000002}">USINT</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>744</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>extrusionWeight</Name>
+				<Type GUID="{18071995-0000-0000-0000-00000000000D}">REAL</Type>
+				<BitSize>32</BitSize>
+				<BitOffs>768</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>extrusionHeight</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000002}">USINT</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>800</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>extrusionWidth</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000002}">USINT</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>808</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>reqProcesses</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000030}">BOOL</Type>
+				<ArrayInfo>
+					<LBound>0</LBound>
+					<Elements>4</Elements>
+				</ArrayInfo>
+				<Comment><![CDATA[processes : (AUTO_RE, AUTO_SS, MAN_RE, MAN_SS);]]></Comment>
+				<BitSize>32</BitSize>
+				<BitOffs>816</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>repack</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000030}">BOOL</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>848</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>currStep</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000002}">USINT</Type>
+				<Comment><![CDATA[for runtime use only]]></Comment>
+				<BitSize>8</BitSize>
+				<BitOffs>856</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>coverPaper</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000030}">BOOL</Type>
+				<ArrayInfo>
+					<LBound>0</LBound>
+					<Elements>2</Elements>
+				</ArrayInfo>
+				<BitSize>16</BitSize>
+				<BitOffs>864</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>coverCardboard</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000030}">BOOL</Type>
+				<ArrayInfo>
+					<LBound>0</LBound>
+					<Elements>2</Elements>
+				</ArrayInfo>
+				<BitSize>16</BitSize>
+				<BitOffs>880</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>paperTop</Name>
+				<Type GUID="{E8C0F2AB-51A2-154E-632B-724741712E8C}">Interval</Type>
+				<ArrayInfo>
+					<LBound>0</LBound>
+					<Elements>17</Elements>
+				</ArrayInfo>
+				<BitSize>1088</BitSize>
+				<BitOffs>896</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>paperLeft</Name>
+				<Type GUID="{E8C0F2AB-51A2-154E-632B-724741712E8C}">Interval</Type>
+				<ArrayInfo>
+					<LBound>0</LBound>
+					<Elements>17</Elements>
+				</ArrayInfo>
+				<BitSize>1088</BitSize>
+				<BitOffs>1984</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>paperRight</Name>
+				<Type GUID="{E8C0F2AB-51A2-154E-632B-724741712E8C}">Interval</Type>
+				<ArrayInfo>
+					<LBound>0</LBound>
+					<Elements>17</Elements>
+				</ArrayInfo>
+				<BitSize>1088</BitSize>
+				<BitOffs>3072</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>paperBottom</Name>
+				<Type GUID="{E8C0F2AB-51A2-154E-632B-724741712E8C}">Interval</Type>
+				<ArrayInfo>
+					<LBound>0</LBound>
+					<Elements>17</Elements>
+				</ArrayInfo>
+				<BitSize>1088</BitSize>
+				<BitOffs>4160</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>cardboard</Name>
+				<Type GUID="{003158FF-42F0-CE1F-B2BE-63D14E76BCB6}">PositionMaterials</Type>
+				<ArrayInfo>
+					<LBound>0</LBound>
+					<Elements>17</Elements>
+				</ArrayInfo>
+				<BitSize>89760</BitSize>
+				<BitOffs>5248</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>cornerGuard</Name>
+				<Type GUID="{003158FF-42F0-CE1F-B2BE-63D14E76BCB6}">PositionMaterials</Type>
+				<ArrayInfo>
+					<LBound>0</LBound>
+					<Elements>17</Elements>
+				</ArrayInfo>
+				<BitSize>89760</BitSize>
+				<BitOffs>95008</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>combinedCardboardCornerGuard</Name>
+				<Type GUID="{003158FF-42F0-CE1F-B2BE-63D14E76BCB6}">PositionMaterials</Type>
+				<ArrayInfo>
+					<LBound>0</LBound>
+					<Elements>33</Elements>
+				</ArrayInfo>
+				<BitSize>174240</BitSize>
+				<BitOffs>184768</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>chipboard</Name>
+				<Type GUID="{003158FF-42F0-CE1F-B2BE-63D14E76BCB6}">PositionMaterials</Type>
+				<ArrayInfo>
+					<LBound>0</LBound>
+					<Elements>17</Elements>
+				</ArrayInfo>
+				<BitSize>89760</BitSize>
+				<BitOffs>359008</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>woodBunk</Name>
+				<Type GUID="{003158FF-42F0-CE1F-B2BE-63D14E76BCB6}">PositionMaterials</Type>
+				<ArrayInfo>
+					<LBound>0</LBound>
+					<Elements>17</Elements>
+				</ArrayInfo>
+				<BitSize>89760</BitSize>
+				<BitOffs>448768</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>cardboard_over_cornerGuard</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000030}">BOOL</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>538528</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>timeStart</Name>
+				<Type GUID="{6D1C8CFE-89A1-B3C2-9414-12D6CD53C177}" Namespace="Tc2_Utilities">TIMESTRUCT</Type>
+				<Comment><![CDATA[for production log database]]></Comment>
+				<BitSize>128</BitSize>
+				<BitOffs>538544</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>timeDone</Name>
+				<Type GUID="{6D1C8CFE-89A1-B3C2-9414-12D6CD53C177}" Namespace="Tc2_Utilities">TIMESTRUCT</Type>
+				<BitSize>128</BitSize>
+				<BitOffs>538672</BitOffs>
+			</SubItem>
+			<Properties>
+				<Property>
+					<Name>enable_dynamic_creation</Name>
+				</Property>
+			</Properties>
+		</DataType>
+	</DataTypes>
+	<Project ProjectGUID="{2AEEE41D-BFA9-4475-9ED1-688EFACE7621}" Target64Bit="true" ShowHideConfigurations="#x106">
+		<System>
+			<Tasks>
+				<Task Id="3" Priority="20" CycleTime="100000" AmsPort="350" AdtTasks="true">
+					<Name>PlcTask</Name>
+				</Task>
+				<Task Id="4" Priority="21" CycleTime="100000" AmsPort="351" AdtTasks="true">
+					<Name>PlcTask1</Name>
+				</Task>
+			</Tasks>
+		</System>
+		<Plc>
+			<Project Disabled="true" GUID="{37EFFF4A-EF6A-43D3-84B1-8045C4DEFB5A}" Name="Dispatch" PrjFilePath="Dispatch\Dispatch.plcproj" TmcFilePath="Dispatch\Dispatch.tmc" ReloadTmc="true" AmsPort="851" FileArchiveSettings="#x000e" SymbolicMapping="true">
+				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcPath="Dispatch\Dispatch.tmc" TmcHash="{F3D559D7-8895-61DF-AA7C-9E0A2471C8A9}">
+					<Name>Dispatch Instance</Name>
+					<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
+					<Vars VarGrpType="1">
+						<Name>PlcTask Inputs</Name>
+						<Var>
+							<Name>GVL.bundleIn</Name>
+							<Type GUID="{8D0C570C-ADDB-F46E-2C7D-2436E7D9AE06}">Bundle</Type>
+						</Var>
+					</Vars>
+					<Vars VarGrpType="2" AreaNo="1">
+						<Name>PlcTask Outputs</Name>
+						<Var>
+							<Name>GVL.bundleOut</Name>
+							<Type GUID="{8D0C570C-ADDB-F46E-2C7D-2436E7D9AE06}">Bundle</Type>
+						</Var>
+					</Vars>
+					<Contexts>
+						<Context>
+							<Id NeedCalleeCall="true">0</Id>
+							<Name>PlcTask</Name>
+							<ManualConfig>
+								<OTCID>#x02010030</OTCID>
+							</ManualConfig>
+							<Priority>20</Priority>
+							<CycleTime>10000000</CycleTime>
+						</Context>
+					</Contexts>
+					<TaskPouOids>
+						<TaskPouOid Prio="20" OTCID="#x08502001"/>
+					</TaskPouOids>
+				</Instance>
+			</Project>
+			<Project Disabled="true" GUID="{684BDA5A-38B4-44C6-AC8B-D333CD805D83}" Name="HMI" PrjFilePath="HMI\HMI.plcproj" TmcFilePath="HMI\HMI.tmc" ReloadTmc="true" AmsPort="852" FileArchiveSettings="#x000e" SymbolicMapping="true">
+				<Instance Id="#x08502040" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcPath="HMI\HMI.tmc" TmcHash="{B898BA08-4449-19AC-7A83-60BA7200C51F}">
+					<Name>HMI Instance</Name>
+					<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
+					<Contexts>
+						<Context>
+							<Id NeedCalleeCall="true">0</Id>
+							<Name>PlcTask</Name>
+							<ManualConfig>
+								<OTCID>#x02010040</OTCID>
+							</ManualConfig>
+							<Priority>21</Priority>
+							<CycleTime>10000000</CycleTime>
+						</Context>
+					</Contexts>
+					<TaskPouOids>
+						<TaskPouOid Prio="21" OTCID="#x08502041"/>
+					</TaskPouOids>
+				</Instance>
+			</Project>
+		</Plc>
+	</Project>
+</TcSmProject>

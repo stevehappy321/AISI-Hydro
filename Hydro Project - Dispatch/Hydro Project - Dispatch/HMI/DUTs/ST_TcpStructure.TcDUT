@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="ST_TcpStructure" Id="{5126cd59-4c4b-49e2-a41f-17689e5659cf}">
+    <Declaration><![CDATA[TYPE ST_TcpStructure :
+STRUCT
+	transmissionTime : TIMESTRUCT;
+	dataType : (NO_DATA, BUNDLE_TRANSFER, BUNDLE_ETA, GENERAL_EVENT)INT;
+	timestamp : TIMESTRUCT;
+	binaryData : ARRAY[0..50000] OF BYTE;
+	jsonData : STRING(2000);
+	xmlData : STRING(2000);
+END_STRUCT
+END_TYPE]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,147 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="AdsSocket" Id="{94b06c8f-6363-4f38-8057-d0f2ec092ac9}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK AdsSocket
+VAR_STAT
+	localPrgName : STRING; //:= GVL.localPrgName;
+	localNetId : T_AmsNetId; //:= GVL.localAmsNetId;
+	localPort : T_AmsPort; //:= GVL.localAmsPort;
+END_VAR
+VAR
+	remotePrgName : STRING;
+	remoteNetId : T_AmsNetId;
+	remotePort : T_AmsPort;
+END_VAR
+VAR
+	adsReadSymbol : FB_ReadAdsSymByName;
+	adsWriteSymbol : FB_WriteAdsSymByName;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="close" Id="{5b9b3a4a-f4db-4662-8e31-880b17578695}">
+      <Declaration><![CDATA[METHOD close : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[remotePrgName := '';
+remoteNetId := '';
+remotePort := 0;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="open" Id="{41dcc539-006b-4672-ab53-559a081cb5fc}">
+      <Declaration><![CDATA[METHOD open : BOOL
+VAR_INPUT
+	newLocalPrgName : STRING;
+	newLocalNetId : T_AmsNetId;
+	newLocalPort : T_AmsPort;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[localPrgName := newLocalPrgName;
+localNetId := newLocalNetId;
+localPort := newLocalPort;
+
+adsWriteSymbol.sNetId:= remoteNetId;
+adsWriteSymbol.nPort:= remotePort;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="read" Id="{76310918-f166-49dc-9eaa-fa797266bfbf}">
+      <Declaration><![CDATA[METHOD read : BOOL
+VAR_INPUT
+	symbol : STRING;
+	buffer : PVOID;
+	symbolSize : UDINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[adsReadSymbol(
+	bRead:= , 
+	sNetId:= remoteNetId, 
+	nPort:= remotePort, 
+	sVarName:= symbol, 
+	nDestAddr:= buffer, 
+	nLen:= symbolSize, 
+	tTimeout:= , 
+	eComMode:= , 
+	bClearOnError:= TRUE, 
+	bBusy=> , 
+	bError=> , 
+	nErrorId=> );
+	
+adsReadSymbol.bRead := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ready" Id="{6481e89a-6c18-4ef9-9fbf-31fc0017edf1}">
+      <Declaration><![CDATA[METHOD ready : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[ready := (
+	remotePrgName <> '' AND
+	remoteNetId <> '' AND
+	remotePort <> 0);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="setup" Id="{a4b0e4a8-298b-4495-939e-427add857afc}">
+      <Declaration><![CDATA[METHOD setup : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[localPrgName := '';
+localNetId := '';
+localPort := 0;
+
+//fill these values with data]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="write" Id="{78b7348b-168f-4aaf-82b1-6907845ef997}">
+      <Declaration><![CDATA[METHOD write : BOOL
+VAR_INPUT
+	symbol : STRING;
+	data : PVOID;
+	dataSize : UDINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[adsWriteSymbol(
+	bWrite:= TRUE, 
+	sNetId:= remoteNetId, 
+	nPort:= remotePort, 
+	sVarName:= symbol, 
+	nSrcAddr:= data, 
+	nLen:= dataSize, 
+	tTimeout:= , 
+	eComMode:= , 
+	bBusy=> , 
+	bError=> , 
+	nErrorId=> );
+	
+adsWriteSymbol.bWrite := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="AdsSocket">
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsSocket.close">
+      <LineId Id="9" Count="2" />
+    </LineIds>
+    <LineIds Name="AdsSocket.open">
+      <LineId Id="7" Count="1" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="10" Count="1" />
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsSocket.read">
+      <LineId Id="8" Count="11" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="21" Count="1" />
+    </LineIds>
+    <LineIds Name="AdsSocket.ready">
+      <LineId Id="6" Count="2" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsSocket.setup">
+      <LineId Id="7" Count="1" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsSocket.write">
+      <LineId Id="6" Count="10" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="25" Count="1" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

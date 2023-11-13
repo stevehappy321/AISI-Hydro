@@ -20,9 +20,8 @@ END_VAR]]></Declaration>
 	
 screw(
 	bEnable:= enable, 
-	direction=> , 
-	valveIn=> , 
-	valveOut=> , 
+	valveExtend=> , 
+	valveRetract=> , 
 	contact=> , 
 	home=> , 
 	innerLimit=> , 
@@ -62,7 +61,7 @@ homingSequence := screw.homeSet AND slider.homeSet;]]></ST>
     <Method Name="press" Id="{192a86da-bf4b-444b-b97f-516d139a6527}">
       <Declaration><![CDATA[METHOD press : BOOL]]></Declaration>
       <Implementation>
-        <ST><![CDATA[screw.slideIn();]]></ST>
+        <ST><![CDATA[screw.extend();]]></ST>
       </Implementation>
     </Method>
     <Method Name="release" Id="{73d5c0ca-45d8-4707-919f-ee28c6e11785}">
@@ -70,7 +69,7 @@ homingSequence := screw.homeSet AND slider.homeSet;]]></ST>
 VAR_INPUT
 END_VAR]]></Declaration>
       <Implementation>
-        <ST><![CDATA[screw.slideOut();]]></ST>
+        <ST><![CDATA[screw.retract();]]></ST>
       </Implementation>
     </Method>
     <Method Name="traverse" Id="{bb384519-1c1e-4a43-83f9-a1cda8341fdb}">
@@ -86,7 +85,8 @@ END_VAR]]></Declaration>
       <LineId Id="289" Count="8" />
       <LineId Id="250" Count="0" />
       <LineId Id="273" Count="0" />
-      <LineId Id="276" Count="10" />
+      <LineId Id="276" Count="1" />
+      <LineId Id="279" Count="7" />
       <LineId Id="275" Count="0" />
       <LineId Id="288" Count="0" />
       <LineId Id="266" Count="2" />

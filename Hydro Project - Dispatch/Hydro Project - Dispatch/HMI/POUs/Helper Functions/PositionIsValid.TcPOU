@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="PositionIsValid" Id="{634a1648-c062-471b-b905-5d3fad291561}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION PositionIsValid : BOOL
+VAR_INPUT
+	pair : REFERENCE TO PositionMaterials;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[PositionIsValid := (
+	pair.position <> GVL.nullPos AND
+	(
+		pair.top <> '' OR
+		pair.left <> '' OR
+		pair.right <> '' OR
+		pair.bottom <> '' OR
+		
+		pair.topLeft <> '' OR
+		pair.topRight <> '' OR
+		pair.bottomLeft <> '' OR
+		pair.bottomRight <> ''
+	));]]></ST>
+    </Implementation>
+    <LineIds Name="PositionIsValid">
+      <LineId Id="49" Count="11" />
+      <LineId Id="23" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,123 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="Conveyor" Id="{de162f93-5907-4a07-a0b5-f0d4a4560d6a}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK Conveyor
+VAR
+	position : REAL;
+	velocity : REAL;
+	
+	retracted : BOOL; //vertical conveyors
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="backward" Id="{86f9a8ba-67b5-4107-b253-01b957c1bf10}">
+      <Declaration><![CDATA[METHOD backward : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="extend" Id="{8f868bfa-a538-4183-8601-28b224890cc0}">
+      <Declaration><![CDATA[METHOD extend : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="forward" Id="{87d44885-25ee-41d2-af0e-9e2311376d2b}">
+      <Declaration><![CDATA[METHOD forward : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="getPosition" Id="{0a57e989-d05e-48a8-a083-297204d36b31}">
+      <Declaration><![CDATA[METHOD getPosition : REAL;
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[getPosition := position;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="getVelocity" Id="{0f80eae4-24a1-473c-ab6f-d7f6b6e5b700}">
+      <Declaration><![CDATA[METHOD getVelocity : REAL;
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[getVelocity := velocity;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="reset" Id="{d40da114-e5c3-466f-8119-1749f88356bf}">
+      <Declaration><![CDATA[METHOD reset : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[position := 0;
+velocity := velocity; //no change
+
+extend();
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="retract" Id="{e67cd767-48c0-4514-8169-49f3436776ec}">
+      <Declaration><![CDATA[METHOD retract : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="target" Id="{ea17b475-eaf3-4273-b8f8-a97119ee998d}">
+      <Declaration><![CDATA[METHOD target : BOOL
+VAR_INPUT
+	targetPosition : REAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="Conveyor">
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="Conveyor.backward">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="Conveyor.extend">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="Conveyor.forward">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="Conveyor.getPosition">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="Conveyor.getVelocity">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="Conveyor.reset">
+      <LineId Id="5" Count="1" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="8" Count="0" />
+      <LineId Id="7" Count="0" />
+    </LineIds>
+    <LineIds Name="Conveyor.retract">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="Conveyor.target">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

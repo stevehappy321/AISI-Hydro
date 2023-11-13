@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="UnionQ" Id="{83419ce2-9fa3-4107-a7bb-415cbfb19c88}">
+    <Declaration><![CDATA[{attribute 'enable_dynamic_creation'}
+TYPE UnionQ :
+UNION
+	integer : INT;
+	float : REAL;
+	text : STRING;
+	bundle : Bundle;
+END_UNION
+END_TYPE
+
+(*
+this data type is used as the base of GenericQueue
+if a data type needs a GenericQueue, add it here
+the size of this union is equal to the largest data type in its composition
+*)]]></Declaration>
+  </DUT>
+</TcPlcObject>

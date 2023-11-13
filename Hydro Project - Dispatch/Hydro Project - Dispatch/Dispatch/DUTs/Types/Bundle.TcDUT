@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="Bundle" Id="{82c668c6-b176-44fe-a15f-961ddcfe76a9}">
+    <Declaration><![CDATA[{attribute 'enable_dynamic_creation'}
+TYPE Bundle :
+STRUCT
+	id : STRING;
+	
+	weight : REAL;
+	length : USINT;
+	width : USINT;
+	height : USINT;
+	
+	pieces : USINT;
+	layers : USINT;
+	piecesPerLayer : USINT;
+	
+	extrusionWeight : REAL;
+	extrusionHeight : USINT;
+	extrusionWidth : USINT;
+	
+	//processes : (AUTO_RE, AUTO_SS, MAN_RE, MAN_SS);
+	reqProcesses : ARRAY[0..3] OF BOOL;
+	repack : BOOL;
+	currStep : USINT; //for runtime use only
+	
+	coverPaper : ARRAY[0..1] OF BOOL;
+	coverCardboard : ARRAY[0..1] OF BOOL;
+	
+	paperTop : ARRAY[0..GVL.maxPairs] OF Interval;
+	paperLeft : ARRAY[0..GVL.maxPairs] OF Interval;
+	paperRight : ARRAY[0..GVL.maxPairs] OF Interval;
+	paperBottom : ARRAY[0..GVL.maxPairs] OF Interval;
+		
+	cardboard : ARRAY[0..GVL.maxPairs] OF PositionMaterials;
+	cornerGuard : ARRAY[0..GVL.maxPairs] OF PositionMaterials;
+	
+	combinedCardboardCornerGuard : ARRAY[0..(GVL.maxPairs*2)] OF PositionMaterials;
+	
+	chipboard : ARRAY[0..GVL.maxPairs] OF PositionMaterials;
+	woodBunk : ARRAY[0..GVL.maxPairs] OF PositionMaterials;
+	
+	cardboard_over_cornerGuard : BOOL;
+	
+	//for production log database
+	timeStart : TIMESTRUCT;
+	timeDone : TIMESTRUCT;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

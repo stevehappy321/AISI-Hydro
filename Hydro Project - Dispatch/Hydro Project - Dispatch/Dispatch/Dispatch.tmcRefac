@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Refactors>
+  <Renames>
+    <RenamedSymbol>
+      <Type guid="cd10b598-7a8c-4b57-8c3c-62834945eee3">FB_Area</Type>
+      <From>finished</From>
+      <To>done</To>
+    </RenamedSymbol>
+  </Renames>
+</Refactors>

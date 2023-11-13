@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <GVL Name="Param" Id="{f38840fd-4408-46ab-af5e-c4fadf8e632f}" ParameterList="True">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL CONSTANT
+	initArraySize : UINT := 4;
+	
+	areaConnections : ARRAY[1..6] OF ARRAY[1..6] OF USINT := [
+		[0,0,0,0,5,6],
+		[0,0,0,0,0,6],
+		[0,0,0,4,5,0],
+		[0,0,3,0,5,0],
+		[1,0,3,4,0,0],
+		[1,2,0,0,0,0]];
+		
+	
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

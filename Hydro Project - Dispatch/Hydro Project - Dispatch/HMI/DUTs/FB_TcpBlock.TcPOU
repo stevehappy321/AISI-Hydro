@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="FB_TcpBlock" Id="{93959326-5c29-4289-af5b-7e33722a43ea}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_TcpBlock
+VAR
+	tcpTime : TIMESTRUCT;
+	
+	dataType : (NO_DATA, BUNDLE_TRANSFER, BUNDLE_ETA, GENERAL_EVENT);
+	timestamp : TIMESTRUCT;
+	
+	binaryData : ARRAY[0..50000] OF BYTE;
+	jsonData : STRING(2000);
+	xmlData : STRING(2000);
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="sendBundleETA" Id="{ffb937b3-abc3-4f36-acf7-0a4a4f58dada}">
+      <Declaration><![CDATA[METHOD sendBundleETA : BOOL
+VAR_INPUT
+	eta : TIMESTRUCT;
+	bundleId : STRING;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="sendBundleTransfer" Id="{4de91b01-6aeb-44f5-8304-79e331fb683a}">
+      <Declaration><![CDATA[METHOD sendBundleTransfer : BOOL
+VAR_INPUT
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="setTcpTime" Id="{94cb8c6e-87a2-4e85-90be-8604d19d3807}">
+      <Declaration><![CDATA[METHOD setTcpTime : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[tcpTime := GVL.systemTime;]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_TcpBlock">
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_TcpBlock.sendBundleETA">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_TcpBlock.sendBundleTransfer">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_TcpBlock.setTcpTime">
+      <LineId Id="17" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

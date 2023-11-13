@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="Area" Id="{9a523860-dcc5-416e-9e09-1239b1029f73}">
+    <Declaration><![CDATA[TYPE Area :
+STRUCT
+	name : STRING; //area 1, area 2, etc
+	id : INT; //name but without area
+	
+	queue : PtrQueue := (dataSize := SIZEOF(POINTER TO Bundle));
+	
+	//ready cannot be TRUE if finished is TRUE
+	ready : BOOL; //ready to receive
+	finished : BOOL; //finished current bundle new bundle
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

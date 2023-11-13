@@ -1,0 +1,111 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="MAIN" Id="{2f069ca4-2708-44f0-ace2-897e04b35f3d}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAIN
+VAR
+	getLocalAmsNetId : FB_GetLocalAmsNetId;
+	getLocalSystemTime : FB_LocalSystemTime;
+	
+	id : STRING;
+	queryId : STRING;
+	stringBuilder : StringBuilder;
+	
+	original : Bundle;
+	confirmed : Bundle;
+END_VAR
+VAR CONSTANT
+	AUTO_RE : INT := 0;
+	AUTO_SS : INT := 1;
+	MAN_RE : INT := 2;
+	MAN_SS : INT := 3;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[getLocalSystemTime(
+	sNetID:= GVL.AmsNetId, 
+	bEnable:= TRUE, 
+	dwCycle:= 1, 
+	dwOpt:= , 
+	tTimeout:= , 
+	bValid=> , 
+	systemTime=> GVL.systemTime, 
+	tzID=> );
+
+IF NOT setup() THEN
+	RETURN;
+END_IF
+
+MetricMaterialDimensions(GVL.allMaterials);
+
+queryId := stringBuilder
+	.concatWith('%')
+	.concatWith(id)
+	.concatWith('%')
+	.getResult();
+stringBuilder.reset();
+
+FindBundlesFromDB(id := queryId);
+
+IF confirmed.length <> original.length THEN
+	RecalibrateRecipe(original := original, confirmed := confirmed);
+	
+	IF RecalibrateRecipe.reject THEN //send to manual processes
+		confirmed.reqProcesses[AUTO_RE] := FALSE;
+		confirmed.reqProcesses[AUTO_SS] := FALSE;
+		confirmed.reqProcesses[MAN_RE] := TRUE;
+		confirmed.reqProcesses[MAN_SS] := TRUE;	
+	END_IF
+ELSE
+	//use as is
+END_IF]]></ST>
+    </Implementation>
+    <Method Name="setup" Id="{0eefaa89-85b2-413e-a011-eeee3861dbde}">
+      <Declaration><![CDATA[METHOD setup : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[getLocalAmsNetId(
+	bExecute:= TRUE, 
+	tTimeOut:= T#1S, 
+	bBusy=> , 
+	bError=> , 
+	nErrId=> , 
+	AddrString=> GVL.AmsNetId, 
+	AddrBytes=> );
+
+getLocalAmsNetId.bExecute := FALSE;
+
+setup := (GVL.AmsNetId <> '' AND GVL.AmsNetId <> '0.0.0.0.0.0');]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="MAIN">
+      <LineId Id="218" Count="7" />
+      <LineId Id="215" Count="1" />
+      <LineId Id="189" Count="0" />
+      <LineId Id="192" Count="1" />
+      <LineId Id="186" Count="0" />
+      <LineId Id="98" Count="0" />
+      <LineId Id="141" Count="5" />
+      <LineId Id="99" Count="0" />
+      <LineId Id="198" Count="0" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="227" Count="0" />
+      <LineId Id="229" Count="4" />
+      <LineId Id="228" Count="0" />
+      <LineId Id="20" Count="0" />
+      <LineId Id="239" Count="0" />
+      <LineId Id="238" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.setup">
+      <LineId Id="12" Count="6" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="20" Count="0" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="21" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

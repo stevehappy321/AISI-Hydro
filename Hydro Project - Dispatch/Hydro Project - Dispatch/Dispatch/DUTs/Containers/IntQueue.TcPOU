@@ -1,0 +1,180 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="IntQueue" Id="{b88eabe4-fa96-488a-9c59-79d0926b2421}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK IntQueue EXTENDS Queue
+VAR
+	//elements : FB_BA_DynamicArray := (uiEntrySize :=1, uiMinExpCount := GVL.initArraySize);
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[uiEntrySizeRef REF= elements.uiEntrySize;
+uiEntrySizeRef := TO_UINT(dataSize);]]></ST>
+    </Implementation>
+    <Method Name="clear" Id="{e2568c0d-1a27-4165-868b-001d96ffa635}">
+      <Declaration><![CDATA[METHOD clear : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[elements.Reset();
+length := 0;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="contains" Id="{1ea2cef5-ff89-4cb3-8414-f91e89824126}">
+      <Declaration><![CDATA[METHOD contains : BOOL
+VAR_INPUT
+	value : INT;
+END_VAR
+VAR_INST
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF length = 0 THEN
+	contains := FALSE;
+	RETURN;
+END_IF
+
+FOR i:=0 TO length-1 BY 1 DO
+	IF get(i) = value THEN
+		contains := TRUE;
+		RETURN;
+	END_IF
+END_FOR
+contains := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="get" Id="{f77f5f86-6803-4a8e-a82e-15512b7a2d13}">
+      <Declaration><![CDATA[METHOD get : INT
+VAR_INPUT
+	i : INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[elements.GetEntry(diIndex := i, pResultEntry := ADR(get));]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="isEmpty" Id="{2e909f5b-f462-464b-a4f4-530341b5a502}">
+      <Declaration><![CDATA[METHOD isEmpty : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[isEmpty := (length = 0);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="poll" Id="{d7ffe0bd-a70d-474f-b52b-bb90a8761c71}">
+      <Declaration><![CDATA[METHOD poll : INT
+VAR_INST
+	temp : INT;
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[temp := get(i := 0);
+elements.RemoveEntry(diIndex := 0);
+length := length - 1;
+poll := temp;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="push" Id="{4f38a899-fe5c-4539-b0ae-ab2eb4fd4d3f}">
+      <Declaration><![CDATA[METHOD push : BOOL
+VAR_INPUT
+	value : INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[elements.AddEntry(pEntry := ADR(value));
+length := length + 1;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="set" Id="{6e48312b-26e4-4a4f-893e-4e19c9cf9369}">
+      <Declaration><![CDATA[METHOD set : BOOL
+VAR_INPUT
+	i : INT;
+	value : INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[elements.SetEntry(i, ADR(value));]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="size" Id="{af0b9551-be39-498e-a520-c313ac29b4d9}">
+      <Declaration><![CDATA[METHOD size : USINT
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[size := length;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="sort" Id="{b819151d-789f-45e6-abe7-8db18aa34d47}">
+      <Declaration><![CDATA[METHOD sort : BOOL
+VAR_INPUT
+END_VAR
+VAR_INST
+	i : INT;
+	j : INT;
+	temp : INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i:=0 TO GVL.maxPairs BY 1 DO
+	FOR j:=0 TO GVL.maxPairs BY 1 DO
+		IF get(j) > get(j+1) THEN //swap
+			temp := get(j);
+			set(j, get(j+1));
+			set(j+1, temp);
+		END_IF
+	END_FOR
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="IntQueue">
+      <LineId Id="11" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="IntQueue.clear">
+      <LineId Id="5" Count="1" />
+    </LineIds>
+    <LineIds Name="IntQueue.contains">
+      <LineId Id="21" Count="0" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="25" Count="0" />
+      <LineId Id="24" Count="0" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="14" Count="0" />
+    </LineIds>
+    <LineIds Name="IntQueue.get">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="IntQueue.isEmpty">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="IntQueue.poll">
+      <LineId Id="51" Count="2" />
+      <LineId Id="23" Count="0" />
+    </LineIds>
+    <LineIds Name="IntQueue.push">
+      <LineId Id="33" Count="0" />
+      <LineId Id="17" Count="0" />
+    </LineIds>
+    <LineIds Name="IntQueue.set">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="IntQueue.size">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="IntQueue.sort">
+      <LineId Id="6" Count="2" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="21" Count="1" />
+      <LineId Id="10" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
