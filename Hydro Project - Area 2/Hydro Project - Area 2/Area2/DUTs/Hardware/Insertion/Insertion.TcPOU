@@ -1,0 +1,90 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="Insertion" Id="{474cec8b-539b-4b97-8920-b045f392c812}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK ABSTRACT Insertion //IMPLEMENTS I_Insertion2D
+VAR_INPUT CONSTANT
+	enable : BOOL;
+END_VAR
+VAR_OUTPUT
+	contact AT %I* : BOOL;
+	home : BOOL;
+	busy : BOOL;
+	error : BOOL;
+	
+	sliderPos : LREAL;
+	screwPos : LREAL;
+END_VAR
+(*
+this abstract FB encapsulates 2 drives into a generic insertion machine
+this FB cannot be used to instantiate insertions, it can only be used to refer/point to existing insertions
+RETURN VALUES FOR THE METHODS ARE MEANINGLESS
+*)]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="align" Id="{89be0205-36be-4635-bf1d-734fb40c3796}">
+      <Declaration><![CDATA[METHOD ABSTRACT align : BOOL
+VAR_INPUT
+	targetPos : REAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="homingSequence" Id="{1eff6ad7-4509-4cdc-81af-eef38809ec7f}">
+      <Declaration><![CDATA[METHOD ABSTRACT homingSequence : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="press" Id="{4b68a98e-5d52-4750-8c51-39e9aab9887f}">
+      <Declaration><![CDATA[METHOD ABSTRACT press : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="release" Id="{43664641-2403-4070-8d32-2915d9eeb09e}">
+      <Declaration><![CDATA[METHOD ABSTRACT release : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="traverse" Id="{2976ba6d-a5c4-4581-84e8-a5c41da415dd}">
+      <Declaration><![CDATA[METHOD ABSTRACT traverse : BOOL
+VAR_INPUT
+	direction : MC_Direction;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="Insertion">
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="Insertion.align">
+      <LineId Id="36" Count="0" />
+    </LineIds>
+    <LineIds Name="Insertion.homingSequence">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="Insertion.press">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="Insertion.release">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="Insertion.traverse">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

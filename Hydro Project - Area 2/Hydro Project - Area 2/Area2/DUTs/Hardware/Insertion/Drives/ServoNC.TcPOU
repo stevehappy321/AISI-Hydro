@@ -1,0 +1,343 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="ServoNC" Id="{f939ae28-30bd-4997-8b95-af50702e8d64}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK ServoNC
+VAR_INPUT CONSTANT
+	bEnable : BOOL;
+END_VAR
+VAR_OUTPUT
+	home AT %I* : BOOL;
+	outerLimit AT %I* : BOOL;
+	innerLimit AT %I* : BOOL;
+	
+	ready : BOOL;
+	busy : BOOL;
+	error : BOOL;
+	homeSet : BOOL;
+	
+	position : LREAL;
+END_VAR
+VAR
+	axis : AXIS_REF;
+	
+	mcReadPosition : MC_ReadActualPosition;
+	mcReset : MC_Reset;
+	
+	mcPower : MC_Power;
+	mcMoveAbsolute : MC_MoveAbsolute;
+	mcMoveRelative : MC_MoveRelative;
+	mcMoveVelocity : MC_MoveVelocity;
+	
+	mcStop : MC_Stop;
+	mcSetPosition : MC_SetPosition;
+	
+	step : Homing;
+END_VAR
+VAR_STAT CONSTANT
+	targetingVelocity : INT := 500;
+	continuousVelocity : INT := 200;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[mcReadPosition(
+	Axis:= axis, 
+	Enable:= TRUE, 
+	Valid=> , 
+	Busy=> , 
+	Error=> , 
+	ErrorID=> , 
+	Position=> position);
+
+mcReset(
+	Axis:= axis, 
+	Execute:= , 
+	Done=> , 
+	Busy=> , 
+	Error=> , 
+	ErrorID=> );
+
+mcPower(
+	Axis:= axis, 
+	Enable:= bEnable, 
+	Enable_Positive:= TRUE, 
+	Enable_Negative:= TRUE, 
+	Override:= 100, 
+	BufferMode:= , 
+	Options:= , 
+	Status=> , 
+	Busy=> , 
+	Active=> , 
+	Error=> , 
+	ErrorID=> );
+
+mcMoveAbsolute(
+	Axis:= axis, 
+	Execute:= , 
+	Position:= , 
+	Velocity:= targetingVelocity, 
+	Acceleration:= , 
+	Deceleration:= , 
+	Jerk:= , 
+	BufferMode:= , 
+	Options:= , 
+	Done=> , 
+	Busy=> , 
+	Active=> , 
+	CommandAborted=> , 
+	Error=> , 
+	ErrorID=> );
+		
+mcMoveRelative(
+	Axis:= axis, 
+	Execute:= , 
+	Distance:= ,
+	Velocity:= targetingVelocity, 
+	Acceleration:= , 
+	Deceleration:= , 
+	Jerk:= , 
+	BufferMode:= , 
+	Options:= , 
+	Done=> , 
+	Busy=> , 
+	Active=> , 
+	CommandAborted=> , 
+	Error=> , 
+	ErrorID=> );
+	
+mcMoveVelocity(
+	Axis:= axis, 
+	Execute:= , 
+	Velocity:= continuousVelocity, 
+	Acceleration:= , 
+	Deceleration:= , 
+	Jerk:= , 
+	Direction:= , 
+	BufferMode:= , 
+	Options:= , 
+	InVelocity=> , 
+	Busy=> , 
+	Active=> , 
+	CommandAborted=> , 
+	Error=> , 
+	ErrorID=> );
+	
+mcStop(
+	Axis:= axis, 
+	Execute:= , 
+	Deceleration:= , 
+	Jerk:= , 
+	Options:= , 
+	Done=> , 
+	Busy=> , 
+	Active=> , 
+	CommandAborted=> , 
+	Error=> , 
+	ErrorID=> );
+
+mcSetPosition(
+	Axis:= axis, 
+	Execute:= , 
+	Position:= , 
+	Mode:= , 
+	Options:= , 
+	Done=> , 
+	Busy=> , 
+	Error=> , 
+	ErrorID=> );
+	
+busy := mcMoveAbsolute.Busy OR mcMoveRelative.Busy OR mcMoveVelocity.Busy OR mcSetPosition.Busy OR mcReset.Busy OR mcStop.Busy OR step <> 0;
+error := mcMoveAbsolute.Error OR mcMoveRelative.Error OR mcMoveVelocity.Error OR mcSetPosition.Error OR mcReset.Error OR mcStop.Error OR step <> 0;
+ready := bEnable AND NOT busy AND homeSet;
+
+IF step <> 0 THEN
+	mcReset.Execute := FALSE;
+	mcMoveAbsolute.Execute := FALSE;
+	mcMoveRelative.Execute := FALSE;
+	mcMoveVelocity.Execute := FALSE;
+	mcStop.Execute := FALSE;
+	mcSetPosition.Execute := FALSE;
+END_IF]]></ST>
+    </Implementation>
+    <Method Name="homingSequence" Id="{c889c79b-08e7-46ba-b03a-e3652fe9a7a9}">
+      <Declaration><![CDATA[METHOD homingSequence : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CASE step OF
+	Homing.IDLE:
+		IF bEnable THEN
+			step := Homing.REDO;
+		END_IF
+		
+	Homing.REDO:
+		IF mcMoveVelocity.Execute AND NOT innerLimit THEN
+			mcMoveVelocity.Execute := FALSE;
+			step := Homing.HOME_OUT;
+			RETURN;
+		END_IF
+		
+		mcMoveVelocity.Direction := MC_Negative_Direction;
+		mcMoveVelocity.Execute := TRUE;
+		
+	Homing.HOME_OUT:
+		IF mcMoveVelocity.Execute AND NOT home THEN //if reached home
+			mcMoveVelocity.Execute := FALSE;
+			step := Homing.STOP;
+			RETURN;
+		END_IF
+		
+		mcMoveVelocity.Direction := MC_Positive_Direction;
+		mcMoveVelocity.Execute := TRUE;
+		
+	Homing.STOP:
+		IF mcStop.Execute AND mcStop.Done THEN
+			mcStop.Execute := FALSE;
+			step := Homing.SET;
+			RETURN;
+		END_IF
+		
+		mcStop.Execute := TRUE;
+		
+	Homing.SET:
+		IF mcSetPosition.Execute AND mcSetPosition.Done THEN
+			mcSetPosition.Execute := FALSE;
+			homingSequence := TRUE;
+			step := Homing.IDLE;
+			RETURN;
+		END_IF
+		
+		mcSetPosition.Position := 0;
+		mcSetPosition.Execute := TRUE;
+		
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="moveAbsolute" Id="{9a0c1523-e496-48d2-89d9-d71629c86307}">
+      <Declaration><![CDATA[METHOD moveAbsolute : BOOL
+VAR_INPUT
+	targetPos : LREAL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT busy AND NOT error THEN
+	mcMoveAbsolute.Position := targetPos;
+END_IF
+moveAbsolute := mcMoveAbsolute.Done;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="moveContinuous" Id="{c1bd97e2-f7e7-45ed-bf81-7afd3b7c53ff}">
+      <Declaration><![CDATA[METHOD moveContinuous : BOOL
+VAR_INPUT
+	direction : MC_Direction;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[mcMoveVelocity.Direction := direction;
+
+mcMoveVelocity.Execute := TRUE;
+
+moveContinuous := NOT mcMoveVelocity.Error;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="moveRelative" Id="{a4516e41-c115-4d38-aa54-f9462db8dc0d}">
+      <Declaration><![CDATA[METHOD moveRelative : BOOL
+VAR_INPUT
+	distance : LREAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[mcMoveRelative.Distance := distance;
+
+moveRelative := mcMoveRelative.Done;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="reset" Id="{b7706fbc-8e49-4562-bc6d-21f87f45b14e}">
+      <Declaration><![CDATA[METHOD reset : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[mcReset.Execute := TRUE;
+
+reset := mcReset.Done;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="stop" Id="{131a01d5-9f85-446c-9242-ad02c99596c6}">
+      <Declaration><![CDATA[METHOD stop : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="ServoNC">
+      <LineId Id="504" Count="6" />
+      <LineId Id="502" Count="1" />
+      <LineId Id="378" Count="6" />
+      <LineId Id="389" Count="31" />
+      <LineId Id="425" Count="15" />
+      <LineId Id="565" Count="0" />
+      <LineId Id="446" Count="16" />
+      <LineId Id="519" Count="11" />
+      <LineId Id="534" Count="0" />
+      <LineId Id="467" Count="10" />
+      <LineId Id="499" Count="1" />
+      <LineId Id="566" Count="8" />
+      <LineId Id="165" Count="0" />
+    </LineIds>
+    <LineIds Name="ServoNC.homingSequence">
+      <LineId Id="259" Count="1" />
+      <LineId Id="354" Count="2" />
+      <LineId Id="317" Count="0" />
+      <LineId Id="319" Count="0" />
+      <LineId Id="348" Count="0" />
+      <LineId Id="350" Count="1" />
+      <LineId Id="353" Count="0" />
+      <LineId Id="347" Count="0" />
+      <LineId Id="352" Count="0" />
+      <LineId Id="320" Count="1" />
+      <LineId Id="268" Count="1" />
+      <LineId Id="336" Count="2" />
+      <LineId Id="340" Count="0" />
+      <LineId Id="335" Count="0" />
+      <LineId Id="339" Count="0" />
+      <LineId Id="270" Count="2" />
+      <LineId Id="291" Count="0" />
+      <LineId Id="330" Count="2" />
+      <LineId Id="334" Count="0" />
+      <LineId Id="329" Count="0" />
+      <LineId Id="333" Count="0" />
+      <LineId Id="292" Count="0" />
+      <LineId Id="297" Count="1" />
+      <LineId Id="342" Count="1" />
+      <LineId Id="357" Count="0" />
+      <LineId Id="344" Count="0" />
+      <LineId Id="346" Count="0" />
+      <LineId Id="341" Count="0" />
+      <LineId Id="345" Count="0" />
+      <LineId Id="299" Count="1" />
+      <LineId Id="306" Count="0" />
+      <LineId Id="7" Count="0" />
+    </LineIds>
+    <LineIds Name="ServoNC.moveAbsolute">
+      <LineId Id="36" Count="0" />
+      <LineId Id="32" Count="0" />
+      <LineId Id="28" Count="0" />
+      <LineId Id="27" Count="0" />
+    </LineIds>
+    <LineIds Name="ServoNC.moveContinuous">
+      <LineId Id="26" Count="0" />
+      <LineId Id="18" Count="1" />
+      <LineId Id="24" Count="0" />
+      <LineId Id="23" Count="0" />
+    </LineIds>
+    <LineIds Name="ServoNC.moveRelative">
+      <LineId Id="8" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="ServoNC.reset">
+      <LineId Id="5" Count="0" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="18" Count="0" />
+    </LineIds>
+    <LineIds Name="ServoNC.stop">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

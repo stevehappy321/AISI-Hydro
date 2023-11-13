@@ -1,0 +1,77 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <GVL Name="Hardware" Id="{65ca2073-d302-449b-89a7-bb6faedd692d}">
+    <Declaration><![CDATA[//{attribute 'qualified_only'}
+VAR_GLOBAL CONSTANT
+	numConveyors : INT := 20;
+END_VAR
+VAR_GLOBAL
+	allConveyors : ARRAY[0..numConveyors] OF Conveyor;
+
+	robots : ARRAY[1..6] OF Robot;
+	
+	(*
+	names for moving parts should be in the following format: <type> <location> <left/right>
+	*)
+	
+	//A23 - PAPER
+	(*
+	wrapperPaper : WrapMachine;
+	*)
+	//new
+	wrapperA23 : WrapMachine;
+	//-------------
+	
+	//A22 - CARDBOARD + CORNER GUARD
+	(*
+	cardboardSkid : ARRAY[Surface.LEFT..Surface.RIGHT] OF MaterialStorage;
+	cornerGuardMagazine : ARRAY[Surface.LEFT..Surface.RIGHT] OF MaterialStorage;
+	
+	cardboardBender : ARRAY[Surface.LEFT..Surface.RIGHT] OF FoldingMachine;
+	insertionCardboardCornerGuardSides : ARRAY[Surface.LEFT..Surface.RIGHT] OF ClampInsertion;
+	insertionCardboardCornerGuardBottom : TeknicEIP;
+	
+	wrapperCardboardCornerguard : WrapMachine;
+	*)
+	//new
+	cardboardBenderLeft, cardboardBenderRight : FoldingMachine;
+	
+	cardboardSkidLeft, cardboardSkidRight : MaterialStorage;
+	cornerGuardMagazineLeft, cornerGuardMagazineRight : MaterialStorage;
+	insertionA22Left, insertionA22Right : ClampInsertion;
+	insertionA22Bottom : TeknicEIP;
+	
+	wrapperA22 : WrapMachine;
+	overhead : STRING;
+	//-------------
+	
+	
+	//A21 - CHIPBOARD + WOOD BUNK
+	(*
+	toolStorage : ARRAY[Surface.LEFT..Surface.RIGHT] OF A21ToolStorage;
+	
+	chipboardSkid : ARRAY[Surface.LEFT..Surface.RIGHT] OF MaterialStorage;
+	
+	woodBunkMagazine : ARRAY[Surface.LEFT..Surface.RIGHT] OF MaterialStorage;
+	stagingTable : ARRAY[Surface.LEFT..Surface.RIGHT] OF WoodBunkTable;
+	strapper : StrapMachine;
+	insertionWoodBunkSides : ARRAY[Surface.LEFT..Surface.RIGHT] OF PneumaticInsertion;
+	insertionWoodBunkBottom : TeknicEIP;
+	*)
+	//new
+	toolStorageA21Left, toolStorageA21Right : A21ToolStorage;
+	
+	chipboardSkidLeft, chipboardSkidRight : MaterialStorage;
+	woodBunkMagazineLeft, woodBunkMagazineRight : MaterialStorage;
+	
+	stagingTableLeft, stagingTableRight : WoodBunkTable;
+	strapperA21 : StrapMachine;
+	
+	insertionA21Left, insertionA21Right : PneumaticInsertion;	
+	insertionA21Bottom : TeknicEIP;
+	//-------------
+	
+	//A25 - OUTPUT
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

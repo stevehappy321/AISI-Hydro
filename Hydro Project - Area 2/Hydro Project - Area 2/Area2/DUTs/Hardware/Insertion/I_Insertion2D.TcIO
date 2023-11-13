@@ -1,0 +1,85 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <Itf Name="I_Insertion2D" Id="{8e64ce60-22e0-4b91-ba46-fa91d2f7ae0e}">
+    <Declaration><![CDATA[INTERFACE I_Insertion2D]]></Declaration>
+    <Folder Name="Properties" Id="{4db86ba3-5e15-4610-89d6-3573b1563320}" />
+    <Method Name="align" Id="{fa643266-3d8f-4e66-aec5-e5710590bff8}">
+      <Declaration><![CDATA[METHOD ABSTRACT align : BOOL
+VAR_INPUT
+	targetPos : REAL;
+END_VAR
+]]></Declaration>
+    </Method>
+    <Property Name="Busy" Id="{22835791-0cba-4766-a640-8df2ffdb894d}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY Busy : BOOL]]></Declaration>
+      <Get Name="Get" Id="{c91d3a80-05fd-4fd9-93ce-86b32db3d06b}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+      <Set Name="Set" Id="{f282b493-143e-481d-a756-b09c263b633b}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="Contact" Id="{88516ae2-b7cf-49c6-8562-f4f20559cb97}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY Contact : BOOL]]></Declaration>
+      <Get Name="Get" Id="{b65e7839-b08d-41e0-b5f3-e57ba70a0f47}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+      <Set Name="Set" Id="{4df19e98-4f82-40e8-8c7a-f9016f0511fc}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="Home" Id="{2e214f8e-025e-4655-8dbf-fc929a398aaf}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY Home : BOOL]]></Declaration>
+      <Get Name="Get" Id="{6f3cd418-c02e-46d8-a44d-e21e27ce2eb6}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+      <Set Name="Set" Id="{7506060e-75ba-48f2-803d-dc66f4e7419f}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Method Name="homingSequence" Id="{e50d8f3c-3832-479d-9ea8-d077b3535f03}">
+      <Declaration><![CDATA[METHOD ABSTRACT homingSequence : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="press" Id="{d84955f1-e0a2-4a22-92a7-c7477ef94736}">
+      <Declaration><![CDATA[METHOD ABSTRACT press : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="release" Id="{92bdeeca-e13f-4d7f-bf24-c4aad1f47945}">
+      <Declaration><![CDATA[METHOD ABSTRACT release : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+    </Method>
+    <Property Name="ScrewPos" Id="{0f9296b0-dac0-4298-8710-e435017a1512}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY ScrewPos : LREAL]]></Declaration>
+      <Get Name="Get" Id="{f4c321d6-5acd-437d-ae12-0a22a0a9b2c4}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+      <Set Name="Set" Id="{bcb2ca56-e8a3-4b99-b659-d2adaedd2baf}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="SliderPos" Id="{a384a15a-0431-4fb8-ad53-2f38f4c7c81a}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY SliderPos : LREAL]]></Declaration>
+      <Get Name="Get" Id="{6754d911-f109-4572-b856-7f898a9cd456}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+      <Set Name="Set" Id="{ac2b81d2-5a59-463d-8eb5-09c8cf0faf42}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Method Name="traverse" Id="{62c2b24a-3291-4b2f-ac0b-b5af5509b392}">
+      <Declaration><![CDATA[METHOD ABSTRACT traverse : BOOL
+VAR_INPUT
+	direction : MC_Direction;
+END_VAR]]></Declaration>
+    </Method>
+  </Itf>
+</TcPlcObject>

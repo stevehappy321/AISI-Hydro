@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="SectionStatus" Id="{9750fdd6-c9e6-4c18-b005-35290999abad}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+//{attribute 'strict'}
+TYPE SectionStatus :
+(
+	IDLE,
+	ALIGNING,
+	ACTIVE,
+	CLEARING,
+	COMPLETE,
+	
+	size
+);
+END_TYPE]]></Declaration>
+  </DUT>
+</TcPlcObject>

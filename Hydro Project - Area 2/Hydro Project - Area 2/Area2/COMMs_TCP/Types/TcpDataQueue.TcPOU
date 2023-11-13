@@ -1,0 +1,233 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="TcpDataQueue" Id="{31746788-719c-4a8b-a524-0166dcbe980e}" SpecialFunc="None">
+    <Declaration><![CDATA[{attribute 'call_after_init'}
+FUNCTION_BLOCK TcpDataQueue
+VAR
+	elements : FB_BA_DynamicArray := (uiEntrySize := SIZEOF(POINTER TO TcpData), uiMinExpCount := GVL.initArraySize); 
+	length : INT := 0;
+	
+	entrySize : UDINT;
+END_VAR
+(*
+this container stores dynamically generated AdsData Structs
+AdsData to be added are passed by reference, then this function block allocates a structure to be stored
+AdsData are get() by reference and poll() by value
+*)]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="clear" Id="{7e6b7cd5-5398-4417-b26e-22e0dbcb02e8}">
+      <Declaration><![CDATA[METHOD clear : BOOL
+VAR
+	i : INT;
+	temp : REFERENCE TO TcpData;
+	tempAdr : POINTER TO TcpData;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i:=0 TO length-1 BY 1 DO
+	temp := get(index := i, getSize => );
+	tempAdr := ADR(temp);
+	__DELETE(tempAdr);
+END_FOR
+
+elements.Reset();
+length := 0;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="contains" Id="{07e710ce-08fc-4292-bc18-49f03592976a}">
+      <Declaration><![CDATA[METHOD contains : BOOL //check contents, not pointer value
+VAR_INPUT
+	value : REFERENCE TO TcpData;
+END_VAR
+VAR_OUTPUT
+	atIndex : INT;
+END_VAR
+VAR
+	temp : REFERENCE TO TcpData;
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF length = 0 THEN
+	contains := FALSE;
+	RETURN;
+END_IF
+
+FOR i:=0 TO length-1 BY 1 DO
+	temp := get(index := i, getSize => );
+	
+	IF 
+		SIZEOF(value) = entrySize AND //same size
+		MEMCMP(ADR(temp), ADR(value), SIZEOF(entrySize)) = 0 //same data
+	THEN
+		contains := TRUE;
+		atIndex := i;
+		RETURN;
+	END_IF
+	
+END_FOR
+contains := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="get" Id="{9e57ab30-80ce-4738-b192-a7e941806aa3}">
+      <Declaration><![CDATA[METHOD get : REFERENCE TO TcpData
+VAR_INPUT
+	index : INT;
+END_VAR
+VAR_OUTPUT
+	getSize : UDINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF length = 0 OR index < 0 OR index >= length THEN
+	getSize := 0;
+ELSE
+	elements.GetEntry(diIndex := index, pResultEntry := ADR(get));
+	getSize := SIZEOF(get);
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="isEmpty" Id="{da97b880-8db9-4424-8843-9ec29b6037f1}">
+      <Declaration><![CDATA[METHOD isEmpty : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[isEmpty := length = 0;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="poll" Id="{961519c6-422e-4129-9154-3b267d33e6ec}">
+      <Declaration><![CDATA[METHOD poll : TcpData
+VAR_OUTPUT
+	getSize : UDINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF length > 0 THEN
+	poll := get(index := 0, getSize => getSize);
+	elements.RemoveEntry(diIndex := 0);
+	
+	length := length - 1;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="push" Id="{c4f1a3cb-e929-4827-a82b-2256280acdc8}">
+      <Declaration><![CDATA[METHOD push : BOOL
+VAR_INPUT
+	value : REFERENCE TO TcpData;
+END_VAR
+VAR
+	temp : POINTER TO TcpData;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[temp := __NEW(TcpData);
+temp^ := value;
+
+elements.AddEntryPtr(pEntry := temp);
+
+length := length + 1;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="set" Id="{1e3569ba-9059-42e0-9fbd-dade77d8a158}">
+      <Declaration><![CDATA[METHOD set : BOOL
+VAR_INPUT
+	i : INT;
+	value : REFERENCE TO TcpData;
+END_VAR
+VAR
+	temp : REFERENCE TO TcpData;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF length = 0 THEN
+	RETURN;
+END_IF
+
+IF i >= 0 AND i < length THEN
+	temp REF= get(i);
+	temp := value;
+	
+	set := TRUE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="setup" Id="{b542d38b-f2d6-4cb2-a697-0dd1c38090ad}">
+      <Declaration><![CDATA[{attribute 'call_after_init'}
+METHOD setup : BOOL
+VAR_INPUT
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[entrySize := SIZEOF(TcpData);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="size" Id="{00d5a93a-5526-4eb3-be4a-cc3cac69328d}">
+      <Declaration><![CDATA[METHOD size : INT]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[size := length;]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="TcpDataQueue">
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="TcpDataQueue.clear">
+      <LineId Id="22" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="39" Count="0" />
+      <LineId Id="23" Count="1" />
+      <LineId Id="26" Count="1" />
+      <LineId Id="6" Count="0" />
+    </LineIds>
+    <LineIds Name="TcpDataQueue.contains">
+      <LineId Id="21" Count="0" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="25" Count="0" />
+      <LineId Id="24" Count="0" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="52" Count="0" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="59" Count="0" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="81" Count="0" />
+      <LineId Id="67" Count="0" />
+      <LineId Id="69" Count="0" />
+      <LineId Id="60" Count="0" />
+      <LineId Id="66" Count="0" />
+      <LineId Id="62" Count="0" />
+      <LineId Id="61" Count="0" />
+      <LineId Id="43" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="14" Count="0" />
+    </LineIds>
+    <LineIds Name="TcpDataQueue.get">
+      <LineId Id="10" Count="0" />
+      <LineId Id="21" Count="0" />
+      <LineId Id="12" Count="1" />
+      <LineId Id="29" Count="0" />
+      <LineId Id="14" Count="0" />
+    </LineIds>
+    <LineIds Name="TcpDataQueue.isEmpty">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="TcpDataQueue.poll">
+      <LineId Id="69" Count="0" />
+      <LineId Id="78" Count="0" />
+      <LineId Id="70" Count="0" />
+      <LineId Id="74" Count="0" />
+      <LineId Id="71" Count="1" />
+    </LineIds>
+    <LineIds Name="TcpDataQueue.push">
+      <LineId Id="62" Count="4" />
+      <LineId Id="17" Count="0" />
+    </LineIds>
+    <LineIds Name="TcpDataQueue.set">
+      <LineId Id="22" Count="3" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="26" Count="0" />
+      <LineId Id="44" Count="2" />
+      <LineId Id="13" Count="0" />
+    </LineIds>
+    <LineIds Name="TcpDataQueue.setup">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="TcpDataQueue.size">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

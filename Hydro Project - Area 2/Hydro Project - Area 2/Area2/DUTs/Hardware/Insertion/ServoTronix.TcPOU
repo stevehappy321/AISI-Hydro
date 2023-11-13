@@ -1,0 +1,281 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="ServoTronix" Id="{f368819c-beba-4a2b-b26f-e222203be05a}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM ServoTronix
+VAR_INPUT
+	bExecute : REFERENCE TO BOOL;
+END_VAR
+VAR
+	servo : AXIS_REF;
+	
+	mcPower : MC_Power;
+	mcMoveVelocity : MC_MoveVelocity;
+	mcSetPosition : MC_SetPosition;
+	mcStop : MC_Stop;
+	
+	mcReset : MC_Reset;
+	preset : BOOL;
+	
+	bReset : BOOL;
+	positionSet : BOOL;
+	
+	randomPos : INT;
+	
+	homeLimit AT %I* : BOOL;
+	home AT %I* : BOOL;
+	travelLimit AT %I* : BOOL;
+	
+	step : (IDLE, HOME_BACK, HOME_FINAL, STOP, SET, FORWARD, REDO_HOME);
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[(*
+IF NOT preset THEN
+	preset := TRUE;
+	bReset := TRUE;
+END_IF
+*)
+
+blocks();
+sequence();
+IF randomPos <> 0 THEN
+	mcSetPosition.Position := randomPos;
+	mcSetPosition.Execute := TRUE;
+	
+	IF mcSetPosition.Done THEN
+		mcSetPosition.Execute := FALSE;
+		randomPos := 0;
+	END_IF
+END_IF
+]]></ST>
+    </Implementation>
+    <Method Name="blocks" Id="{269f953f-7162-46cc-9e48-4fb8b3aafd67}">
+      <Declaration><![CDATA[METHOD blocks : BOOL
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[mcReset(
+	Axis:= servo, 
+	Execute:= bReset, 
+	Done=> , 
+	Busy=> , 
+	Error=> , 
+	ErrorID=> );
+	
+IF bReset THEN
+	bReset := FALSE;
+END_IF
+
+mcPower(
+	Axis:= servo, 
+	Enable:= TRUE, 
+	Enable_Positive:= TRUE, 
+	Enable_Negative:= TRUE, 
+	Override:= 100, 
+	BufferMode:= , 
+	Options:= , 
+	Status=> , 
+	Busy=> , 
+	Active=> , 
+	Error=> , 
+	ErrorID=> );
+	
+mcMoveVelocity(
+	Axis:= servo, 
+	Execute:= , 
+	Velocity:= 75, 
+	Acceleration:= , 
+	Deceleration:= , 
+	Jerk:= , 
+	Direction:= , // MC_Positive_Direction, MC_Negative_Direction
+	BufferMode:= , 
+	Options:= , 
+	InVelocity=> , 
+	Busy=> , 
+	Active=> , 
+	CommandAborted=> , 
+	Error=> , 
+	ErrorID=> );
+	
+mcStop(
+	Axis:= servo, 
+	Execute:= , 
+	Deceleration:= , 
+	Jerk:= , 
+	Options:= , 
+	Done=> , 
+	Busy=> , 
+	Active=> , 
+	CommandAborted=> , 
+	Error=> , 
+	ErrorID=> );
+	
+mcSetPosition(
+	Axis:= servo, 
+	Execute:= , 
+	Position:= , 
+	Mode:= , 
+	Options:= , 
+	Done=> , 
+	Busy=> , 
+	Error=> , 
+	ErrorID=> );
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="sequence" Id="{86f4d543-2035-4823-a7fa-3e2e5dcf29d2}">
+      <Declaration><![CDATA[METHOD sequence : BOOL
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CASE step OF
+	IDLE:
+		mcStop.Execute := TRUE;
+		IF bExecute THEN
+			bExecute := FALSE;
+			mcStop.Execute := FALSE;
+			
+			step := HOME_BACK;
+		END_IF
+		
+	HOME_BACK:
+		mcMoveVelocity.Direction := MC_Positive_Direction;
+		mcMoveVelocity.Execute := TRUE;
+		
+		IF NOT home THEN //if reached home
+			mcMoveVelocity.Execute := FALSE;
+			step := STOP;
+			
+		ELSIF NOT homeLimit THEN //if reached near homing limit
+			mcMoveVelocity.Execute := FALSE;
+			step := FORWARD;
+		END_IF
+		
+	HOME_FINAL:
+		mcMoveVelocity.Direction := MC_Negative_Direction;
+		mcMoveVelocity.Execute := TRUE;
+		
+		IF NOT home THEN
+			mcMoveVelocity.Execute := FALSE;
+			step := STOP;
+		END_IF
+	
+	STOP:
+		mcStop.Execute := TRUE;
+		IF mcStop.Done THEN
+			mcStop.Execute := FALSE;
+			step := SET;
+		END_IF
+		
+	SET:
+		mcSetPosition.Position := 0;
+		mcSetPosition.Execute := TRUE;
+		
+		IF mcSetPosition.Done THEN
+			mcSetPosition.Execute := FALSE;
+			step := FORWARD;
+		END_IF
+	
+	FORWARD:
+		mcMoveVelocity.Direction := MC_Negative_Direction;
+		mcMoveVelocity.Execute := TRUE;
+		
+		IF NOT travelLimit THEN
+			
+			mcMoveVelocity.Execute := FALSE;
+			step := IDLE;
+		END_IF
+		
+	REDO_HOME:
+		mcMoveVelocity.Direction := MC_Negative_Direction;
+		mcMoveVelocity.Execute := TRUE;
+		
+		IF NOT travelLimit THEN
+			
+			mcMoveVelocity.Execute := FALSE;
+			step := HOME_BACK;
+		END_IF
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="ServoTronix">
+      <LineId Id="122" Count="0" />
+      <LineId Id="118" Count="2" />
+      <LineId Id="116" Count="0" />
+      <LineId Id="121" Count="0" />
+      <LineId Id="117" Count="0" />
+      <LineId Id="92" Count="0" />
+      <LineId Id="115" Count="0" />
+      <LineId Id="95" Count="2" />
+      <LineId Id="104" Count="0" />
+      <LineId Id="102" Count="1" />
+      <LineId Id="105" Count="0" />
+      <LineId Id="101" Count="0" />
+      <LineId Id="67" Count="0" />
+      <LineId Id="98" Count="0" />
+    </LineIds>
+    <LineIds Name="ServoTronix.blocks">
+      <LineId Id="37" Count="5" />
+      <LineId Id="35" Count="0" />
+      <LineId Id="43" Count="3" />
+      <LineId Id="36" Count="0" />
+      <LineId Id="6" Count="12" />
+      <LineId Id="82" Count="0" />
+      <LineId Id="67" Count="14" />
+      <LineId Id="66" Count="0" />
+      <LineId Id="83" Count="0" />
+      <LineId Id="86" Count="10" />
+      <LineId Id="84" Count="0" />
+      <LineId Id="97" Count="0" />
+      <LineId Id="99" Count="8" />
+      <LineId Id="98" Count="0" />
+      <LineId Id="109" Count="0" />
+    </LineIds>
+    <LineIds Name="ServoTronix.sequence">
+      <LineId Id="55" Count="1" />
+      <LineId Id="142" Count="0" />
+      <LineId Id="57" Count="0" />
+      <LineId Id="97" Count="0" />
+      <LineId Id="143" Count="1" />
+      <LineId Id="58" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="145" Count="1" />
+      <LineId Id="154" Count="2" />
+      <LineId Id="160" Count="0" />
+      <LineId Id="164" Count="0" />
+      <LineId Id="161" Count="0" />
+      <LineId Id="163" Count="0" />
+      <LineId Id="162" Count="0" />
+      <LineId Id="158" Count="1" />
+      <LineId Id="153" Count="0" />
+      <LineId Id="31" Count="1" />
+      <LineId Id="67" Count="3" />
+      <LineId Id="108" Count="0" />
+      <LineId Id="107" Count="0" />
+      <LineId Id="35" Count="0" />
+      <LineId Id="106" Count="0" />
+      <LineId Id="127" Count="0" />
+      <LineId Id="135" Count="0" />
+      <LineId Id="128" Count="0" />
+      <LineId Id="131" Count="0" />
+      <LineId Id="129" Count="1" />
+      <LineId Id="132" Count="0" />
+      <LineId Id="75" Count="0" />
+      <LineId Id="123" Count="0" />
+      <LineId Id="133" Count="0" />
+      <LineId Id="126" Count="0" />
+      <LineId Id="115" Count="0" />
+      <LineId Id="117" Count="1" />
+      <LineId Id="104" Count="1" />
+      <LineId Id="76" Count="0" />
+      <LineId Id="79" Count="3" />
+      <LineId Id="137" Count="0" />
+      <LineId Id="87" Count="0" />
+      <LineId Id="86" Count="0" />
+      <LineId Id="77" Count="0" />
+      <LineId Id="141" Count="0" />
+      <LineId Id="165" Count="0" />
+      <LineId Id="167" Count="6" />
+      <LineId Id="166" Count="0" />
+      <LineId Id="7" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

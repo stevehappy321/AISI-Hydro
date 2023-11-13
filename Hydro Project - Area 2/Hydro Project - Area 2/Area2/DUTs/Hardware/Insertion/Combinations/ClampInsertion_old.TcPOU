@@ -1,0 +1,124 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="ClampInsertion_old" Id="{a8054870-0722-4545-9a54-faef9caca0df}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK ClampInsertion_old
+VAR_INPUT CONSTANT
+	enable : BOOL;
+END_VAR
+VAR
+	slider : ServoECAT;
+	screw : TeknicEIP;
+END_VAR
+VAR_OUTPUT
+	contact : BOOL;
+	
+	home : BOOL;
+	busy : BOOL;
+	error : BOOL;
+END_VAR
+(*
+this FB encapsulates a ServoECAT and TeknicEIP into a 2D insertion machine
+normal operation should only use this FB's methods, but attributes and methods of the 2 components remain visible
+*)]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[slider(
+	bEnable:= enable, 
+	home=> , 
+	outerLimit=> , 
+	innerLimit=> , 
+	ready=> , 
+	busy=> , 
+	error=> , 
+	homeSet=> );
+	
+screw(
+	bEnable:= enable, 
+	home=> , 
+	outerLimit=> , 
+	innerLimit=> , 
+	done=> , 
+	contact=> contact, 
+	homeSet=> );
+
+home := screw.home AND slider.home;
+busy := slider.busy OR screw.busy;
+error := slider.error OR screw.error;]]></ST>
+    </Implementation>
+    <Method Name="align" Id="{146b27b0-2ea0-4a44-8090-94a98937b16a}">
+      <Declaration><![CDATA[METHOD align : BOOL
+VAR_INPUT
+	targetPos : REAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[align := slider.moveAbsolute(position:= targetPos, fault=> );]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="homingSequence" Id="{3e0fa2d6-3807-446a-a1fe-017650352eb9}">
+      <Declaration><![CDATA[METHOD homingSequence : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT slider.homeSet THEN
+	slider.homingSequence();
+END_IF
+
+IF NOT screw.homeSet THEN
+	screw.homingSequence();
+END_IF
+
+homingSequence := slider.homeSet AND screw.homeSet;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="press" Id="{e707c16a-c2a4-4550-814a-d7a5dbb9ebbc}">
+      <Declaration><![CDATA[METHOD press : BOOL
+VAR_INPUT
+	//direction : BOOL; //direction (F = inwards, T = outwards)
+	//distance : DINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[screw.traverse(direction := FALSE);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="release" Id="{b125690b-923b-41e3-80da-f27e24ac2b0c}">
+      <Declaration><![CDATA[METHOD release : BOOL
+VAR_INPUT
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[release := screw.traverse(direction := TRUE);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="slideContinuous" Id="{e1c7bb96-fb1a-45e9-b9a9-3ad3d62f4ef8}">
+      <Declaration><![CDATA[METHOD slideContinuous : BOOL
+VAR_INPUT
+	direction : BOOL; //direction (F = inwards, T = outwards)
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF direction THEN
+	slideContinuous := slider.moveContinuous(direction:= MC_Direction.MC_Positive_Direction);
+ELSE
+	slideContinuous := slider.moveContinuous(direction:= MC_Direction.MC_Negative_Direction);
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="ClampInsertion_old">
+      <LineId Id="140" Count="20" />
+      <LineId Id="74" Count="0" />
+    </LineIds>
+    <LineIds Name="ClampInsertion_old.align">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="ClampInsertion_old.homingSequence">
+      <LineId Id="27" Count="7" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="ClampInsertion_old.press">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="ClampInsertion_old.release">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="ClampInsertion_old.slideContinuous">
+      <LineId Id="9" Count="4" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

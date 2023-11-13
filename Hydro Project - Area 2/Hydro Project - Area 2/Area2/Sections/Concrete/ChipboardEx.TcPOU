@@ -1,0 +1,563 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="ChipboardEx" Id="{2332b687-5327-48eb-925c-0896a3c04159}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK ChipboardEx EXTENDS SectionEx
+VAR
+	robotLeft, robotRight : REFERENCE TO Robot;
+	
+	skidLeft, skidRight : REFERENCE TO MaterialStorage;
+	
+	toolStorageLeft, toolStorageRight : REFERENCE TO A21ToolStorage;
+END_VAR
+VAR
+	pushSmallConveyorPos : REAL;
+	pushLargeConveyorPos : REAL;
+	
+	topCIP : STRING;
+	bottomCIP : STRING;
+	
+	materialsArr : POINTER TO PositionMaterials; //array of PositionMaterials
+	//currentPair : REFERENCE TO PositionMaterials;	
+	
+	step : (RUN_TO_POSITION, LOAD_MATERIAL, PUSH, RESET);
+	
+	robotLeftOutputs, robotRightOutputs : ARRAY[1..50] OF INT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[entryRefPos := pushSmallConveyorPos;
+exitRefPos := pushLargeConveyorPos;
+
+SUPER^();
+
+CASE status OF
+	SectionStatus.IDLE:
+		//RETURN;
+	
+	SectionStatus.ALIGNING:
+		//
+		
+	SectionStatus.ACTIVE:
+		//
+		
+	SectionStatus.CLEARING:
+		//
+		
+	SectionStatus.COMPLETE:	
+		//
+		
+	-100:
+		RETURN;
+		
+END_CASE
+	
+materialsArr := ADR(currentBundle.chipboard);
+
+loaded := 
+	topCIP = materialsArr[iPair].top AND
+	bottomCIP = materialsArr[iPair].bottom;
+	
+IF NOT(robotLeft.operational AND robotRight.operational) THEN
+	currentBypass := TRUE;
+END_IF]]></ST>
+    </Implementation>
+    <Folder Name="Loading" Id="{435387ac-116a-4fd0-a10c-7ea56caebc68}" />
+    <Folder Name="z_Obsolete" Id="{4fbea93b-a0ad-467c-86be-76667889d54c}" />
+    <Method Name="changeRobotsEOAT" Id="{2329216c-e3c5-4323-8611-6c57c5b1b904}">
+      <Declaration><![CDATA[METHOD changeRobotsEOAT : BOOL
+VAR_INPUT
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF robotLeft.tool <> sectionID THEN
+	MEMSET(ADR(robotLeftOutputs), 0, SIZEOF(robotLeftOutputs));
+	robotLeftOutputs[1] := A21.TOOL_CHANGE_CHIPBOARD;
+	robotLeft.setParamsAndWait(robotLeftOutputs);
+END_IF
+
+IF robotRight.tool <> sectionID THEN
+	MEMSET(ADR(robotRightOutputs), 0, SIZEOF(robotRightOutputs));
+	robotRightOutputs[1] := A21.TOOL_CHANGE_CHIPBOARD;
+	robotRight.setParamsAndWait(robotRightOutputs);
+END_IF
+
+changeRobotsEOAT := robotLeft.tool = sectionID AND robotRight.tool = sectionID;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="initHardware" Id="{afed4b09-eba1-4c60-accb-3f5baa5399a0}">
+      <Declaration><![CDATA[METHOD initHardware : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[conveyors := ADR(allConveyors);
+
+robotLeft REF= robots[1];
+robotRight REF= robots[2];
+
+skidLeft REF= chipboardSkidLeft;
+skidRight REF= chipboardSkidRight;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="load" Id="{444675b5-0c37-4e97-b9ef-58dd20ec4111}">
+      <Declaration><![CDATA[METHOD PROTECTED load : BOOL
+VAR_INPUT
+	pair : REFERENCE TO PositionMaterials;
+END_VAR
+(*
+top:
+	grab chipboard
+	move chipboard to top
+
+bottom:
+	grab chipboard and lower conveyor
+	move chipboard to lowered conveyor
+	which conveyor depends on size of chipboard
+	raise conveyor
+*)]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT (robotLeft.reserve(sectionID) AND robotRight.reserve(sectionID)) THEN
+	RETURN;
+END_IF
+
+IF NOT (robotLeft.tool = sectionID AND robotRight.tool = sectionID) THEN //robots have wrong tool
+	changeRobotsEOAT(); //wait for robots to finish changing tools
+	RETURN;
+END_IF
+//continues once both robots have correct tool
+
+CASE loadSet OF
+	0: //top and bottom
+		IF 
+			loadingSequence(
+				actingRobot:= robotLeft, 
+				robotOutputs:= robotLeftOutputs, 
+				storage:= skidLeft, 
+				loadStep:= loadStepLeft, 
+				surfaceID:= Surface.TOP,
+				material:= pair.top, 
+				fail=> )
+			AND
+			loadingSequence(
+				actingRobot:= robotRight, 
+				robotOutputs:= robotRightOutputs, 
+				storage:= skidRight, 
+				loadStep:= loadStepRight, 
+				surfaceID:= Surface.TOP,
+				material:= pair.bottom, 
+				fail=> )
+		THEN
+			loadStepLeft := loadStepRight := 0;
+			loadSet := 10;
+		END_IF
+		
+	10 : //recovery
+		IF robotLeft.operational AND NOT robotRight.operational THEN //left ok, right fail
+			IF
+				loadingSequence(
+					actingRobot:= robotLeft, 
+					robotOutputs:= robotLeftOutputs, 
+					storage:= skidLeft, 
+					loadStep:= loadStepLeft, 
+					surfaceID:= Surface.BOTTOM,
+					material:= pair.top, 
+					fail=> ) //load bottom with left robot
+			THEN
+				step := COMPLETE;
+			END_IF
+			
+		ELSIF NOT robotLeft.operational AND robotRight.operational THEN //left fail, right ok
+			IF
+				loadingSequence(
+					actingRobot:= robotRight, 
+					robotOutputs:= robotRightOutputs, 
+					storage:= skidRight, 
+					loadStep:= loadStepRight, 
+					surfaceID:= Surface.TOP,
+					material:= pair.bottom, 
+					fail=> ) //load top with right robot
+			THEN
+				step := COMPLETE;
+			END_IF
+			
+		ELSE
+			error := TRUE;
+			currentBypass := TRUE;
+				
+		END_IF
+		
+		loadSet := COMPLETE;
+		
+	COMPLETE:
+		loadSet := 0;
+		
+		loaded := 
+			topCip = pair.top AND
+			bottomCip = pair.bottom;
+			
+		robotLeft.release(sectionID);
+		robotRight.release(sectionID);
+			
+		load := TRUE;
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="loadBottom" Id="{4c9f37f5-f768-4888-a21d-a0570aae12c1}" FolderPath="z_Obsolete\">
+      <Declaration><![CDATA[METHOD loadBottom : BOOL
+VAR_IN_OUT
+	actingRobot : Robot;
+	robotReserved : BOOL;
+	robotOutputs : ARRAY[1..50] OF INT;
+	actingStorage : MaterialStorage;
+	actingLoadStep : INT;
+END_VAR
+VAR_INPUT
+	material : STRING;
+END_VAR
+VAR_OUTPUT
+	fail : BOOL;
+END_VAR
+VAR
+	done : BOOL;
+END_VAR
+VAR
+	slot : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF material = '' THEN
+	step := COMPLETE;
+END_IF
+
+IF actingLoadStep <> COMPLETE AND_THEN NOT actingRobot.reserve(sectionID) THEN
+	RETURN;
+END_IF
+
+CASE actingLoadStep OF
+	0:
+		IF NOT actingStorage.findSlot(materialID := material, atSlot => slot) THEN
+			fail := TRUE;
+			RETURN;
+		END_IF
+		
+		MEMSET(ADR(robotOutputs), 0, SIZEOF(robotOutputs));
+		robotOutputs[1] := A21.GET_CHIPBOARD_FROM_SKID;
+		robotOutputs[2] := slot;
+		
+		IF actingRobot.setParamsAndWait(robotOutputs) THEN
+			actingLoadStep := 10;
+		END_IF
+		
+	10:
+		MEMSET(ADR(robotOutputs), 0, SIZEOF(robotOutputs));
+		robotOutputs[1] := A21.PLACE_CHIPBOARD_TO_BOTTOM;
+		robotOutputs[2] := slot;
+		
+		IF actingRobot.setParamsAndWait(robotOutputs) THEN
+			actingLoadStep := 10;
+		END_IF
+		
+	COMPLETE:
+		actingRobot.release(sectionID);
+		loadBottom := TRUE;
+		
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="loadingSequence" Id="{a7becd14-59e2-4a26-8b0d-fadb6ba17036}" FolderPath="Loading\">
+      <Declaration><![CDATA[METHOD loadingSequence : BOOL
+VAR_IN_OUT
+	actingRobot : Robot;
+	robotOutputs : ARRAY[1..50] OF INT;
+	storage : MaterialStorage;
+	loadStep : INT;
+END_VAR
+VAR_INPUT
+	surfaceID : Surface;
+	material : STRING;
+END_VAR
+VAR_OUTPUT
+	fail : BOOL;
+END_VAR
+VAR
+	slot : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF material = '' THEN
+	loadingSequence := TRUE;
+	RETURN;
+END_IF
+
+CASE loadStep OF
+	0:
+		IF NOT storage.findSlot(materialID := material, atSlot => slot) THEN
+			fail := TRUE;
+			RETURN;
+		END_IF
+		
+		MEMSET(ADR(robotOutputs), 0, SIZEOF(robotOutputs));
+		robotOutputs[1] := A21.GET_CHIPBOARD_FROM_SKID;
+		robotOutputs[2] := slot;
+		
+		CASE surfaceID OF
+			Surface.TOP:
+				IF actingRobot.setParamsAndWait(robotOutputs) THEN
+					loadStep := 10;
+				END_IF
+				
+			Surface.BOTTOM:
+				//lower conveyor
+				IF actingRobot.setParamsAndWait(robotOutputs) (*AND conveyor lowered*) THEN
+					loadStep := 10;
+				END_IF
+			
+		END_CASE
+		
+	10:
+		MEMSET(ADR(robotOutputs), 0, SIZEOF(robotOutputs));
+		CASE surfaceID OF
+			Surface.TOP: 					robotOutputs[1] := A21.PLACE_CHIPBOARD_TO_TOP;
+			Surface.BOTTOM: 				robotOutputs[1] := A21.PLACE_CHIPBOARD_TO_BOTTOM;
+		END_CASE
+		robotOutputs[2] := slot;
+		
+		IF actingRobot.setParamsAndWait(robotOutputs) THEN
+			loadStep := 10;
+		END_IF
+		
+	COMPLETE:
+		actingRobot.release(sectionID);
+		loadingSequence := TRUE;
+		
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="loadTop" Id="{d538e9fb-30df-45f0-ac74-0ac63fad77ed}" FolderPath="z_Obsolete\">
+      <Declaration><![CDATA[METHOD loadTop : BOOL
+VAR_IN_OUT
+	actingRobot : Robot;
+	robotOutputs : ARRAY[1..50] OF INT;
+	actingStorage : MaterialStorage;
+	actingLoadStep : INT;
+END_VAR
+VAR_INPUT
+	material : STRING;
+END_VAR
+VAR_OUTPUT
+	fail : BOOL;
+END_VAR
+VAR
+	slot : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF actingLoadStep <> COMPLETE AND_THEN NOT actingRobot.reserve(sectionID) THEN
+	RETURN;
+END_IF
+
+CASE actingLoadStep OF
+	0: //grab chipboard
+		IF NOT actingStorage.findSlot(materialID := material, atSlot => slot) THEN
+			fail := TRUE;
+			RETURN;
+		END_IF
+		
+		MEMSET(ADR(robotOutputs), 0, SIZEOF(robotOutputs));
+		robotOutputs[1] := A21.GET_CHIPBOARD_FROM_SKID;
+		robotOutputs[2] := slot;
+		
+		IF actingRobot.setParamsAndWait(robotOutputs) THEN
+			actingLoadStep := 10;
+		END_IF
+		
+	10: //load chipboard
+		MEMSET(ADR(robotOutputs), 0, SIZEOF(robotOutputs));
+		robotOutputs[1] := A21.PLACE_CHIPBOARD_TO_TOP;
+		robotOutputs[2] := slot;
+		
+		IF actingRobot.setParamsAndWait(robotOutputs) THEN
+			actingLoadStep := 10;
+		END_IF
+		
+	COMPLETE:
+		actingRobot.release(sectionID);
+		loadTop := TRUE;
+		
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="process" Id="{75a5adf9-d827-4382-99fd-7f45c2e9b5f2}">
+      <Declaration><![CDATA[METHOD PROTECTED process : BOOL
+VAR
+	currentPair : REFERENCE TO PositionMaterials REF= materialsArr[iPair];
+END_VAR
+VAR_INST
+	cmdSent : BOOL;
+	
+	test : BOOL;
+	
+	i : INT;
+	conveyorsExtended : BOOL := TRUE;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF iPair >= GVL.maxPairs THEN
+	process := TRUE;
+	RETURN;
+END_IF
+
+CASE step OF
+	RUN_TO_POSITION: //free run until position reached
+		IF directionCheckAndSet(pushSmallConveyorPos, currentPair.position) THEN
+			step := PUSH;
+		END_IF
+		
+	LOAD_MATERIAL: //loading must be done when bundle reaches position, not before
+		setConveyorMode(ConveyorMode.STOP); //request stop at position
+		IF load(currentPair) THEN
+			step := PUSH;
+		END_IF
+	
+	PUSH: //push materials
+		setConveyorMode(ConveyorMode.STOP); //request stop at position
+		FOR i:=firstConveyor TO lastConveyor BY 1 DO
+			IF NOT conveyors[i].extended THEN
+				conveyors[i].extend();
+			END_IF
+			conveyorsExtended := MIN(conveyorsExtended, conveyors[i].extended);
+		END_FOR
+		
+		IF conveyorsExtended THEN
+			step := RESET;
+		END_IF
+		
+	RESET: //finished at this position, reset
+		setConveyorMode(ConveyorMode.FORWARD);
+		cmdSent := FALSE;
+		
+		iPair := iPair + 1;
+		
+		step := 0;
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="usesProcess" Id="{85d43fb0-6312-402c-ad80-dacc8057f27c}">
+      <Declaration><![CDATA[METHOD PROTECTED usesProcess : BOOL
+VAR
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF materialsArr = 0 THEN
+	RETURN;
+END_IF
+
+FOR i:=0 TO GVL.maxPairs BY 1 DO
+	IF PositionIsValid(materialsArr[i]) THEN
+		usesProcess := TRUE;
+		RETURN;		
+	END_IF
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="ChipboardEx">
+      <LineId Id="188" Count="0" />
+      <LineId Id="186" Count="0" />
+      <LineId Id="159" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="233" Count="20" />
+      <LineId Id="257" Count="0" />
+      <LineId Id="256" Count="0" />
+      <LineId Id="207" Count="0" />
+      <LineId Id="201" Count="5" />
+      <LineId Id="192" Count="0" />
+    </LineIds>
+    <LineIds Name="ChipboardEx.changeRobotsEOAT">
+      <LineId Id="10" Count="1" />
+      <LineId Id="14" Count="1" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="17" Count="4" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="22" Count="0" />
+    </LineIds>
+    <LineIds Name="ChipboardEx.initHardware">
+      <LineId Id="13" Count="1" />
+      <LineId Id="11" Count="1" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="17" Count="0" />
+    </LineIds>
+    <LineIds Name="ChipboardEx.load">
+      <LineId Id="195" Count="2" />
+      <LineId Id="278" Count="0" />
+      <LineId Id="277" Count="0" />
+      <LineId Id="283" Count="0" />
+      <LineId Id="288" Count="0" />
+      <LineId Id="281" Count="0" />
+      <LineId Id="287" Count="0" />
+      <LineId Id="198" Count="27" />
+      <LineId Id="319" Count="10" />
+      <LineId Id="233" Count="2" />
+      <LineId Id="348" Count="10" />
+      <LineId Id="243" Count="0" />
+      <LineId Id="359" Count="3" />
+      <LineId Id="318" Count="0" />
+      <LineId Id="248" Count="11" />
+      <LineId Id="303" Count="0" />
+      <LineId Id="261" Count="1" />
+      <LineId Id="127" Count="0" />
+    </LineIds>
+    <LineIds Name="ChipboardEx.loadBottom">
+      <LineId Id="440" Count="0" />
+      <LineId Id="442" Count="1" />
+      <LineId Id="441" Count="0" />
+      <LineId Id="437" Count="1" />
+      <LineId Id="403" Count="1" />
+      <LineId Id="358" Count="5" />
+      <LineId Id="394" Count="0" />
+      <LineId Id="392" Count="1" />
+      <LineId Id="364" Count="0" />
+      <LineId Id="402" Count="0" />
+      <LineId Id="365" Count="0" />
+      <LineId Id="373" Count="3" />
+      <LineId Id="407" Count="3" />
+      <LineId Id="412" Count="0" />
+      <LineId Id="416" Count="0" />
+      <LineId Id="386" Count="1" />
+      <LineId Id="417" Count="0" />
+      <LineId Id="439" Count="0" />
+      <LineId Id="389" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="ChipboardEx.loadingSequence">
+      <LineId Id="180" Count="45" />
+      <LineId Id="23" Count="0" />
+    </LineIds>
+    <LineIds Name="ChipboardEx.loadTop">
+      <LineId Id="452" Count="1" />
+      <LineId Id="451" Count="0" />
+      <LineId Id="442" Count="0" />
+      <LineId Id="346" Count="5" />
+      <LineId Id="382" Count="0" />
+      <LineId Id="384" Count="1" />
+      <LineId Id="383" Count="0" />
+      <LineId Id="404" Count="0" />
+      <LineId Id="416" Count="0" />
+      <LineId Id="418" Count="0" />
+      <LineId Id="409" Count="0" />
+      <LineId Id="363" Count="1" />
+      <LineId Id="387" Count="1" />
+      <LineId Id="386" Count="0" />
+      <LineId Id="389" Count="0" />
+      <LineId Id="419" Count="0" />
+      <LineId Id="424" Count="0" />
+      <LineId Id="374" Count="1" />
+      <LineId Id="445" Count="1" />
+      <LineId Id="377" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="ChipboardEx.process">
+      <LineId Id="3612" Count="36" />
+      <LineId Id="3134" Count="0" />
+    </LineIds>
+    <LineIds Name="ChipboardEx.usesProcess">
+      <LineId Id="11" Count="0" />
+      <LineId Id="13" Count="1" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="3" Count="4" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

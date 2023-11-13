@@ -1,0 +1,111 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="PneumaticInsertion" Id="{00f63ae2-8099-4ac0-8ac0-667b5928a006}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK PneumaticInsertion EXTENDS Insertion
+VAR
+	slider : TeknicEIP;
+	screw : AirPiston;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[slider(
+	bEnable:= enable, 
+	home=> , 
+	outerLimit=> , 
+	innerLimit=> , 
+	done=> , 
+	homeSet=> , 
+	busy=> , 
+	error=> , 
+	position=> sliderPos);
+	
+screw(
+	bEnable:= enable, 
+	direction=> , 
+	valveIn=> , 
+	valveOut=> , 
+	contact=> , 
+	home=> , 
+	innerLimit=> , 
+	ready=> , 
+	busy=> , 
+	error=> , 
+	homeSet=> );
+	
+home := screw.home AND slider.home;
+busy := slider.busy OR screw.busy;
+error := slider.error OR screw.error;]]></ST>
+    </Implementation>
+    <Method Name="align" Id="{e0f37983-2710-4f6f-9a4d-1bee93ed1acc}">
+      <Declaration><![CDATA[METHOD align : BOOL
+VAR_INPUT
+	targetPos : REAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[align := slider.moveAbsolute(targetPos := targetPos);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="homingSequence" Id="{3cd7ecee-d043-4c55-bba2-a9495d539267}">
+      <Declaration><![CDATA[METHOD homingSequence : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT screw.homeSet THEN
+	screw.homingSequence();
+END_IF
+
+IF NOT slider.homeSet THEN
+	slider.homingSequence();
+END_IF
+
+homingSequence := screw.homeSet AND slider.homeSet;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="press" Id="{192a86da-bf4b-444b-b97f-516d139a6527}">
+      <Declaration><![CDATA[METHOD press : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[screw.slideIn();]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="release" Id="{73d5c0ca-45d8-4707-919f-ee28c6e11785}">
+      <Declaration><![CDATA[METHOD release : BOOL
+VAR_INPUT
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[screw.slideOut();]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="traverse" Id="{bb384519-1c1e-4a43-83f9-a1cda8341fdb}">
+      <Declaration><![CDATA[METHOD traverse : BOOL
+VAR_INPUT
+	direction : MC_Direction;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[slider.moveContinuous(direction := direction);]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="PneumaticInsertion">
+      <LineId Id="289" Count="8" />
+      <LineId Id="250" Count="0" />
+      <LineId Id="273" Count="0" />
+      <LineId Id="276" Count="10" />
+      <LineId Id="275" Count="0" />
+      <LineId Id="288" Count="0" />
+      <LineId Id="266" Count="2" />
+    </LineIds>
+    <LineIds Name="PneumaticInsertion.align">
+      <LineId Id="6" Count="0" />
+    </LineIds>
+    <LineIds Name="PneumaticInsertion.homingSequence">
+      <LineId Id="27" Count="7" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="PneumaticInsertion.press">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="PneumaticInsertion.release">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="PneumaticInsertion.traverse">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

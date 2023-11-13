@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="SuctionPad" Id="{c20acd16-9e6d-4823-8d9f-d767c670512a}">
+    <Declaration><![CDATA[TYPE SuctionPad :
+STRUCT
+	enable AT %Q* : BOOL;
+	readback AT %I* : BOOL;
+END_STRUCT
+END_TYPE]]></Declaration>
+  </DUT>
+</TcPlcObject>

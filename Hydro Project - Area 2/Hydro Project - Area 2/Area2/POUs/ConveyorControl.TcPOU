@@ -1,0 +1,144 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="ConveyorControl" Id="{318a19f0-e7ed-42e5-b785-80a2c36ff413}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM ConveyorControl
+VAR
+	conveyors : POINTER TO Conveyor;
+	spoolTimer : TON;
+	
+	i : INT;
+END_VAR
+VAR CONSTANT
+	spoolSpacing : TIME := T#100MS;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[conveyors := ADR(Hardware.allConveyors);
+
+//use one or the other, not both
+linkCompute();
+//cyclicCompute();
+
+spoolTimer(IN:= , PT:= spoolSpacing, Q=> , ET=> );
+spoolTimer.IN := TRUE;
+IF
+	(conveyors[i].request = ConveyorMode.FORWARD OR conveyors[i].request = ConveyorMode.BACKWARD) AND //conveyor requests motion
+	conveyors[i].request <> conveyors[i].operation AND //conveyor request differs from current operation
+	spoolTimer.Q //ready to spool
+THEN
+	//spool up conveyor
+	i := i + 1;
+	spoolTimer.IN := FALSE;
+END_IF]]></ST>
+    </Implementation>
+    <Method Name="cyclicCompute" Id="{6b6d1f6e-1b21-4dcf-bff4-57c0dd1d2422}">
+      <Declaration><![CDATA[METHOD PRIVATE cyclicCompute : BOOL
+VAR
+	i : INT;
+END_VAR
+(*
+cyclic computation method
+if the last conveyor has the highest priority in a long link, it will take several cycles to reach the other end
+*)]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+FOR i:=Hardware.numConveyors TO 1 BY -1 DO
+	IF NOT conveyors[i].occupied() THEN
+		//turn conveyor off, but do not change request mode
+		conveyors[i].setOperation(ConveyorMode.IDLE);
+		CONTINUE;
+	END_IF
+	
+	//conveyor is occupied:
+	IF i = Hardware.numConveyors THEN //no next conveyor
+		conveyors[i].setOperation( MAX(conveyors[i].request, conveyors[i-1].operation) );
+	
+	ELSIF i < Hardware.numConveyors AND i > 1 THEN
+		
+		IF conveyors[i+1].occupied() THEN //next conveyor is occupied
+			conveyors[i].setOperation( MAX(conveyors[i+1].operation, conveyors[i].request) );
+		END_IF
+		
+	END_IF
+	
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="linkCompute" Id="{4b47d7ec-4657-4dc5-8694-93a08a021dcf}">
+      <Declaration><![CDATA[METHOD PRIVATE linkCompute : BOOL
+VAR
+	i : INT;
+	j : INT;
+	
+	linkStart : INT := -1;
+	linkEnd : INT := -1;
+	
+	priorityInLink : ConveyorMode;
+END_VAR
+(*
+link interation method 
+slower, but will correctly set all operations every cycle
+*)]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i:=1 TO Hardware.numConveyors BY 1 DO
+	IF conveyors[i].occupied() THEN
+		
+		IF linkStart = -1 THEN
+			linkStart := i;
+		END_IF
+		
+		priorityInLink := MAX(priorityInLink, conveyors[i].request);
+		linkEnd := i;
+		
+	ELSIF linkStart <> -1 AND linkEnd <> -1 THEN //set all conveyor operations to priorityInLink
+		linkEnd := i-1;
+		
+		FOR j:=linkStart TO linkEnd BY 1 DO
+			conveyors[j].setOperation(priorityInLink);
+		END_FOR
+		
+		linkStart := -1;
+		linkEnd := -1;
+		priorityInLink := ConveyorMode.IDLE;
+		
+		CONTINUE;
+	END_IF
+	
+END_FOR
+
+linkEnd := linkEnd - 1; //remove residual increment from for loop's failed iteration
+IF linkStart > -1 AND linkEnd > -1 THEN
+	FOR j:=linkStart TO linkEnd BY 1 DO
+		conveyors[j].setOperation(priorityInLink);
+	END_FOR
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="ConveyorControl">
+      <LineId Id="5" Count="0" />
+      <LineId Id="21" Count="1" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="104" Count="0" />
+      <LineId Id="106" Count="0" />
+      <LineId Id="83" Count="0" />
+      <LineId Id="73" Count="0" />
+      <LineId Id="92" Count="0" />
+      <LineId Id="99" Count="0" />
+      <LineId Id="90" Count="1" />
+      <LineId Id="96" Count="0" />
+      <LineId Id="101" Count="0" />
+      <LineId Id="103" Count="0" />
+      <LineId Id="97" Count="0" />
+    </LineIds>
+    <LineIds Name="ConveyorControl.cyclicCompute">
+      <LineId Id="6" Count="19" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="ConveyorControl.linkCompute">
+      <LineId Id="6" Count="24" />
+      <LineId Id="50" Count="0" />
+      <LineId Id="31" Count="4" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,660 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="MAIN" Id="{f8ea2e52-8cdd-4c5a-a5f9-4c8d8a3c6a2c}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAIN
+VAR_OUTPUT //globally readable, but only modifiable by MAIN
+	outputBuffer : ARRAY[Surface.LEFT..Surface.RIGHT] OF Bundle;
+	outputBufferPass, outputBufferFail : Bundle;
+	numOutputBundles : USINT := 0;
+	
+	bundleIn : Bundle;
+	bundleOut : Bundle;
+	
+	ready : BOOL;
+	busy : BOOL;
+	done : BOOL;
+	error : BOOL;
+	backlog : BOOL;
+	
+	localTime : TIMESTRUCT;
+	pause : BOOL;
+END_VAR
+VAR
+	removeBundle AT %I* : ARRAY[Surface.LEFT..Surface.RIGHT] OF BOOL;
+	clearPassBuffer, clearFailBuffer AT %I* : BOOL;
+	receiverStruct : AdsData;
+	
+	//ETA is not strictly required, area will process bundle even if it is not in ETA arrays
+	expectedBundles : ARRAY[0..GVL.maxQueue] OF STRING; //bundles expected to arrive
+	expectedArrivals : ARRAY[0..GVL.maxQueue] OF TIMESTRUCT; //bundles expected to arrive
+	numEtaBundles : INT;
+	
+	//parallel arrays - bundle, bypass
+	numBundlesQueue : INT;
+	bundlesQueue : ARRAY[0..GVL.maxQueue] OF Bundle;
+	bundlesBypass : ARRAY[0..GVL.maxQueue] OF BOOL;
+	
+	//spacerRecollector : PackagerFreeAsync;
+	paperSection : PaperEx;
+	cardboardCornerGuardSection : CardboardCornerGuardEx;
+	chipboardSection : ChipboardEx;
+	woodBunkSection : WoodBunkEx;
+	outputSection : AreaOutputEx;
+	run : ARRAY[0..SectionEnum.size] OF BOOL := [6(TRUE)];
+	
+	fbLocalSystemTime : FB_LocalSystemTime;
+	fbEventLogger : SqlDatabaseAccessor;
+	
+	start : BOOL;
+	
+	processingMode : (PARALLEL, SINGLE, SERIAL, CLEAR);
+	requestedMode : (PARALLEL, SINGLE, SERIAL, CLEAR);
+	serialSection : REFERENCE TO SectionEx;
+END_VAR
+VAR //these variables are only tracked for HMI
+	sectionsBusy : ARRAY[0..SectionEnum.size] OF BOOL;
+	sectionsIterator : ARRAY[0..SectionEnum.size] OF INT;
+END_VAR
+VAR CONSTANT
+	numSections : INT := 6;
+	maxOutputBundles : USINT := 3;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[demoHMI();
+
+SizeCheck();
+getLocalTime();
+
+AdsClient( //PLC-PLC comms
+	ServerNetId:= , 
+	ServerPort:= , 
+	bBusy=> , 
+	err=> , 
+	errid=> , 
+	localPrgName=> , 
+	localNetId=> , 
+	localPort=> , 
+	socketReady=> , 
+	remoteAccessPrefix=> );
+	
+TcpServer1Vision( //PLC-Vision comms
+	ServerNetId:= , 
+	ServerAdr:= , 
+	ServerPort:= , 
+	busy=> , 
+	error=> , 
+	errorId=> , 
+	bytesReceived=> , 
+	connected=> , 
+	receiveStruct=> );
+	
+IF NOT ( enableHardware() AND initialize() ) OR pause THEN
+	RETURN;	
+END_IF
+
+//THIS MUST BE CALLED FIRST
+CallHardware();
+ConveyorControl();
+
+IF AdsClient.fetchData(receiverStruct) THEN
+	interpretTransmission(receiverStruct);
+END_IF
+
+
+IF ready AND BundleIsValid(bundleIn) THEN
+	receive();
+END_IF
+
+
+IF NOT busy THEN
+	processingMode := requestedMode;
+END_IF
+requestMode();
+
+IF clearPassBuffer OR clearFailBuffer THEN
+	transfer();
+	shiftBundles();
+END_IF
+
+ready := paperSection.ready; //if A2 is not ready, dispatch controller must block operator from sending bundles here
+busy := paperSection.busy OR cardboardCornerGuardSection.busy OR chipboardSection.busy OR woodBunkSection.busy OR outputSection.busy;
+done := outputSection.done;
+backlog := numBundlesQueue > 5;
+
+
+
+fbEventLogger();]]></ST>
+    </Implementation>
+    <Folder Name="Process Modes" Id="{8d1d624d-f207-4b80-ae71-4f41b10197eb}" />
+    <Folder Name="Setup" Id="{766689c6-4b05-4d8b-a8a4-3bf5c2750aa3}" />
+    <Method Name="demoHMI" Id="{73fc04c3-3b20-4b90-b668-e45a325d9c2c}" FolderPath="Setup\">
+      <Declaration><![CDATA[METHOD demoHMI : BOOL
+VAR
+	i : INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT start THEN //for HMI testing only, remove for production
+	FOR i:=0 TO GVL.maxQueue BY 1 DO
+		bundlesQueue[i].id := TO_STRING(i);
+	END_FOR
+	
+	start := TRUE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="enableHardware" Id="{0ba728b9-6522-4c82-81e3-44efce8fc95c}" FolderPath="Setup\">
+      <Declaration><![CDATA[METHOD PRIVATE enableHardware : BOOL
+VAR
+	iCardboardSlot : CornerGuard := 1;
+	iCornerGuardSlot : Cardboard := 1;
+	iChipboardSlot : Chipboard := 1;
+	iWoodBunkSlot : WoodBunk := 1;
+	
+	slotsArr : ARRAY[1..GVL.maxQueue] OF STRING;
+	
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR iCardboardSlot:=1 TO Cardboard.size-1 BY 1 DO
+	slotsArr[iCardboardSlot] := TO_STRING(iCardboardSlot);
+END_FOR
+cardboardSkidLeft.setupSlots(slotsArr);
+cardboardSkidRight.setupSlots(slotsArr);
+
+
+FOR iCornerGuardSlot:=1 TO CornerGuard.size-1 BY 1 DO
+	slotsArr[iCornerGuardSlot] := TO_STRING(iCornerGuardSlot);
+END_FOR
+cornerGuardMagazineLeft.setupSlots(slotsArr);
+cornerGuardMagazineRight.setupSlots(slotsArr);
+
+
+FOR iChipboardSlot:=1 TO Chipboard.size-1 BY 1 DO
+	slotsArr[iChipboardSlot] := TO_STRING(iChipboardSlot);
+END_FOR
+chipboardSkidLeft.setupSlots(slotsArr);
+chipboardSkidRight.setupSlots(slotsArr);
+
+
+FOR iWoodBunkSlot:=1 TO WoodBunk.size-1 BY 1 DO
+	slotsArr[iWoodBunkSlot] := TO_STRING(iWoodBunkSlot);
+END_FOR
+woodBunkMagazineLeft.setupSlots(slotsArr);
+woodBunkMagazineRight.setupSlots(slotsArr);
+
+
+insertionA22Left.enable := TRUE;
+insertionA21Left.enable := TRUE;
+
+enableHardware := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="getLocalTime" Id="{b9dfd14b-062f-4ab4-b051-cd1816451bba}">
+      <Declaration><![CDATA[METHOD PRIVATE getLocalTime : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fbLocalSystemTime(
+	sNetID:= '', 
+	bEnable:= TRUE, 
+	dwCycle:= , 
+	dwOpt:= , 
+	tTimeout:= , 
+	bValid=> , 
+	systemTime=> localTime, 
+	tzID=> );
+	
+getLocalTime := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="initialize" Id="{1af4c629-041d-43ca-9e16-2266f17c58c8}" FolderPath="Setup\">
+      <Declaration><![CDATA[METHOD PRIVATE initialize : BOOL
+VAR
+	i : INT;
+	temp : POINTER TO BOOL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[paperSection.connectTo(ADR(cardboardCornerGuardSection));
+cardboardCornerGuardSection.connectTo(ADR(chipboardSection));
+chipboardSection.connectTo(ADR(woodBunkSection));
+woodBunkSection.connectTo(ADR(outputSection));
+
+paperSection.sectionID := SectionEnum.PAPER;
+cardboardCornerGuardSection.sectionID := SectionEnum.CARDBOARD_CORNERGUARD;
+chipboardSection.sectionID := SectionEnum.CHIPBOARD;
+woodBunkSection.sectionID := SectionEnum.WOOD_BUNK;
+outputSection.sectionID := SectionEnum.OUTPUT;
+
+(*
+	paperSection.accessNextSection := ADR(cardboardCornerGuardSection);
+	cardboardCornerGuardSection.accessNextSection := ADR(chipboardSection);
+	chipboardSection.accessNextSection := ADR(woodBunkSection);
+	woodBunkSection.accessNextSection := ADR(outputSection);
+	outputSection.accessNextSection := 0;
+	
+	outputSection.accessPrevSection := woodBunkSection;
+	woodBunkSection.accessPrevSection := chipboardSection;
+	chipboardSection.accessPrevSection := cardboardCornerGuardSection;
+	cardboardCornerGuardSection.accessPrevSection := paperSection;
+	paperSection.accessPrevSection := 0;
+*)
+
+(*
+	12, 20	entry + paper
+	9, 11	cardboard + corner guard
+	5, 8	chipboard + wood bunk
+	1, 4 	output buffer
+	
+	0, 0 	spacer recollector (possibly obsolete)
+*)
+ForceSetLifterConveyors();
+
+paperSection.assignConveyors(12, 20);
+cardboardCornerGuardSection.assignConveyors(9, 11);
+chipboardSection.assignConveyors(5, 8);
+woodBunkSection.assignConveyors(5, 8);
+outputSection.assignConveyors(1, 4);
+
+initialize := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="interpretTransmission" Id="{04aa253b-ab0d-41b0-b6b2-443fd8efedd5}">
+      <Declaration><![CDATA[METHOD PRIVATE interpretTransmission : BOOL
+VAR_INPUT
+	data : REFERENCE TO AdsData;
+END_VAR
+VAR
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CASE data.description OF
+	EventsEnum.BUNDLE_IN:
+		MEMCPY(ADR(bundleIn), ADR(data.binaryData), SIZEOF(bundleIn));
+			
+	EventsEnum.BUNDLE_ETA:
+		MEMCPY(ADR(expectedBundles[numEtaBundles]), ADR(data.binaryData), SIZEOF(expectedBundles[numEtaBundles]));
+		expectedArrivals[numEtaBundles] := data.timestamp;
+		
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="process" Id="{f9da02b9-c065-4582-840f-d291dad1e576}" FolderPath="Process Modes\">
+      <Declaration><![CDATA[METHOD PRIVATE process : BOOL
+(*
+full parallel processsing
+all sections may operate concurrently on any bundle
+*)]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[paperSection(
+	enable:= run[SectionEnum.PAPER], 
+	bundlesQueue:= bundlesQueue, 
+	bundlesBypass:= bundlesBypass,
+	bundleOut=> , 
+	bypass=> , 
+	ready=> , 
+	busy=> sectionsBusy[SectionEnum.PAPER], 
+	done=> , 
+	error=> , 
+	backlog=> ,
+	iBundle=> sectionsIterator[SectionEnum.PAPER],
+	iPair=> );
+	
+cardboardCornerGuardSection(
+	enable:= run[SectionEnum.CARDBOARD_CORNERGUARD],
+	bundlesQueue:= bundlesQueue, 
+	bundlesBypass:= bundlesBypass,
+	bundleOut=> ,
+	bypass=> , 
+	ready=> , 
+	busy=> sectionsBusy[SectionEnum.CARDBOARD_CORNERGUARD], 
+	done=> , 
+	error=> , 
+	backlog=> ,
+	iBundle=> sectionsIterator[SectionEnum.CARDBOARD_CORNERGUARD],
+	iPair=> );
+
+chipboardSection(
+	enable:= run[SectionEnum.CHIPBOARD],
+	bundlesQueue:= bundlesQueue, 
+	bundlesBypass:= bundlesBypass, 
+	bundleOut=> ,
+	bypass=> , 
+	ready=> , 
+	busy=> sectionsBusy[SectionEnum.CHIPBOARD], 
+	done=> , 
+	error=> , 
+	backlog=> ,
+	iBundle=> sectionsIterator[SectionEnum.CHIPBOARD],
+	iPair=> );
+
+woodBunkSection(
+	enable:= run[SectionEnum.WOOD_BUNK],
+	bundlesQueue:= bundlesQueue, 
+	bundlesBypass:= bundlesBypass, 
+	bundleOut=> ,
+	bypass=> , 
+	ready=> , 
+	busy=> sectionsBusy[SectionEnum.WOOD_BUNK], 
+	done=> , 
+	error=> , 
+	backlog=> ,
+	iBundle=> sectionsIterator[SectionEnum.WOOD_BUNK],
+	iPair=> );
+	
+outputSection(
+	enable:= run[SectionEnum.OUTPUT],
+	bundlesQueue:= bundlesQueue, 
+	bundlesBypass:= bundlesBypass,
+	outputBuffer:= outputBuffer,
+	bundleOut=> , 
+	bypass=> , 
+	ready=> , 
+	busy=> sectionsBusy[SectionEnum.OUTPUT],
+	done=> , 
+	error=> , 
+	backlog=> ,
+	iBundle=> sectionsIterator[SectionEnum.OUTPUT],
+	iPair=> );]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="receive" Id="{2de20b6b-9727-4ca1-a75e-22c752a3c085}">
+      <Declaration><![CDATA[{attribute 'TcRpcEnable'}
+METHOD PRIVATE receive : BOOL
+VAR
+	i : INT;
+	shiftIndex : INT := -1;
+	invalidBundle : Bundle;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i:=0 TO GVL.maxQueue BY 1 DO //find the bundle in the ETA queue
+	IF expectedBundles[i] = bundleIn.id THEN
+		shiftIndex := i;
+		EXIT;
+	END_IF
+END_FOR
+
+IF shiftIndex > -1 THEN //if the bundle is found in the ETA queue, shift everything down
+	MEMMOVE(
+		ADR(expectedBundles[shiftIndex]), 
+		ADR(expectedBundles[shiftIndex + 1]), 
+		SIZEOF(STRING) * TO_UINT(GVL.maxQueue - shiftIndex));
+		
+	MEMMOVE(
+		ADR(expectedArrivals[shiftIndex]), 
+		ADR(expectedArrivals[shiftIndex + 1]), 
+		SIZEOF(TIMESTRUCT) * TO_UINT(GVL.maxQueue - shiftIndex) );
+		
+	numEtaBundles := numEtaBundles - 1;
+END_IF
+
+FOR i:=0 TO GVL.maxQueue BY 1 DO
+	IF BundleIsValid(bundlesQueue[i]) AND NOT bundlesBypass[i] THEN
+		bundlesQueue[i] := bundleIn;
+		bundlesBypass[i] := FALSE;
+		
+		receive := TRUE;
+		RETURN;
+	END_IF
+END_FOR
+
+IF NOT receive THEN
+	error := TRUE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="requestMode" Id="{64bfef98-63a1-42bb-a7e6-1c650a0eba17}" FolderPath="Process Modes\">
+      <Declaration><![CDATA[METHOD requestMode : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CASE requestedMode OF
+	PARALLEL:
+		//backlog := numBundlesQueue >= 5;
+		
+	SINGLE:
+		backlog := numBundlesQueue >= 1;
+		
+	SERIAL:
+		backlog := numBundlesQueue >= 1;
+		
+	CLEAR:
+		backlog := numBundlesQueue > 0;
+		
+END_CASE
+
+CASE processingMode OF //run stations
+	PARALLEL:
+		process();
+		backlog := numBundlesQueue >= 5;
+		
+	SINGLE:
+		singleProcess();
+		backlog := numBundlesQueue >= 1;
+		
+	SERIAL:
+		serialProcess();
+		backlog := numBundlesQueue >= 1;
+		
+	CLEAR:
+		backlog := numBundlesQueue > 0;
+		//stop processing
+		
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="serialProcess" Id="{47421198-a334-44b3-b4bd-005760b5320c}" FolderPath="Process Modes\">
+      <Declaration><![CDATA[METHOD serialProcess : BOOL
+VAR_INPUT
+END_VAR
+(*
+sections process bundles 1 by 1 in order
+only 1 bundle allowed in the section at a time
+*)]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT __ISVALIDREF(serialSection) THEN
+	serialSection REF= PaperSection;
+END_IF
+
+serialSection(
+	enable:= TRUE, 
+	sectionID:= , 
+	bundlesQueue:= bundlesQueue, 
+	bundlesBypass:= bundlesBypass, 
+	bundleOut=> , 
+	bypass=> , 
+	ready=> , 
+	busy=> , 
+	done=> , 
+	error=> , 
+	backlog=> , 
+	iBundle=> , 
+	iPair=> );
+	
+IF serialSection.done THEN
+	serialSection REF= serialSection.accessNextSection^;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="shiftBundles" Id="{5473c570-b523-4be9-bf64-c8f58c1af44e}">
+      <Declaration><![CDATA[METHOD shiftBundles : BOOL
+VAR_INPUT
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//shift down parallel arrays
+MEMMOVE(ADR(bundlesQueue[0]), ADR(bundlesQueue[1]), SIZEOF(Bundle) * TO_UINT(GVL.maxQueue));
+MEMMOVE(ADR(bundlesBypass[0]), ADR(bundlesBypass[1]), SIZEOF(BOOL) * TO_UINT(GVL.maxQueue));
+
+//decrement each section's iterator to realign with their correct bundle
+paperSection.shiftIterator();
+cardboardCornerGuardSection.shiftIterator();
+chipboardSection.shiftIterator();
+woodBunkSection.shiftIterator();
+outputSection.shiftIterator();]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="singleProcess" Id="{61419f9a-4fd7-4611-81f5-1ecc6e826cfd}" FolderPath="Process Modes\">
+      <Declaration><![CDATA[METHOD singleProcess : BOOL
+VAR_INPUT
+END_VAR
+(*
+all sections may operate on a bundle as they arrive
+only 1 bundle may enter the area at a time
+*)]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="transfer" Id="{a55e1076-0c29-4969-952a-05c194ea9e2d}">
+      <Declaration><![CDATA[METHOD PRIVATE transfer : BOOL
+VAR
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//send TCP/ADS transmission back to Dispatch once bundle is removed from the plant
+
+IF clearPassBuffer THEN
+	fbEventLogger.queueEvent(event:= EventsEnum.BUNDLE_OUT); //modify to include bundle ID
+	outputBufferPass := GVL.nullBundle;
+END_IF
+
+IF clearFailBuffer THEN
+	fbEventLogger.queueEvent(event:= EventsEnum.BUNDLE_OUT); //modify to include bundle ID
+	outputBufferFail := GVL.nullBundle;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="MAIN">
+      <LineId Id="3539" Count="38" />
+      <LineId Id="3679" Count="0" />
+      <LineId Id="3578" Count="3" />
+      <LineId Id="3678" Count="0" />
+      <LineId Id="3618" Count="0" />
+      <LineId Id="3617" Count="0" />
+      <LineId Id="3619" Count="1" />
+      <LineId Id="3706" Count="0" />
+      <LineId Id="3592" Count="12" />
+      <LineId Id="2488" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.demoHMI">
+      <LineId Id="7" Count="6" />
+    </LineIds>
+    <LineIds Name="MAIN.enableHardware">
+      <LineId Id="36" Count="2" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="67" Count="0" />
+      <LineId Id="50" Count="3" />
+      <LineId Id="100" Count="0" />
+      <LineId Id="49" Count="0" />
+      <LineId Id="68" Count="0" />
+      <LineId Id="61" Count="0" />
+      <LineId Id="63" Count="2" />
+      <LineId Id="101" Count="0" />
+      <LineId Id="62" Count="0" />
+      <LineId Id="69" Count="0" />
+      <LineId Id="56" Count="4" />
+      <LineId Id="55" Count="0" />
+      <LineId Id="89" Count="0" />
+      <LineId Id="77" Count="0" />
+      <LineId Id="102" Count="1" />
+      <LineId Id="39" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.getLocalTime">
+      <LineId Id="6" Count="7" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="14" Count="1" />
+    </LineIds>
+    <LineIds Name="MAIN.initialize">
+      <LineId Id="14" Count="2" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="83" Count="0" />
+      <LineId Id="82" Count="0" />
+      <LineId Id="84" Count="3" />
+      <LineId Id="77" Count="0" />
+      <LineId Id="61" Count="0" />
+      <LineId Id="60" Count="0" />
+      <LineId Id="62" Count="3" />
+      <LineId Id="72" Count="0" />
+      <LineId Id="67" Count="0" />
+      <LineId Id="73" Count="3" />
+      <LineId Id="66" Count="0" />
+      <LineId Id="25" Count="7" />
+      <LineId Id="20" Count="0" />
+      <LineId Id="53" Count="0" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="21" Count="3" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="36" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.interpretTransmission">
+      <LineId Id="12" Count="0" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="20" Count="0" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="28" Count="0" />
+      <LineId Id="26" Count="0" />
+      <LineId Id="36" Count="0" />
+      <LineId Id="16" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.process">
+      <LineId Id="116" Count="10" />
+      <LineId Id="176" Count="1" />
+      <LineId Id="127" Count="10" />
+      <LineId Id="178" Count="1" />
+      <LineId Id="138" Count="11" />
+      <LineId Id="180" Count="1" />
+      <LineId Id="150" Count="11" />
+      <LineId Id="182" Count="1" />
+      <LineId Id="162" Count="12" />
+      <LineId Id="184" Count="1" />
+      <LineId Id="48" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.receive">
+      <LineId Id="147" Count="19" />
+      <LineId Id="209" Count="0" />
+      <LineId Id="211" Count="3" />
+      <LineId Id="230" Count="0" />
+      <LineId Id="229" Count="0" />
+      <LineId Id="227" Count="0" />
+      <LineId Id="215" Count="0" />
+      <LineId Id="210" Count="0" />
+      <LineId Id="232" Count="0" />
+      <LineId Id="231" Count="0" />
+      <LineId Id="233" Count="1" />
+    </LineIds>
+    <LineIds Name="MAIN.requestMode">
+      <LineId Id="6" Count="31" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.serialProcess">
+      <LineId Id="14" Count="0" />
+      <LineId Id="16" Count="2" />
+      <LineId Id="20" Count="12" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="12" Count="1" />
+    </LineIds>
+    <LineIds Name="MAIN.shiftBundles">
+      <LineId Id="39" Count="0" />
+      <LineId Id="28" Count="0" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="29" Count="5" />
+      <LineId Id="26" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.singleProcess">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.transfer">
+      <LineId Id="17" Count="0" />
+      <LineId Id="62" Count="0" />
+      <LineId Id="52" Count="0" />
+      <LineId Id="60" Count="0" />
+      <LineId Id="54" Count="1" />
+      <LineId Id="57" Count="0" />
+      <LineId Id="56" Count="0" />
+      <LineId Id="61" Count="0" />
+      <LineId Id="58" Count="1" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

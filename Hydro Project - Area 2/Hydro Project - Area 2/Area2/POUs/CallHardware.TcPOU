@@ -1,0 +1,120 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="CallHardware" Id="{37cad5aa-fa76-4d83-b429-cad99db8cb21}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM CallHardware
+VAR
+	i : DINT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[//conveyors
+ForceSetLifterConveyors();
+
+FOR i:=0 TO 20 BY 1 DO
+	allConveyors[i]();
+END_FOR
+
+//robots
+FOR i:=1 TO 6 BY 1 DO
+	robots[i]();
+END_FOR
+
+//A23
+wrapperA23();
+
+//A22
+cardboardSkidLeft();
+cardboardSkidRight();
+cornerGuardMagazineLeft();
+cornerGuardMagazineRight();
+
+insertionA22Left();
+insertionA22Right();
+insertionA22Bottom();
+wrapperA22();
+
+//A21
+chipboardSkidLeft();
+chipboardSkidRight();
+
+woodBunkMagazineLeft();
+woodBunkMagazineRight();
+
+stagingTableLeft();
+stagingTableRight();
+
+strapperA21();
+
+insertionA21Left();
+insertionA21Right();
+insertionA21Bottom();
+
+(*
+//paper
+Hardware.wrapperPaper();
+
+//cardboard + corner guard
+FOR i:=Surface.LEFT TO Surface.RIGHT BY 1 DO
+	Hardware.insertionCardboardCornerGuardSides[i]();
+END_FOR
+Hardware.wrapperCardboardCornerguard();
+
+//wood bunk
+FOR i:=Surface.LEFT TO Surface.RIGHT BY 1 DO
+	Hardware.insertionWoodBunkSides[i]();
+	Hardware.stagingTable[i]();
+	Hardware.woodBunkMagazine[i]();
+END_FOR
+
+Hardware.strapper();
+*)]]></ST>
+    </Implementation>
+    <LineIds Name="CallHardware">
+      <LineId Id="63" Count="0" />
+      <LineId Id="86" Count="0" />
+      <LineId Id="88" Count="0" />
+      <LineId Id="32" Count="0" />
+      <LineId Id="34" Count="1" />
+      <LineId Id="64" Count="0" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="43" Count="2" />
+      <LineId Id="126" Count="0" />
+      <LineId Id="96" Count="1" />
+      <LineId Id="127" Count="0" />
+      <LineId Id="110" Count="4" />
+      <LineId Id="101" Count="0" />
+      <LineId Id="100" Count="0" />
+      <LineId Id="102" Count="1" />
+      <LineId Id="98" Count="0" />
+      <LineId Id="128" Count="0" />
+      <LineId Id="109" Count="0" />
+      <LineId Id="120" Count="0" />
+      <LineId Id="122" Count="0" />
+      <LineId Id="124" Count="0" />
+      <LineId Id="123" Count="0" />
+      <LineId Id="125" Count="0" />
+      <LineId Id="133" Count="1" />
+      <LineId Id="132" Count="0" />
+      <LineId Id="136" Count="1" />
+      <LineId Id="129" Count="2" />
+      <LineId Id="95" Count="0" />
+      <LineId Id="135" Count="0" />
+      <LineId Id="65" Count="0" />
+      <LineId Id="47" Count="0" />
+      <LineId Id="93" Count="0" />
+      <LineId Id="66" Count="0" />
+      <LineId Id="52" Count="0" />
+      <LineId Id="50" Count="0" />
+      <LineId Id="53" Count="1" />
+      <LineId Id="48" Count="0" />
+      <LineId Id="67" Count="0" />
+      <LineId Id="57" Count="0" />
+      <LineId Id="59" Count="1" />
+      <LineId Id="62" Count="0" />
+      <LineId Id="82" Count="0" />
+      <LineId Id="58" Count="0" />
+      <LineId Id="77" Count="0" />
+      <LineId Id="49" Count="0" />
+      <LineId Id="94" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

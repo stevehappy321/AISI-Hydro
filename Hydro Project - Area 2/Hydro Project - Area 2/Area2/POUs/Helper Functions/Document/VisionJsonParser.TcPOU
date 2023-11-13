@@ -1,0 +1,76 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="VisionJsonParser" Id="{acf6678a-830e-4a6d-95ec-dedb952db6dc}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM VisionJsonParser
+VAR_IN_OUT CONSTANT
+	jsonString : STRING(1000);
+END_VAR
+VAR		
+	fbJson : FB_JsonDomParser;
+	jsonDoc : SJsonValue;
+	
+	jsonMaterialID : SJsonValue;
+	jsonCheckFor : SJsonValue;
+	jsonCameraNumber : SJsonValue;
+	jsonSuccessFlag : SJsonValue;
+	jsonOrientAdjust : ARRAY[0..2] OF SJsonValue;
+	
+	i : INT;
+END_VAR
+VAR_OUTPUT
+	visionData : VisionFrame;
+END_VAR
+VAR CONSTANT
+	x : INT := 0;
+	y : INT := 1;
+	z : INT := 2;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[jsonDoc := fbJson.ParseDocument(jsonString);
+
+IF fbJson.HasMember(jsonDoc, 'MaterialID') THEN
+	jsonMaterialID := fbJson.FindMember(jsonDoc, 'MaterialID');
+END_IF
+IF fbJson.HasMember(jsonDoc, 'CheckFor') THEN
+	jsonCheckFor := fbJson.FindMember(jsonDoc, 'CheckFor');
+END_IF
+IF fbJson.HasMember(jsonDoc, 'CameraNumber') THEN
+	jsonCameraNumber := fbJson.FindMember(jsonDoc, 'CameraNumber');
+END_IF
+
+IF fbJson.HasMember(jsonDoc, 'SuccessFlag') THEN
+	jsonSuccessFlag := fbJson.FindMember(jsonDoc, 'SuccessFlag');
+END_IF
+IF fbJson.HasMember(jsonDoc, 'OrientAdjustX') THEN
+	jsonOrientAdjust[x] := fbJson.FindMember(jsonDoc, 'OrientAdjustX');
+END_IF
+IF fbJson.HasMember(jsonDoc, 'OrientAdjustY') THEN
+	jsonOrientAdjust[y] := fbJson.FindMember(jsonDoc, 'OrientAdjustY');
+END_IF
+IF fbJson.HasMember(jsonDoc, 'OrientAdjustZ') THEN
+	jsonOrientAdjust[z] := fbJson.FindMember(jsonDoc, 'OrientAdjustZ');
+END_IF
+
+visionData.MaterialID := fbJson.GetString(jsonMaterialID);
+visionData.CheckFor := fbJson.GetString(jsonCheckFor);
+visionData.CameraNumber := fbJson.GetInt(jsonCameraNumber);
+
+visionData.SuccessFlag := fbJson.GetInt(jsonSuccessFlag);
+visionData.OrientAdjustX := fbJson.GetDouble(jsonOrientAdjust[x]);
+visionData.OrientAdjustY := fbJson.GetDouble(jsonOrientAdjust[y]);
+visionData.OrientAdjustZ := fbJson.GetDouble(jsonOrientAdjust[z]);]]></ST>
+    </Implementation>
+    <LineIds Name="VisionJsonParser">
+      <LineId Id="1369" Count="10" />
+      <LineId Id="1381" Count="3" />
+      <LineId Id="1386" Count="2" />
+      <LineId Id="1390" Count="2" />
+      <LineId Id="1394" Count="2" />
+      <LineId Id="1422" Count="2" />
+      <LineId Id="1426" Count="0" />
+      <LineId Id="1397" Count="1" />
+      <LineId Id="1418" Count="0" />
+      <LineId Id="1420" Count="1" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

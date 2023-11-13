@@ -1,0 +1,204 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="StrapMachine" Id="{77eca895-fb38-4b31-8c37-4dfd9530abc9}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK StrapMachine
+VAR_OUTPUT
+	error AT %I* : BOOL;
+	ready AT %I* : BOOL;
+	busy AT %I* : BOOL;
+	done (*AT %I**) : BOOL;
+	home AT %I* : BOOL;
+	
+	execute AT %Q* : BOOL;
+	enable AT %Q* : BOOL;
+	reset AT %Q* : BOOL;
+	
+	timeout : BOOL;
+END_VAR
+VAR
+	topSuction AT %Q* : BOOL;
+	bottomSuction AT %Q* : BOOL;
+	
+	holdPost : TON;
+	delay : TON;
+	
+	start : BOOL;
+	step : (SETUP, RUN, WAIT);
+END_VAR
+VAR_STAT CONSTANT
+	pulseTime : TIME := T#100MS;
+	holdTime : TIME := T#500MS;
+	maxDelay : TIME := T#30S;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[holdPost(IN:= , PT:= holdTime, Q=> , ET=> );
+delay(IN:= step > 0, PT:= maxDelay, Q=> , ET=> );
+
+IF delay.Q THEN
+	delay.IN := FALSE;
+	timeout := TRUE;
+	busy := FALSE;
+	step := SETUP;
+END_IF
+
+CASE step OF
+	SETUP:
+		busy := FALSE;
+		IF error THEN
+			reset := NOT reset;
+			enable := FALSE;//NOT enable;
+			
+		ELSE
+			reset := FALSE;
+			enable := TRUE;
+			
+			IF start THEN
+				start := FALSE;
+				step := RUN;
+			END_IF
+			
+		END_IF
+	
+	RUN:
+		execute := TRUE;
+		IF execute AND NOT home THEN
+			execute := FALSE;
+			step := WAIT;
+		END_IF
+		
+	WAIT:
+		IF home THEN
+			holdPost.IN := TRUE;
+			enable := FALSE;
+			execute := FALSE;
+		END_IF
+		
+		IF holdPost.Q THEN
+			holdPost.IN := FALSE;
+			done := TRUE;
+			step := 0;
+		END_IF
+		
+END_CASE
+
+(*
+executePulse(IN:= , PT:= pulseTime, Q=> , ET=> );
+execute := executePulse.IN AND NOT executePulse.Q;
+
+IF executePulse.Q THEN
+	executePulse.IN := FALSE;
+END_IF
+
+
+resetPulse(IN:= , PT:= pulseTime, Q=> , ET=> );
+StrapMachineST.reset := resetPulse.IN AND NOT resetPulse.Q;
+
+IF resetPulse.Q THEN
+	executePulse.IN := FALSE;
+END_IF
+
+ready := enable AND NOT execute AND NOT StrapMachineST.reset AND NOT error AND home;
+*)]]></ST>
+    </Implementation>
+    <Method Name="clear" Id="{546729f9-8aa6-4691-b629-8aaf28ac27b0}">
+      <Declaration><![CDATA[METHOD clear : BOOL
+VAR_INPUT
+END_VAR
+(*
+reset should be continuously called until machine returns evidence that it is ready again
+machine is expected to not respond to reset signals if it is already in an idle state
+*)]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[enable := FALSE;
+execute := FALSE;
+
+IF error THEN
+	reset := NOT reset;
+	clear := NOT error;
+
+ELSE
+	reset := FALSE;
+	clear := TRUE;
+	
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="strap" Id="{bbf50787-b85f-4218-b3ad-09732c40ad08}">
+      <Declaration><![CDATA[METHOD strap : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF ready AND NOT busy AND NOT error THEN
+	busy := TRUE;
+	start := TRUE;
+	strap := TRUE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="StrapMachine">
+      <LineId Id="497" Count="3" />
+      <LineId Id="551" Count="0" />
+      <LineId Id="524" Count="0" />
+      <LineId Id="609" Count="0" />
+      <LineId Id="562" Count="0" />
+      <LineId Id="502" Count="2" />
+      <LineId Id="527" Count="0" />
+      <LineId Id="610" Count="0" />
+      <LineId Id="539" Count="1" />
+      <LineId Id="542" Count="0" />
+      <LineId Id="544" Count="0" />
+      <LineId Id="541" Count="0" />
+      <LineId Id="535" Count="0" />
+      <LineId Id="545" Count="0" />
+      <LineId Id="577" Count="0" />
+      <LineId Id="546" Count="0" />
+      <LineId Id="575" Count="0" />
+      <LineId Id="549" Count="0" />
+      <LineId Id="548" Count="0" />
+      <LineId Id="538" Count="0" />
+      <LineId Id="536" Count="0" />
+      <LineId Id="532" Count="0" />
+      <LineId Id="553" Count="3" />
+      <LineId Id="558" Count="0" />
+      <LineId Id="557" Count="0" />
+      <LineId Id="559" Count="2" />
+      <LineId Id="563" Count="0" />
+      <LineId Id="565" Count="1" />
+      <LineId Id="564" Count="0" />
+      <LineId Id="568" Count="2" />
+      <LineId Id="611" Count="0" />
+      <LineId Id="573" Count="0" />
+      <LineId Id="571" Count="0" />
+      <LineId Id="533" Count="0" />
+      <LineId Id="528" Count="0" />
+      <LineId Id="505" Count="0" />
+      <LineId Id="507" Count="14" />
+      <LineId Id="523" Count="0" />
+      <LineId Id="234" Count="0" />
+      <LineId Id="576" Count="0" />
+    </LineIds>
+    <LineIds Name="StrapMachine.clear">
+      <LineId Id="45" Count="1" />
+      <LineId Id="60" Count="0" />
+      <LineId Id="59" Count="0" />
+      <LineId Id="57" Count="0" />
+      <LineId Id="67" Count="0" />
+      <LineId Id="66" Count="0" />
+      <LineId Id="58" Count="0" />
+      <LineId Id="68" Count="0" />
+      <LineId Id="61" Count="0" />
+      <LineId Id="65" Count="0" />
+      <LineId Id="62" Count="0" />
+      <LineId Id="31" Count="0" />
+    </LineIds>
+    <LineIds Name="StrapMachine.strap">
+      <LineId Id="19" Count="0" />
+      <LineId Id="49" Count="0" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="45" Count="0" />
+      <LineId Id="24" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

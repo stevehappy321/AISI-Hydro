@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="FoldingMachine" Id="{04221e8c-994f-418d-a3a2-8b0a809cb31e}">
+    <Declaration><![CDATA[TYPE FoldingMachine :
+STRUCT
+	enable AT %Q* : BOOL;
+	foldPos0 AT %Q* : REAL;
+	foldPos1 AT %Q* : REAL;
+	
+	activeMaterial : STRING;
+	
+	ready AT %I* : BOOL;
+	busy AT %I* : BOOL;
+	done AT %I* : BOOL;
+	error AT %I* : BOOL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

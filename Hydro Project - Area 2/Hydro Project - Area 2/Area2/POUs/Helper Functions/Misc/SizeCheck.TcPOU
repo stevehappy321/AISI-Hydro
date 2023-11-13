@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="SizeCheck" Id="{58756afd-ee77-4842-8005-9b6b1a222eca}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM SizeCheck
+VAR
+	bundleSize : ULINT;
+	adsDataSize : ULINT;
+	tcpDataSize : ULINT;
+	
+	thousandByteSize : ULINT;
+	buffer : ARRAY[0..1000] OF BYTE;
+	
+	bitArr : ARRAY[1..64] OF ONE_BIT;
+	bitArrSize : ULINT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[bundleSize := SIZEOF(Bundle);
+adsDataSize := SIZEOF(AdsData);
+tcpDataSize := SIZEOF(TcpData);
+
+thousandByteSize := SIZEOF(buffer);
+
+bitArrSize := SIZEOF(bitArr);]]></ST>
+    </Implementation>
+    <LineIds Name="SizeCheck">
+      <LineId Id="5" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="31" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

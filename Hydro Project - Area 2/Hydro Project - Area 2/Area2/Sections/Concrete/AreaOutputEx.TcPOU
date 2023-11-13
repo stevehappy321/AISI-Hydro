@@ -1,0 +1,174 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="AreaOutputEx" Id="{50643168-0769-418e-975d-a23807fe5efb}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK AreaOutputEx EXTENDS SectionEx
+VAR_IN_OUT
+	outputBuffer : ARRAY[*] OF Bundle;
+END_VAR
+VAR
+	passConveyorPos (* AT %I* *) : REAL;
+	failConveyorPos (* AT %I* *) : REAL;
+	bufferConveyorPos (* AT %I* *) : REAL;
+	
+	step : (GET_RESULT, CHECK_RESULT, RESET);
+	grade : (BYPASS, PASS, FAIL);
+END_VAR
+VAR
+	gradeRequestString : STRING(1000);
+	visionTimer : TON;
+END_VAR
+VAR_STAT CONSTANT
+	visionTimeout : TIME := T#10S;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[entryRefPos := bufferConveyorPos;
+exitRefPos := MAX(passConveyorPos, failConveyorPos);
+
+visionTimer(IN:= , PT:= visionTimeout, Q=> , ET=> );
+
+SUPER^();]]></ST>
+    </Implementation>
+    <Method Name="changeRobotsEOAT" Id="{91b2f296-00a1-478b-97a1-d5c66499dfd1}">
+      <Declaration><![CDATA[METHOD changeRobotsEOAT : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="gradeBundle" Id="{6d4cd567-c388-4fb8-ba79-20db376b5be9}">
+      <Declaration><![CDATA[METHOD gradeBundle : BOOL
+VAR_INPUT
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CASE grade OF
+	PASS:
+		//send to PASS output, LEFT
+		
+	BYPASS, FAIL:
+		//send to FAIL output for manual correction, RIGHT
+		
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="initHardware" Id="{1e818c8e-3d72-431c-8cad-784d439be36c}">
+      <Declaration><![CDATA[METHOD initHardware : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[conveyors := ADR(Hardware.allConveyors);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="load" Id="{45c420e2-1faa-4c0d-94ba-42357bf20ac7}">
+      <Declaration><![CDATA[METHOD PROTECTED load : BOOL
+VAR_INPUT
+	pair : REFERENCE TO PositionMaterials;
+END_VAR
+(*
+loading takes place while the section is NOT active
+materials are loaded for the next incoming bundle, not the current bundle - may differ for each section
+*)]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="process" Id="{ae99f37b-a4d0-457e-9e10-86b81ee07c29}">
+      <Declaration><![CDATA[METHOD PROTECTED process : BOOL
+VAR
+	gradingTcpData : TcpData;
+END_VAR
+VAR
+	visionJson : STRING(1000);
+	visionData : VisionFrame;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[(*
+area output process uses vision PC to determine if a bundle recipe was deployed correctly
+1 output for passed bundles, 1 output for failed bundles, center is a buffer queue
+*)
+
+CASE step OF
+	GET_RESULT:
+		setConveyorMode(ConveyorMode.STOP); //stop at camera position (??)
+		
+		TcpServer1Vision.queue(gradingTcpData);
+		step := CHECK_RESULT;
+	
+	CHECK_RESULT:
+		setConveyorMode(ConveyorMode.STOP);
+		visionTimer.IN := TRUE;
+		
+		TcpServer1Vision.fetch(gradingTcpData);
+		
+		IF NOT BufferIsEmpty(gradingTcpData.binaryData) THEN
+			MEMCPY(ADR(visionJson), ADR(gradingTcpData.binaryData), MIN( SIZEOF(visionJson), SIZEOF(gradingTcpData.binaryData) ));
+			VisionJsonParser(jsonString:= visionJson, visionData=> visionData);
+		END_IF
+		
+		IF visionTimer.Q THEN
+			visionTimer.IN := FALSE;
+			grade := BYPASS;
+		END_IF
+	
+	RESET:
+		gradeBundle();
+		process := TRUE;
+		
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="usesProcess" Id="{a5c9a7e0-5f20-421f-8c00-954926ed1e8d}">
+      <Declaration><![CDATA[METHOD PROTECTED usesProcess : BOOL
+VAR
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[(*
+IF materialsArr = 0 THEN
+	RETURN;
+END_IF
+
+FOR i:=0 TO GVL.maxPairs BY 1 DO
+	IF PositionIsValid(materialsArr[i]) THEN
+		usesMaterial := TRUE;
+		RETURN;		
+	END_IF
+END_FOR
+*)]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="AreaOutputEx">
+      <LineId Id="304" Count="0" />
+      <LineId Id="274" Count="0" />
+      <LineId Id="335" Count="0" />
+      <LineId Id="321" Count="0" />
+      <LineId Id="343" Count="0" />
+      <LineId Id="275" Count="0" />
+    </LineIds>
+    <LineIds Name="AreaOutputEx.changeRobotsEOAT">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="AreaOutputEx.gradeBundle">
+      <LineId Id="6" Count="6" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="AreaOutputEx.initHardware">
+      <LineId Id="11" Count="0" />
+    </LineIds>
+    <LineIds Name="AreaOutputEx.load">
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="AreaOutputEx.process">
+      <LineId Id="3362" Count="29" />
+      <LineId Id="3394" Count="0" />
+      <LineId Id="3392" Count="1" />
+      <LineId Id="3288" Count="0" />
+    </LineIds>
+    <LineIds Name="AreaOutputEx.usesProcess">
+      <LineId Id="15" Count="0" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="13" Count="1" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="3" Count="4" />
+      <LineId Id="2" Count="0" />
+      <LineId Id="16" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

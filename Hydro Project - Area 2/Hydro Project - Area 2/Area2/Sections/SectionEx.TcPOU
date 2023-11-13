@@ -1,0 +1,611 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="SectionEx" Id="{a79b8404-91b1-4891-aa72-dc4d93b6d5b0}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK ABSTRACT SectionEx
+VAR_INPUT CONSTANT
+	enable : BOOL;
+	sectionID : SectionEnum;
+END_VAR
+VAR_IN_OUT
+	bundlesQueue : ARRAY[*] OF Bundle;
+	bundlesBypass : ARRAY[*] OF BOOL;
+END_VAR
+VAR_OUTPUT
+	bundleOut : Bundle;
+	bypass : BOOL;
+	
+	ready : BOOL;
+	busy : BOOL;
+	done : BOOL;
+	error : BOOL;
+	backlog : BOOL;
+	
+	iBundle : INT(0..GVL.maxQueue);
+	iPair : INT(0..GVL.maxPairs);
+END_VAR
+VAR
+	conveyors : POINTER TO Conveyor; //array of conveyors taken from Hardware GVL
+	firstConveyor : INT;
+	lastConveyor : INT;
+END_VAR
+VAR	
+	currentBundle : REFERENCE TO Bundle;
+	currentBypass : REFERENCE TO BOOL;
+	
+	loaded : BOOL;
+	
+	entryRefPos : (*REFERENCE TO*) REAL;
+	exitRefPos : (*REFERENCE TO*) REAL;
+	
+	requestedConveyorMode : ConveyorMode;
+	
+	nextSection : POINTER TO SectionEx;
+	prevSection : POINTER TO SectionEx;
+	
+	occupied : BOOL; //may need to move this to Hardware GVL since this is a sensor
+	
+	status : SectionStatus; //section status
+	
+	loadSet : INT;
+	loadStepLeft, loadStepRight : INT;
+END_VAR
+VAR
+	
+END_VAR
+VAR_STAT CONSTANT
+	INCLUSIVE : INT := 0;
+	EXCLUSIVE : INT := 1;
+	COMPLETE : INT := 1030;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[(*
+currentBundle is the bundle that the section's target bundle and is set if there is a bundle to target
+bundleOut is only set once the bundle head starts poking out (status >= ACTIVE)
+*)
+
+initHardware();
+
+currentBundle REF= bundlesQueue[iBundle];
+currentBypass REF= bundlesBypass[iBundle];
+bypass := currentBypass;
+	
+backlog := iBundle >= GVL.maxQueue;
+
+IF currentBypass THEN
+	IF NOT discharge() THEN
+		RETURN;
+	END_IF
+	status := SectionStatus.CLEARING;
+END_IF
+
+
+//set the 3-status register every state
+CASE status OF
+	SectionStatus.IDLE:
+		ready := TRUE;
+		busy := FALSE;
+		done := done;
+		
+		IF BundleIsValid(currentBundle) THEN			
+			status := SectionStatus.ALIGNING;
+		END_IF
+	
+	SectionStatus.ALIGNING:
+		ready := FALSE;
+		busy := FALSE;
+		done := done;
+		
+		setConveyorMode(ConveyorMode.FORWARD);
+		IF 
+			occupied AND
+			nextSection <> 0 AND_THEN
+			nextSection^.getConveyorMode() = ConveyorMode.BACKWARD
+		THEN //section occupied by next section backing up into this section
+			status := -100;
+			
+		ELSIF occupied THEN //section occupied by correct bundle
+			//zero the conveyors
+			status := SectionStatus.ACTIVE;
+			
+		END_IF
+		
+	SectionStatus.ACTIVE:
+		ready := FALSE;
+		busy := TRUE;
+		done := FALSE;
+		
+		bundleOut := currentBundle;
+		
+		IF NOT enable THEN
+			iPair := 0;
+			status := SectionStatus.CLEARING;
+			
+		//usesProcess may need to be put into I_MaterialSection, TBD
+		ELSIF NOT usesProcess() THEN //bundle does not use this section's processes
+			iPair := 0;
+			status := SectionStatus.CLEARING;
+		
+		ELSIF currentBypass (*AND_THEN discharge()*) THEN //bundle failed in previous section, discharge this section's materials
+			IF discharge() THEN
+				iPair := 0;
+				status := SectionStatus.CLEARING;
+			END_IF
+			
+		ELSIF process() THEN //bundle recipe completed normally
+			iPair := 0;
+			status := SectionStatus.CLEARING;
+			
+		END_IF
+		
+	SectionStatus.CLEARING:
+		ready := FALSE;
+		busy := TRUE;
+		done := FALSE;
+	
+		bundleOut := currentBundle;
+		setConveyorMode(ConveyorMode.FORWARD);
+		
+		IF exitRefPos >= currentBundle.length AND NOT occupied THEN //rear of bundle has cleared the area
+			status := SectionStatus.COMPLETE;
+		END_IF
+		
+	SectionStatus.COMPLETE:	
+		ready := FALSE;
+		busy := FALSE;
+		done := TRUE;
+		
+		iBundle := iBundle + 1;
+		bundleOut := GVL.nullBundle;
+		
+		status := SectionStatus.IDLE;
+		
+	-100: //previously completed bundle reversed into this section
+		ready := FALSE;
+		busy := FALSE;
+		done := done;
+		
+		IF NOT occupied THEN
+			status := SectionStatus.ALIGNING;
+		END_IF
+		
+END_CASE]]></ST>
+    </Implementation>
+    <Folder Name="Abstract" Id="{c81f01f9-29ef-40f1-a629-b5bbc4d682e6}" />
+    <Folder Name="Accessors" Id="{eabf1bcd-86fc-4151-819a-914bdd07e05e}" />
+    <Folder Name="Complete" Id="{60d488a8-fcae-4492-9857-2b1a78de3acb}">
+      <Folder Name="Conveyor Methods" Id="{53168256-6865-42e7-991a-159020a86e56}" />
+    </Folder>
+    <Folder Name="PROPERTY" Id="{a0e8c921-931f-4bf9-84b4-6268216ae928}" />
+    <Property Name="accessConveyorMode" Id="{11d5858d-a8d8-4171-b9bb-3375fc04906d}" FolderPath="PROPERTY\">
+      <Declaration><![CDATA[PROPERTY PROTECTED accessConveyorMode : ConveyorMode]]></Declaration>
+      <Get Name="Get" Id="{9edf6830-5f52-4388-8c68-a4f4782278c8}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[accessConveyorMode := requestedConveyorMode;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{08ede06e-20cf-472c-89b2-33e9a9076b55}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[requestedConveyorMode := accessConveyorMode;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="accessNextSection" Id="{45d0a631-15f6-4b49-8c2a-2f8c0f503eb5}" FolderPath="PROPERTY\">
+      <Declaration><![CDATA[PROPERTY accessNextSection : POINTER TO SectionEx]]></Declaration>
+      <Get Name="Get" Id="{2362967a-ec91-4092-a5f4-4a5aca1eec86}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[accessNextSection := nextSection;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{d766783b-dad8-419b-8a3f-8c53fe34e340}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[nextSection := accessNextSection;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="accessPrevSection" Id="{f0a0ba7b-be5f-45a8-bea7-5074103c7e2e}" FolderPath="PROPERTY\">
+      <Declaration><![CDATA[PROPERTY PROTECTED accessPrevSection : POINTER TO SectionEx]]></Declaration>
+      <Get Name="Get" Id="{1a8f1a69-1bba-4f54-a4dc-4f74318c9d31}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[accessPrevSection := prevSection;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{6e81559e-8ab0-4bea-a104-bacd903b665a}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[prevSection := accessPrevSection;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="accessStatus" Id="{9964fdcc-8a20-49b1-9f91-d0646ab04c37}" FolderPath="PROPERTY\">
+      <Declaration><![CDATA[PROPERTY PROTECTED accessStatus : SectionStatus]]></Declaration>
+      <Get Name="Get" Id="{90348a8a-d563-4325-8822-7ec65c007397}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[accessStatus := status;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{f8508d3a-5841-45f5-be5c-e5eff9b825d4}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[status := accessStatus;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Method Name="assignConveyors" Id="{9531d4de-1b7e-4779-8747-e468df632aec}" FolderPath="Complete\Conveyor Methods\">
+      <Declaration><![CDATA[METHOD assignConveyors : BOOL
+VAR_INPUT
+	conveyorStart : INT;
+	conveyorEnd : INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[firstConveyor := conveyorStart;
+lastConveyor := conveyorEnd;
+
+assignConveyors := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="changeRobotsEOAT" Id="{6eb389c7-f72b-46ad-9f59-cd6f031dbd87}" FolderPath="Complete\">
+      <Declaration><![CDATA[METHOD ABSTRACT changeRobotsEOAT : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[(*
+IF robotLeft.tool <> sectionID THEN
+	MEMSET(ADR(robotLeftOutputs), 0, SIZEOF(robotLeftOutputs));
+	robotLeftOutputs[1] := A21.TOOL_CHANGE_CHIPBOARD;
+	robotLeft.setParamsAndWait(robotLeftOutputs);
+END_IF
+
+IF robotRight.tool <> sectionID THEN
+	MEMSET(ADR(robotRightOutputs), 0, SIZEOF(robotRightOutputs));
+	robotRightOutputs[1] := A21.TOOL_CHANGE_CHIPBOARD;
+	robotRight.setParamsAndWait(robotRightOutputs);
+END_IF
+
+changeRobotsEOAT := robotLeft.tool = sectionID AND robotRight.tool = sectionID;
+*)]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="connectTo" Id="{0a39a5c5-f8ab-4a9d-ae22-975ed0d6e04c}" FolderPath="Complete\">
+      <Declaration><![CDATA[METHOD connectTo : BOOL
+VAR_INPUT
+	connectedSection : POINTER TO SectionEx;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[nextSection := connectedSection;
+connectedSection^.prevSection := THIS;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="directionCheckAndSet" Id="{a2870254-4346-4569-a31a-90cd607105be}" FolderPath="Complete\Conveyor Methods\">
+      <Declaration><![CDATA[METHOD PROTECTED directionCheckAndSet : BOOL
+VAR_INPUT
+	conveyorRef : REAL;
+	target : REAL;
+END_VAR
+//returns true conveyorRef is in range of target]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF InRange(conveyorRef - GVL.precisionTolerance, conveyorRef + GVL.precisionTolerance, target, EXCLUSIVE) THEN
+	directionCheckAndSet := TRUE;
+	
+ELSIF conveyorRef > target THEN
+	setConveyorMode(ConveyorMode.BACKWARD);
+	
+ELSIF conveyorRef < target THEN
+	setConveyorMode(ConveyorMode.FORWARD);
+	
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="discharge" Id="{09533b48-0e06-44ac-9dc5-838c04ef50c8}" FolderPath="Abstract\">
+      <Declaration><![CDATA[METHOD PROTECTED discharge : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="getConveyorMode" Id="{8b4689b3-8bd7-450e-9541-bdcf576ffcc2}" FolderPath="Accessors\">
+      <Declaration><![CDATA[METHOD PROTECTED getConveyorMode : ConveyorMode;]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[getConveyorMode := requestedConveyorMode;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="getNext" Id="{bcbab952-a880-4014-b42d-14245081536c}" FolderPath="Accessors\">
+      <Declaration><![CDATA[METHOD getNext : POINTER TO SectionEx
+VAR_INPUT
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[getNext := nextSection;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="initHardware" Id="{513c4ad5-ec99-40e4-9e81-c9b9592d89b4}" FolderPath="Abstract\">
+      <Declaration><![CDATA[METHOD ABSTRACT initHardware : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="load" Id="{fb6bc2d5-7c6a-4472-ab68-51b13deb0ef3}" FolderPath="Abstract\">
+      <Declaration><![CDATA[METHOD PROTECTED ABSTRACT load : BOOL
+VAR_INPUT
+	pair : REFERENCE TO PositionMaterials;
+END_VAR
+(*
+loading takes place while the section is NOT active
+materials are loaded for the next incoming bundle, not the current bundle - may differ for each section
+*)]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="process" Id="{993a2d21-a6f3-4ed3-976c-2216e000cac1}" FolderPath="Abstract\">
+      <Declaration><![CDATA[METHOD PROTECTED ABSTRACT process : BOOL
+(*
+VAR_INST
+	iPair : USINT; //currentBundle.{material}[iPair]
+	
+	//case switches, iterators, counters
+	step : INT := 0;
+END_VAR
+*)]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[(*
+all material stations store a local conveyor encoder position (which may be negative)
+
+conveyor operation is determined by all stations in order of priority - NTRL, FWD, BCK, STOP - refer to PackagerFreeAsync vars
+stations request movement to place next material
+stations stop the conveyor and operate on a bundle once the required position is reached
+
+material slot loading is performed in the background on the fly
+*)
+
+//this method will likely be overriden by PaperEx
+//UPDATE 2023-08-29 - this method is made abstract and will be implemented to each derived class
+
+
+(*
+CASE step OF
+	0:
+		IF place(iPair) THEN //finished placing and wrapping materials
+			step := 10;
+		END_IF
+		
+	10: //bundle finished, reset variables
+		iPair := 0;
+		step := 0;
+		
+		process := TRUE;
+END_CASE
+*)]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="setConveyorMode" Id="{c75a74f2-5df0-4dfe-b0c3-e6aa327335c2}" FolderPath="Accessors\">
+      <Declaration><![CDATA[METHOD PROTECTED setConveyorMode : BOOL
+VAR_INPUT
+	newConveyorMode : ConveyorMode;
+END_VAR
+VAR
+	prevSectionConveyorMode : ConveyorMode;
+	
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[requestedConveyorMode := newConveyorMode;
+
+FOR i:=firstConveyor TO lastConveyor BY 1 DO
+	
+	CASE status OF
+		SectionStatus.ALIGNING: //all conveyors request
+			conveyors[i].setRequest(requestedConveyorMode);
+			
+		SectionStatus.ACTIVE, SectionStatus.CLEARING:
+			//once previous bundle catches up, the conveyor that bundle sits on must be linked to this section
+			//ConveyorControl() will take care of directional linking
+			
+			IF conveyors[i].occupied() THEN //follow this section's request
+				conveyors[i].setRequest(requestedConveyorMode);
+				
+			ELSE //catch up succeeding bundle (FOLLOW PREVIOUS SECTION)
+				IF prevSection <> 0 THEN
+					conveyors[i].setRequest( prevSection^.getConveyorMode() );
+				END_IF
+			END_IF
+	END_CASE	
+	
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="shiftIterator" Id="{1feee73a-2fdf-47f0-9cc9-c5ea0284f2f4}" FolderPath="Complete\">
+      <Declaration><![CDATA[METHOD shiftIterator : BOOL
+VAR
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//2023-10-24 - array of pointers replaced with iterator for MAIN's queue passed by pointer
+iBundle := iBundle - 1;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="usesProcess" Id="{1ce6f923-0736-4843-ae5c-d4a2dbe331e5}" FolderPath="Abstract\">
+      <Declaration><![CDATA[METHOD PROTECTED ABSTRACT usesProcess : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="SectionEx">
+      <LineId Id="2930" Count="0" />
+      <LineId Id="2936" Count="0" />
+      <LineId Id="2934" Count="1" />
+      <LineId Id="2931" Count="0" />
+      <LineId Id="2691" Count="0" />
+      <LineId Id="3001" Count="2" />
+      <LineId Id="3344" Count="0" />
+      <LineId Id="3340" Count="0" />
+      <LineId Id="3342" Count="0" />
+      <LineId Id="3345" Count="1" />
+      <LineId Id="3356" Count="0" />
+      <LineId Id="3360" Count="0" />
+      <LineId Id="3358" Count="0" />
+      <LineId Id="3512" Count="0" />
+      <LineId Id="3348" Count="0" />
+      <LineId Id="3361" Count="0" />
+      <LineId Id="3163" Count="0" />
+      <LineId Id="2720" Count="2" />
+      <LineId Id="3138" Count="3" />
+      <LineId Id="2728" Count="0" />
+      <LineId Id="2734" Count="2" />
+      <LineId Id="3145" Count="0" />
+      <LineId Id="3149" Count="1" />
+      <LineId Id="3148" Count="0" />
+      <LineId Id="3151" Count="0" />
+      <LineId Id="2738" Count="1" />
+      <LineId Id="3136" Count="0" />
+      <LineId Id="3134" Count="0" />
+      <LineId Id="3133" Count="0" />
+      <LineId Id="3135" Count="0" />
+      <LineId Id="2740" Count="3" />
+      <LineId Id="2925" Count="0" />
+      <LineId Id="2746" Count="3" />
+      <LineId Id="3152" Count="1" />
+      <LineId Id="3137" Count="0" />
+      <LineId Id="3154" Count="0" />
+      <LineId Id="2926" Count="0" />
+      <LineId Id="3219" Count="0" />
+      <LineId Id="2750" Count="0" />
+      <LineId Id="3225" Count="0" />
+      <LineId Id="3451" Count="0" />
+      <LineId Id="3450" Count="0" />
+      <LineId Id="3513" Count="0" />
+      <LineId Id="3447" Count="1" />
+      <LineId Id="3446" Count="0" />
+      <LineId Id="3428" Count="1" />
+      <LineId Id="3452" Count="1" />
+      <LineId Id="3455" Count="0" />
+      <LineId Id="3454" Count="0" />
+      <LineId Id="3444" Count="0" />
+      <LineId Id="3438" Count="4" />
+      <LineId Id="3456" Count="0" />
+      <LineId Id="2759" Count="0" />
+      <LineId Id="3157" Count="1" />
+      <LineId Id="3155" Count="1" />
+      <LineId Id="2927" Count="0" />
+      <LineId Id="2760" Count="0" />
+      <LineId Id="2928" Count="0" />
+      <LineId Id="2761" Count="8" />
+      <LineId Id="2771" Count="5" />
+      <LineId Id="3160" Count="1" />
+      <LineId Id="3159" Count="0" />
+      <LineId Id="3162" Count="0" />
+      <LineId Id="2777" Count="4" />
+    </LineIds>
+    <LineIds Name="SectionEx.accessConveyorMode.Get">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.accessConveyorMode.Set">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.accessNextSection.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.accessNextSection.Set">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.accessPrevSection.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.accessPrevSection.Set">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.accessStatus.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.accessStatus.Set">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.assignConveyors">
+      <LineId Id="22" Count="1" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="14" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.changeRobotsEOAT">
+      <LineId Id="25" Count="0" />
+      <LineId Id="10" Count="1" />
+      <LineId Id="14" Count="1" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="17" Count="4" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="26" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.connectTo">
+      <LineId Id="5" Count="0" />
+      <LineId Id="10" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.directionCheckAndSet">
+      <LineId Id="7" Count="8" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.discharge">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.getConveyorMode">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.getNext">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.initHardware">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.load">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.process">
+      <LineId Id="28" Count="7" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="67" Count="0" />
+      <LineId Id="66" Count="0" />
+      <LineId Id="69" Count="0" />
+      <LineId Id="80" Count="0" />
+      <LineId Id="79" Count="0" />
+      <LineId Id="68" Count="0" />
+      <LineId Id="48" Count="10" />
+      <LineId Id="36" Count="0" />
+      <LineId Id="70" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.setConveyorMode">
+      <LineId Id="130" Count="16" />
+      <LineId Id="160" Count="1" />
+      <LineId Id="149" Count="2" />
+      <LineId Id="25" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.shiftIterator">
+      <LineId Id="17" Count="0" />
+      <LineId Id="19" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.usesProcess">
+      <LineId Id="11" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

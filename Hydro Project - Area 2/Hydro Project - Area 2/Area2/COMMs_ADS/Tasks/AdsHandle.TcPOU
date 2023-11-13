@@ -1,0 +1,181 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="AdsHandle" Id="{c79b5cf0-ed09-4342-b586-884c09d02b1f}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK AdsHandle
+VAR_INPUT
+	ServerNetId			: STRING; 	(* Server AmsNetId *)
+	ServerPort 			: UDINT;	(* Server port number *)
+	
+	remoteAccessPrefix	: STRING;
+END_VAR
+VAR_OUTPUT
+	bBusy				: BOOL;
+	err					: BOOL;
+	errid				: UDINT;
+	
+	receiveBuffer		: ARRAY[0..100000] OF BYTE; //TCP style data buffer
+	receiveStruct		: AdsData;
+END_VAR
+VAR	
+	socket 				: AdsSocket; //only this needs initialization
+	
+	sendQueue			: AdsDataQueue;
+	sendBufferQueue 	: DynamicQueue; //anything going into this needs to be a TcpStruct
+	
+	sendBuffer 			: ARRAY[0..50000] OF BYTE; //temp byte buffer to send if neccessary
+	sendStruct			: AdsData;
+	
+	//setupStep 			: (CLOSE_CONNECTIONS, CREATE_LISTENER, ACCEPT_CONNECTION, FINISH_SETUP);
+	sendDelay : TON;
+END_VAR
+VAR_STAT CONSTANT
+	emptyData : AdsData;
+	sendDelayTime : TIME := T#1S;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[sendDelay(IN:= , PT:= sendDelayTime, Q=> , ET=> );
+sendDelay.IN := TRUE;
+
+IF sendDelay.Q THEN
+	
+	sendStruct := sendQueue.poll();
+	IF MEMCMP(ADR(sendStruct), ADR(emptyData), SIZEOF(AdsData)) <> 0 THEN //if valid data to send
+	
+		write(
+			symbol := CONCAT(remoteAccessPrefix, 'receiveStruct'),
+			data := ADR(sendStruct),
+			dataSize := SIZEOF(sendStruct));
+			
+		sendDelay.IN := FALSE;
+	END_IF
+	
+END_IF]]></ST>
+    </Implementation>
+    <Folder Name="ADS" Id="{397ac168-564f-4d9f-bd2b-91d65c609190}" />
+    <Method Name="clearBuffer" Id="{ae404a4f-38d0-43a0-a308-e6555817116c}">
+      <Declaration><![CDATA[METHOD clearBuffer : BOOL
+VAR
+	emptyReceiverStruct : AdsData;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//MEMSET(ADR(receiveBuffer), 0, SIZEOF(receiveBuffer));
+receiveStruct := emptyReceiverStruct;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="close" Id="{d5807612-1e45-4262-aeb7-154a271c7279}">
+      <Declaration><![CDATA[METHOD close : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[socket.close();]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="getHandlerName" Id="{354f0417-2c9a-4e09-ae72-62818b581208}">
+      <Declaration><![CDATA[METHOD getHandlerName : STRING]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[getHandlerName := socket.remotePrgName;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="open" Id="{ae52d3c0-e71c-41c0-8428-7c77ce14b4a2}">
+      <Declaration><![CDATA[METHOD open : BOOL
+VAR_INPUT
+	localPrgName : STRING;
+	localNetId : T_AmsNetId;
+	localPort : T_AmsPort;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[socket.open(localPrgName, localNetId, localPort);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="queueData" Id="{99d4bb4a-8b89-45bf-9ede-f7df289a5a64}">
+      <Declaration><![CDATA[METHOD queueData : BOOL
+VAR_INPUT
+	data : REFERENCE TO AdsData;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//MEMCPY(ADR(temp), data.pValue, data.diSize);
+sendQueue.push(data);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="read" Id="{afad88cd-6f92-4fed-bea7-ed86de91b537}" FolderPath="ADS\">
+      <Declaration><![CDATA[METHOD read : BOOL
+VAR_INPUT
+	symbol : STRING;
+	buffer : PVOID;
+	symbolSize : UDINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT socket.readBusy THEN
+	read := socket.read(
+		symbol:= symbol,
+		buffer := buffer,
+		symbolSize := symbolSize);
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="write" Id="{f037acbd-cd50-42f0-bfc3-0854d3953628}" FolderPath="ADS\">
+      <Declaration><![CDATA[METHOD write : BOOL
+VAR_INPUT
+	symbol : STRING;
+	data : PVOID;
+	dataSize : UDINT;
+END_VAR
+VAR
+	timer : TON;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT socket.writeBusy THEN
+	write := socket.write(
+		symbol:= symbol,
+		data := data,
+		dataSize := dataSize);
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="AdsHandle">
+      <LineId Id="421" Count="0" />
+      <LineId Id="420" Count="0" />
+      <LineId Id="426" Count="0" />
+      <LineId Id="425" Count="0" />
+      <LineId Id="470" Count="0" />
+      <LineId Id="427" Count="0" />
+      <LineId Id="430" Count="5" />
+      <LineId Id="437" Count="1" />
+      <LineId Id="429" Count="0" />
+      <LineId Id="469" Count="0" />
+      <LineId Id="428" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsHandle.clearBuffer">
+      <LineId Id="15" Count="0" />
+      <LineId Id="8" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsHandle.close">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsHandle.getHandlerName">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsHandle.open">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsHandle.queueData">
+      <LineId Id="133" Count="0" />
+      <LineId Id="121" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsHandle.read">
+      <LineId Id="70" Count="0" />
+      <LineId Id="73" Count="2" />
+      <LineId Id="71" Count="1" />
+      <LineId Id="60" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsHandle.write">
+      <LineId Id="53" Count="0" />
+      <LineId Id="56" Count="2" />
+      <LineId Id="54" Count="1" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

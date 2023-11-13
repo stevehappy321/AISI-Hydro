@@ -1,0 +1,85 @@
+<div id="StartPage" data-tchmi-type="TcHmi.Controls.System.TcHmiContent" data-tchmi-top="0" data-tchmi-left="0" data-tchmi-width="100" data-tchmi-height="100" data-tchmi-width-unit="%" data-tchmi-height-unit="%" data-tchmi-height-mode="Value">
+<div id="CellContainer" data-tchmi-type="TcHmi.Controls.System.TcHmiContainer" data-tchmi-height="254" data-tchmi-height-unit="px" data-tchmi-left="0" data-tchmi-left-unit="px" data-tchmi-top="0" data-tchmi-top-unit="px" data-tchmi-width="100" data-tchmi-width-unit="%" data-tchmi-height-mode="Value" data-tchmi-width-mode="Value">
+<div id="TcHmi_Controls_Beckhoff_TcHmiImage_4" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiImage" data-tchmi-left="0" data-tchmi-left-unit="px" data-tchmi-src="Imports/Images/Hydro HMI Traffic Flow Display cropped-0.png" data-tchmi-top="0" data-tchmi-top-unit="px" data-tchmi-width="1480" data-tchmi-width-unit="px" data-tchmi-height-mode="Value" data-tchmi-width-mode="Value" data-tchmi-height-unit="px" data-tchmi-height="228">
+</div>
+<div id="TransitionPaperMarker" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiRectangle" data-tchmi-height="60" data-tchmi-height-unit="px" data-tchmi-left="1300" data-tchmi-left-unit="px" data-tchmi-top="120" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-stroke-thickness="3" data-tchmi-zindex="3">
+<script data-tchmi-target-attribute="data-tchmi-fill-color" type="application/json">
+{
+  "color": "rgba(0, 255, 91, 0.5647058)"
+}
+</script>
+</div>
+<div id="PaperMarker" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiRectangle" data-tchmi-height="60" data-tchmi-height-unit="px" data-tchmi-left="1080" data-tchmi-left-unit="px" data-tchmi-top="120" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-stroke-thickness="3" data-tchmi-zindex="3">
+<script data-tchmi-target-attribute="data-tchmi-fill-color" type="application/json">
+{
+  "color": "rgba(0, 255, 91, 0.5647058)"
+}
+</script>
+</div>
+<div id="TransitionCardboardCornerGuardMarker" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiRectangle" data-tchmi-height="60" data-tchmi-height-unit="px" data-tchmi-left="850" data-tchmi-left-unit="px" data-tchmi-top="120" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-stroke-thickness="3" data-tchmi-zindex="3">
+<script data-tchmi-target-attribute="data-tchmi-fill-color" type="application/json">
+{
+  "color": "rgba(0, 255, 91, 0.5647058)"
+}
+</script>
+</div>
+<div id="CardboardCornerGuardMarker" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiRectangle" data-tchmi-height="60" data-tchmi-height-unit="px" data-tchmi-left="610" data-tchmi-left-unit="px" data-tchmi-top="120" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-stroke-thickness="3" data-tchmi-zindex="3">
+<script data-tchmi-target-attribute="data-tchmi-fill-color" type="application/json">
+{
+  "color": "rgba(0, 255, 91, 0.5647058)"
+}
+</script>
+</div>
+<div id="ChipboardMarker" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiRectangle" data-tchmi-height="60" data-tchmi-height-unit="px" data-tchmi-left="390" data-tchmi-left-unit="px" data-tchmi-top="120" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-stroke-thickness="3" data-tchmi-zindex="3">
+<script data-tchmi-target-attribute="data-tchmi-fill-color" type="application/json">
+{
+  "color": "rgba(0, 255, 91, 0.5647058)"
+}
+</script>
+</div>
+<div id="WoodBunkMarker" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiRectangle" data-tchmi-height="60" data-tchmi-height-unit="px" data-tchmi-left="190" data-tchmi-left-unit="px" data-tchmi-top="120" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-stroke-thickness="3" data-tchmi-zindex="3">
+<script data-tchmi-target-attribute="data-tchmi-fill-color" type="application/json">
+{
+  "color": "rgba(0, 255, 91, 0.5647058)"
+}
+</script>
+</div>
+
+
+
+
+<div id="OutputBundle" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiRectangle" data-tchmi-left="10" data-tchmi-left-unit="px" data-tchmi-top="120" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-stroke-thickness="3" data-tchmi-zindex="3" data-tchmi-width-mode="Value" data-tchmi-height-mode="Value" data-tchmi-height-unit="px" data-tchmi-height="60">
+<script data-tchmi-target-attribute="data-tchmi-fill-color" type="application/json">
+{
+  "color": "rgba(0, 255, 91, 0.5647058)"
+}
+</script>
+</div>
+
+
+
+
+
+
+</div>
+<div id="OutputStatusPanelMain" data-tchmi-type="TcHmi.Controls.System.TcHmiUserControlHost" data-tchmi-height="190" data-tchmi-height-unit="px" data-tchmi-left="34" data-tchmi-left-unit="px" data-tchmi-target-user-control="UserControls/SectionStatusPanel.usercontrol" data-tchmi-top="352" data-tchmi-top-unit="px" data-tchmi-width="120" data-tchmi-width-unit="px">
+</div>
+<div id="TcHmiTextblock_16" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="34" data-tchmi-left-unit="px" data-tchmi-text="Output" data-tchmi-top="316" data-tchmi-top-unit="px" data-tchmi-width="120" data-tchmi-width-unit="px" data-tchmi-word-wrap="true">
+</div>
+<div id="TcHmiTextblock_20" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="224" data-tchmi-left-unit="px" data-tchmi-text="Wood Bunk" data-tchmi-top="316" data-tchmi-top-unit="px" data-tchmi-width="120" data-tchmi-width-unit="px" data-tchmi-word-wrap="true">
+</div>
+<div id="WoodBunkStatusPanelMain" data-tchmi-type="TcHmi.Controls.System.TcHmiUserControlHost" data-tchmi-height="190" data-tchmi-height-unit="px" data-tchmi-left="224" data-tchmi-left-unit="px" data-tchmi-target-user-control="UserControls/SectionStatusPanel.usercontrol" data-tchmi-top="352" data-tchmi-top-unit="px" data-tchmi-width="120" data-tchmi-width-unit="px">
+</div>
+<div id="TcHmiTextblock_19" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="411" data-tchmi-left-unit="px" data-tchmi-text="Chipboard" data-tchmi-top="316" data-tchmi-top-unit="px" data-tchmi-width="120" data-tchmi-width-unit="px" data-tchmi-word-wrap="true">
+</div>
+<div id="ChipboardStatusPanelMain" data-tchmi-type="TcHmi.Controls.System.TcHmiUserControlHost" data-tchmi-height="190" data-tchmi-height-unit="px" data-tchmi-left="411" data-tchmi-left-unit="px" data-tchmi-target-user-control="UserControls/SectionStatusPanel.usercontrol" data-tchmi-top="352" data-tchmi-top-unit="px" data-tchmi-width="120" data-tchmi-width-unit="px">
+</div>
+<div id="TcHmiTextblock_21" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="638" data-tchmi-left-unit="px" data-tchmi-text="Cardboard/Corner Guard" data-tchmi-top="316" data-tchmi-top-unit="px" data-tchmi-width="120" data-tchmi-width-unit="px" data-tchmi-word-wrap="true">
+</div>
+<div id="CardboardCornerGuardStatusPanelMain" data-tchmi-type="TcHmi.Controls.System.TcHmiUserControlHost" data-tchmi-height="190" data-tchmi-height-unit="px" data-tchmi-left="638" data-tchmi-left-unit="px" data-tchmi-target-user-control="UserControls/SectionStatusPanel.usercontrol" data-tchmi-top="352" data-tchmi-top-unit="px" data-tchmi-width="120" data-tchmi-width-unit="px">
+</div>
+<div id="TcHmiTextblock_22" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="1112" data-tchmi-left-unit="px" data-tchmi-text="Paper" data-tchmi-top="316" data-tchmi-top-unit="px" data-tchmi-width="120" data-tchmi-width-unit="px" data-tchmi-word-wrap="true">
+</div>
+<div id="PaperStatusPanelMain" data-tchmi-type="TcHmi.Controls.System.TcHmiUserControlHost" data-tchmi-height="190" data-tchmi-height-unit="px" data-tchmi-left="1112" data-tchmi-left-unit="px" data-tchmi-target-user-control="UserControls/SectionStatusPanel.usercontrol" data-tchmi-top="352" data-tchmi-top-unit="px" data-tchmi-width="120" data-tchmi-width-unit="px">
+</div>
+</div>

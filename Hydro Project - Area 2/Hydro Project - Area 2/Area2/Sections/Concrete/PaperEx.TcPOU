@@ -1,0 +1,619 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="PaperEx" Id="{4d13cce7-fa16-4bc1-b57f-ac98fd0398cd}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK PaperEx EXTENDS SectionEx
+VAR
+	robotLeft, robotRight : REFERENCE TO Robot;
+	wrapper : REFERENCE TO WrapMachine;
+END_VAR
+VAR
+	paperConveyorPos : REAL;
+	
+	robotLeftOutputs, robotRightOutputs : ARRAY[1..50] OF INT;
+	
+	iTop : USINT;
+	iLeft : USINT;
+	iRight : USINT;
+	iBottom : USINT;
+	
+	tempConveyorModes : ARRAY[0..4] OF INT; //conveyor enum
+	tempConveyorModeTop : INT;
+	tempConveyorModeLeft : INT;
+	tempConveyorModeRight : INT;
+	tempConveyorModeBottom : INT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[entryRefPos := paperConveyorPos;
+exitRefPos := paperConveyorPos;
+
+SUPER^();]]></ST>
+    </Implementation>
+    <Folder Name="Paper Methods" Id="{1d266539-b2e3-4c22-94ad-a1d13c665846}">
+      <Folder Name="Obsolete" Id="{c14c3523-c6b4-4255-81d3-eed0ccb12a96}" />
+    </Folder>
+    <Method Name="changeRobotsEOAT" Id="{45ff773f-ff4a-480c-89f8-d54ef8e807b2}">
+      <Declaration><![CDATA[METHOD changeRobotsEOAT : BOOL
+VAR_INPUT
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF robotLeft.tool <> sectionID THEN
+	MEMSET(ADR(robotLeftOutputs), 0, SIZEOF(robotLeftOutputs));
+	robotLeftOutputs[1] := A21.TOOL_CHANGE_CHIPBOARD;
+	robotLeft.setParamsAndWait(robotLeftOutputs);
+END_IF
+
+IF robotRight.tool <> sectionID THEN
+	MEMSET(ADR(robotRightOutputs), 0, SIZEOF(robotRightOutputs));
+	robotRightOutputs[1] := A21.TOOL_CHANGE_CHIPBOARD;
+	robotRight.setParamsAndWait(robotRightOutputs);
+END_IF
+
+changeRobotsEOAT := robotLeft.tool = sectionID AND robotRight.tool = sectionID;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="cutPaper" Id="{e428339b-8480-4b54-9d97-963878003cbb}" FolderPath="Paper Methods\Obsolete\">
+      <Declaration><![CDATA[METHOD cutPaper : BOOL
+VAR_IN_OUT
+	tempPaperConveyorOps : ARRAY[*] OF INT; //conveyor enum
+END_VAR
+VAR_INPUT
+	iTop : REFERENCE TO USINT;
+	iLeft : REFERENCE TO USINT;
+	iRight : REFERENCE TO USINT;
+	iBottom : REFERENCE TO USINT;
+END_VAR
+VAR_INST
+	cmdSent : ARRAY[0..4] OF BOOL;
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF iTop < GVL.maxPairs THEN
+	IF paperConveyorPos >= currentBundle.paperTop[iTop].endPos THEN
+		IF NOT cmdSent[Surface.TOP] THEN
+			tempPaperConveyorOps[Surface.TOP] := ConveyorMode.STOP;
+			//instruction - cut paper
+			
+			IF TRUE(*instruction completed*) THEN
+				cmdSent[Surface.TOP] := TRUE;
+				iTop := iTop + 1;
+				tempPaperConveyorOps[Surface.TOP] := ConveyorMode.FORWARD;
+			END_IF
+		END_IF
+		
+		//otherwise do nothing, paper is already being pulled
+	END_IF
+END_IF
+
+IF iLeft < GVL.maxPairs THEN
+	IF paperConveyorPos = currentBundle.paperLeft[iLeft].endPos THEN
+		IF NOT cmdSent[Surface.LEFT] THEN
+			tempPaperConveyorOps[Surface.LEFT] := ConveyorMode.STOP;
+			//instruction - cut paper
+			
+			IF TRUE(*instruction completed*) THEN
+				cmdSent[Surface.LEFT] := TRUE;
+				iLeft := iLeft + 1;
+				tempPaperConveyorOps[Surface.LEFT] := ConveyorMode.FORWARD;
+			END_IF
+		END_IF
+		
+		//otherwise do nothing, paper is already being pulled
+	END_IF
+END_IF
+
+IF iRight < GVL.maxPairs THEN
+	IF paperConveyorPos = currentBundle.paperRight[iRight].endPos THEN
+		IF NOT cmdSent[Surface.RIGHT] THEN
+			tempPaperConveyorOps[Surface.RIGHT] := ConveyorMode.STOP;
+			//instruction - cut paper
+			
+			IF TRUE(*instruction completed*) THEN
+				cmdSent[Surface.RIGHT] := TRUE;
+				iRight := iRight + 1;
+				tempPaperConveyorOps[Surface.RIGHT] := ConveyorMode.FORWARD;
+			END_IF
+		END_IF
+		
+		//otherwise do nothing, paper is already being pulled
+	END_IF
+END_IF
+
+IF iBottom < GVL.maxPairs THEN
+	IF paperConveyorPos = currentBundle.paperBottom[iBottom].endPos THEN
+		IF NOT cmdSent[Surface.BOTTOM] THEN
+			tempPaperConveyorOps[Surface.BOTTOM] := ConveyorMode.STOP;
+			//instruction - cut paper
+			
+			IF TRUE(*instruction completed*) THEN
+				cmdSent[Surface.BOTTOM] := TRUE;
+				iBottom := iBottom + 1;
+				tempPaperConveyorOps[Surface.BOTTOM] := ConveyorMode.FORWARD;
+			END_IF
+		END_IF
+		
+		//otherwise do nothing, paper is already being pulled
+	END_IF
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="initHardware" Id="{4b32f293-1176-4439-9b7a-50012e9174b2}">
+      <Declaration><![CDATA[METHOD initHardware : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[conveyors := ADR(allConveyors);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="load" Id="{a2d4f9db-f74b-497b-9550-cdc8b01ab56f}">
+      <Declaration><![CDATA[METHOD PROTECTED load : BOOL
+VAR_INPUT
+	pair : REFERENCE TO PositionMaterials;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="placePaperBottom" Id="{dd34c3ee-ab44-4c66-9fdf-6796fd880870}" FolderPath="Paper Methods\">
+      <Declaration><![CDATA[METHOD placePaperBottom : BOOL
+VAR_INPUT
+	i : REFERENCE TO USINT; //current interval in the paper recipe array
+	tempConveyorMode : INT;
+END_VAR
+VAR
+	currentInterval : REFERENCE TO Interval;
+END_VAR
+VAR_INST
+	step : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF i >= GVL.maxPairs THEN //already finished iterating
+	tempConveyorMode := ConveyorMode.IDLE;
+	RETURN;
+END_IF
+
+currentInterval REF= currentBundle.paperBottom[i];
+
+CASE step OF
+	0: //check validity
+		IF currentInterval.startPos = GVL.nullPos THEN
+			i := i + 1;
+			RETURN;
+		END_IF
+		
+		IF InRange(paperConveyorPos - 0.1, paperConveyorPos + 0.1, currentInterval.startPos, EXCLUSIVE) THEN
+			step := 10;
+		ELSIF paperConveyorPos > currentInterval.startPos THEN
+			tempConveyorMode := ConveyorMode.BACKWARD;
+		ELSIF paperConveyorPos < currentInterval.startPos THEN
+			tempConveyorMode := ConveyorMode.FORWARD;
+		END_IF
+				
+	10: //pull paper
+		IF i < GVL.maxPairs AND paperConveyorPos >= currentInterval.startPos THEN
+			tempConveyorMode := ConveyorMode.STOP;
+			//instruction - pull roll
+			IF TRUE (*instruction finished*) THEN
+				step := 20;
+				tempConveyorMode := ConveyorMode.FORWARD;
+			END_IF
+		END_IF
+			
+	20: //cut paper
+		
+		
+		IF paperConveyorPos >= currentInterval.endPos THEN
+			//instruction - cut roll
+			IF TRUE (*instruction finished*) THEN
+				step := 30;
+			END_IF
+		END_IF
+		
+	30: //reset
+		tempConveyorMode := ConveyorMode.IDLE;
+		i := i + 1;
+		step := 0;
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="placePaperLeft" Id="{522e3565-63c4-4bd7-885c-d673765c9829}" FolderPath="Paper Methods\">
+      <Declaration><![CDATA[METHOD placePaperLeft : BOOL
+VAR_IN_OUT
+	i : USINT; //current interval in the paper recipe array
+	tempConveyorMode : INT;
+END_VAR
+VAR
+	currentInterval : REFERENCE TO Interval;
+END_VAR
+VAR_INST
+	step : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF i >= GVL.maxPairs THEN //already finished iterating
+	tempConveyorMode := ConveyorMode.IDLE;
+	RETURN;
+END_IF
+
+currentInterval REF= currentBundle.paperLeft[i];
+
+CASE step OF
+	0: //check validity
+		IF currentInterval.startPos = GVL.nullPos THEN
+			i := i + 1;
+			RETURN;
+		END_IF
+		
+		IF InRange(paperConveyorPos - 0.1, paperConveyorPos + 0.1, currentInterval.startPos, EXCLUSIVE) THEN
+			step := 10;
+		ELSIF paperConveyorPos > currentInterval.startPos THEN
+			tempConveyorMode := ConveyorMode.BACKWARD;
+		ELSIF paperConveyorPos < currentInterval.startPos THEN
+			tempConveyorMode := ConveyorMode.FORWARD;
+		END_IF
+				
+	10: //pull paper
+		IF i < GVL.maxPairs AND paperConveyorPos >= currentInterval.startPos THEN
+			tempConveyorMode := ConveyorMode.STOP;
+			//instruction - pull roll
+			IF TRUE (*instruction finished*) THEN
+				step := 20;
+				tempConveyorMode := ConveyorMode.FORWARD;
+			END_IF
+		END_IF
+			
+	20: //cut paper
+		
+		
+		IF paperConveyorPos >= currentInterval.endPos THEN
+			//instruction - cut roll
+			IF TRUE (*instruction finished*) THEN
+				step := 30;
+			END_IF
+		END_IF
+		
+	30: //reset
+		tempConveyorMode := ConveyorMode.IDLE;
+		i := i + 1;
+		step := 0;
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="placePaperRight" Id="{8c682568-2b02-4bf2-aa89-c4da6baf1d26}" FolderPath="Paper Methods\">
+      <Declaration><![CDATA[METHOD placePaperRight : BOOL
+VAR_INPUT
+	i : REFERENCE TO USINT; //current interval in the paper recipe array
+	tempConveyorMode : INT;
+END_VAR
+VAR
+	currentInterval : REFERENCE TO Interval;
+END_VAR
+VAR_INST
+	step : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF i >= GVL.maxPairs THEN //already finished iterating
+	tempConveyorMode := ConveyorMode.IDLE;
+	RETURN;
+END_IF
+
+currentInterval REF= currentBundle.paperRight[i];
+
+CASE step OF
+	0: //check validity
+		IF currentInterval.startPos = GVL.nullPos THEN
+			i := i + 1;
+			RETURN;
+		END_IF
+		
+		IF InRange(paperConveyorPos - 0.1, paperConveyorPos + 0.1, currentInterval.startPos, EXCLUSIVE) THEN
+			step := 10;
+		ELSIF paperConveyorPos > currentInterval.startPos THEN
+			tempConveyorMode := ConveyorMode.BACKWARD;
+		ELSIF paperConveyorPos < currentInterval.startPos THEN
+			tempConveyorMode := ConveyorMode.FORWARD;
+		END_IF
+				
+	10: //pull paper
+		IF i < GVL.maxPairs AND paperConveyorPos >= currentInterval.startPos THEN
+			tempConveyorMode := ConveyorMode.STOP;
+			//instruction - pull roll
+			IF TRUE (*instruction finished*) THEN
+				step := 20;
+				tempConveyorMode := ConveyorMode.FORWARD;
+			END_IF
+		END_IF
+			
+	20: //cut paper
+		
+		
+		IF paperConveyorPos >= currentInterval.endPos THEN
+			//instruction - cut roll
+			IF TRUE (*instruction finished*) THEN
+				step := 30;
+			END_IF
+		END_IF
+		
+	30: //reset
+		tempConveyorMode := ConveyorMode.IDLE;
+		i := i + 1;
+		step := 0;
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="placePaperTop" Id="{e9280428-2388-4551-8d15-76350164a6e1}" FolderPath="Paper Methods\">
+      <Declaration><![CDATA[METHOD placePaperTop : BOOL
+VAR_INPUT
+	i : REFERENCE TO USINT; //current interval in the paper recipe array
+	tempConveyorMode : INT;
+END_VAR
+VAR
+	currentPair : REFERENCE TO Interval;
+END_VAR
+VAR_INST
+	step : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF i >= GVL.maxPairs THEN //already finished iterating
+	tempConveyorMode := ConveyorMode.IDLE;
+	RETURN;
+END_IF
+
+currentPair REF= currentBundle.paperTop[i];
+
+CASE step OF
+	0: //check validity
+		IF currentPair.startPos = GVL.nullPos THEN
+			i := i + 1;
+			RETURN;
+		END_IF
+		
+		IF directionCheckAndSet(paperConveyorPos, currentPair.startPos) THEN
+			step := 10;
+		END_IF
+				
+	10: //pull paper
+		IF i < GVL.maxPairs AND paperConveyorPos >= currentPair.startPos THEN
+			tempConveyorMode := ConveyorMode.STOP;
+			//instruction - pull roll
+			IF TRUE (*instruction finished*) THEN
+				step := 20;
+				tempConveyorMode := ConveyorMode.FORWARD;
+			END_IF
+		END_IF
+			
+	20: //cut paper
+		
+		
+		IF paperConveyorPos >= currentPair.endPos THEN
+			//instruction - cut roll
+			IF TRUE (*instruction finished*) THEN
+				step := 30;
+			END_IF
+		END_IF
+		
+	30: //reset
+		tempConveyorMode := ConveyorMode.IDLE;
+		i := i + 1;
+		step := 0;
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="process" Id="{917070fc-f1ec-464e-8138-2e05955d4203}">
+      <Declaration><![CDATA[METHOD PROTECTED process : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[(*
+rollPaper(tempConveyorModes, iTop, iLeft, iRight, iBottom);
+cutPaper(tempConveyorModes, iTop, iLeft, iRight, iBottom);
+*)
+placePaperTop(iTop, tempConveyorModeTop);
+placePaperLeft(iLeft, tempConveyorModeLeft);
+placePaperRight(iRight, tempConveyorModeRight);
+placePaperBottom(iBottom, tempConveyorModeBottom);
+(*
+FOR i:=0 TO 4 BY 1 DO
+	requestConveyorMode(MAX(conveyorMode, tempConveyorModes[i]));
+END_FOR
+*)
+setConveyorMode(MAX(tempConveyorModeTop, tempConveyorModeLeft, tempConveyorModeRight, tempConveyorModeBottom));
+
+IF 
+	iTop >= GVL.maxPairs AND 
+	iLeft >= GVL.maxPairs AND 
+	iRight >= GVL.maxPairs AND 
+	iBottom >= GVL.maxPairs 
+THEN
+	setConveyorMode(ConveyorMode.IDLE);
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="process2" Id="{aaa62c52-c5f6-4718-b466-91d4bb16fcfd}">
+      <Declaration><![CDATA[METHOD process2 : BOOL
+VAR_INPUT
+	//iPair : REFERENCE TO USINT; //redundant, for inheritance compatibility only
+END_VAR
+VAR
+	iTop : REFERENCE TO USINT;
+	iLeft : REFERENCE TO USINT;
+	iRight : REFERENCE TO USINT;
+	iBottom : REFERENCE TO USINT;
+	
+	tempConveyorModes : ARRAY[0..4] OF INT; //conveyor enum
+	
+	i : INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[rollPaper(tempConveyorModes, iTop, iLeft, iRight, iBottom);
+cutPaper(tempConveyorModes, iTop, iLeft, iRight, iBottom);
+
+FOR i:=0 TO 4 BY 1 DO
+	setConveyorMode(MAX(requestedConveyorMode, tempConveyorModes[i]));
+END_FOR
+
+IF 
+	iTop >= GVL.maxPairs AND 
+	iLeft >= GVL.maxPairs AND 
+	iRight >= GVL.maxPairs AND 
+	iBottom >= GVL.maxPairs 
+THEN
+	setConveyorMode(ConveyorMode.IDLE);
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="rollPaper" Id="{2cdf49d0-145f-49aa-a5b0-f27c0c6a44a8}" FolderPath="Paper Methods\Obsolete\">
+      <Declaration><![CDATA[METHOD rollPaper : BOOL
+VAR_IN_OUT
+	tempPaperConveyorOps : ARRAY[*] OF INT; //conveyor enum
+END_VAR
+VAR_INPUT
+	iTop : REFERENCE TO USINT;
+	iLeft : REFERENCE TO USINT;
+	iRight : REFERENCE TO USINT;
+	iBottom : REFERENCE TO USINT;
+END_VAR
+VAR_INST
+	cmdSent : ARRAY[0..4] OF BOOL;
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF iTop < GVL.maxPairs THEN
+	IF paperConveyorPos >= currentBundle.paperTop[iTop].startPos THEN
+		IF NOT cmdSent[Surface.TOP] THEN
+			tempPaperConveyorOps[Surface.TOP] := ConveyorMode.STOP;
+			//instruction - pull paper
+			
+			IF TRUE(*instruction completed*) THEN
+				cmdSent[Surface.TOP] := TRUE;
+				tempPaperConveyorOps[Surface.TOP] := ConveyorMode.FORWARD;
+			END_IF
+		END_IF
+		
+		//otherwise do nothing, paper is already being pulled
+	END_IF
+END_IF
+
+IF iLeft < GVL.maxPairs THEN
+	IF paperConveyorPos = currentBundle.paperLeft[iLeft].startPos THEN
+		IF NOT cmdSent[Surface.LEFT] THEN
+			tempPaperConveyorOps[Surface.LEFT] := ConveyorMode.STOP;
+			//instruction - pull paper
+			
+			IF TRUE(*instruction completed*) THEN
+				cmdSent[Surface.LEFT] := TRUE;
+				tempPaperConveyorOps[Surface.LEFT] := ConveyorMode.FORWARD;
+			END_IF
+		END_IF
+		
+		//otherwise do nothing, paper is already being pulled
+	END_IF
+END_IF
+
+IF iRight < GVL.maxPairs THEN
+	IF paperConveyorPos = currentBundle.paperRight[iRight].startPos THEN
+		IF NOT cmdSent[Surface.RIGHT] THEN
+			tempPaperConveyorOps[Surface.RIGHT] := ConveyorMode.STOP;
+			//instruction - pull paper
+			
+			IF TRUE(*instruction completed*) THEN
+				cmdSent[Surface.RIGHT] := TRUE;
+				tempPaperConveyorOps[Surface.RIGHT] := ConveyorMode.FORWARD;
+			END_IF
+		END_IF
+		
+		//otherwise do nothing, paper is already being pulled
+	END_IF
+END_IF
+
+IF iBottom < GVL.maxPairs THEN
+	IF paperConveyorPos = currentBundle.paperBottom[iBottom].startPos THEN
+		IF NOT cmdSent[Surface.BOTTOM] THEN
+			tempPaperConveyorOps[Surface.BOTTOM] := ConveyorMode.STOP;
+			//instruction - pull paper
+			
+			IF TRUE(*instruction completed*) THEN
+				cmdSent[Surface.BOTTOM] := TRUE;
+				tempPaperConveyorOps[Surface.BOTTOM] := ConveyorMode.FORWARD;
+			END_IF
+		END_IF
+		
+		//otherwise do nothing, paper is already being pulled
+	END_IF
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="usesProcess" Id="{397e8276-0a69-4caa-849d-3539ea0920f4}">
+      <Declaration><![CDATA[METHOD PROTECTED usesProcess : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="PaperEx">
+      <LineId Id="22" Count="1" />
+      <LineId Id="28" Count="0" />
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="PaperEx.changeRobotsEOAT">
+      <LineId Id="10" Count="1" />
+      <LineId Id="14" Count="1" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="17" Count="4" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="22" Count="0" />
+    </LineIds>
+    <LineIds Name="PaperEx.cutPaper">
+      <LineId Id="317" Count="65" />
+      <LineId Id="185" Count="0" />
+    </LineIds>
+    <LineIds Name="PaperEx.initHardware">
+      <LineId Id="11" Count="0" />
+    </LineIds>
+    <LineIds Name="PaperEx.load">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="PaperEx.placePaperBottom">
+      <LineId Id="528" Count="8" />
+      <LineId Id="594" Count="10" />
+      <LineId Id="548" Count="25" />
+      <LineId Id="341" Count="0" />
+    </LineIds>
+    <LineIds Name="PaperEx.placePaperLeft">
+      <LineId Id="566" Count="8" />
+      <LineId Id="632" Count="10" />
+      <LineId Id="586" Count="25" />
+      <LineId Id="341" Count="0" />
+    </LineIds>
+    <LineIds Name="PaperEx.placePaperRight">
+      <LineId Id="565" Count="8" />
+      <LineId Id="620" Count="10" />
+      <LineId Id="585" Count="25" />
+      <LineId Id="341" Count="0" />
+    </LineIds>
+    <LineIds Name="PaperEx.placePaperTop">
+      <LineId Id="618" Count="12" />
+      <LineId Id="667" Count="0" />
+      <LineId Id="639" Count="27" />
+      <LineId Id="341" Count="0" />
+    </LineIds>
+    <LineIds Name="PaperEx.process">
+      <LineId Id="57" Count="0" />
+      <LineId Id="11" Count="1" />
+      <LineId Id="52" Count="4" />
+      <LineId Id="13" Count="3" />
+      <LineId Id="58" Count="0" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="17" Count="7" />
+      <LineId Id="10" Count="0" />
+    </LineIds>
+    <LineIds Name="PaperEx.process2">
+      <LineId Id="51" Count="3" />
+      <LineId Id="56" Count="8" />
+      <LineId Id="72" Count="0" />
+      <LineId Id="11" Count="0" />
+    </LineIds>
+    <LineIds Name="PaperEx.rollPaper">
+      <LineId Id="244" Count="61" />
+      <LineId Id="223" Count="0" />
+    </LineIds>
+    <LineIds Name="PaperEx.usesProcess">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

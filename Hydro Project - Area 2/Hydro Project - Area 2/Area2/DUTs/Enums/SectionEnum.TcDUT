@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="SectionEnum" Id="{ce069944-4100-460e-8745-53f394723540}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+TYPE SectionEnum :
+(
+	NULL_SECTION := -1,
+	PAPER,
+	CARDBOARD_CORNERGUARD,
+	CHIPBOARD,
+	WOOD_BUNK,
+	OUTPUT,
+	
+	size
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

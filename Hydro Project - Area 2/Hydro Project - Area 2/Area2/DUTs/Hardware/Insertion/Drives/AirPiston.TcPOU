@@ -1,0 +1,163 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="AirPiston" Id="{ef8d0471-4ac2-4d12-9e08-c4e8a3719cb6}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK AirPiston
+VAR_IN_OUT CONSTANT
+	bEnable : BOOL;
+END_VAR
+VAR_OUTPUT	
+	valveIn AT %Q* : BOOL;
+	valveOut AT %Q* : BOOL;
+	
+	contact AT %I* : BOOL;
+	
+	home AT %I* : BOOL;
+	innerLimit AT %I* : BOOL;
+	
+	ready : BOOL;
+	busy : BOOL;
+	error : BOOL;
+	homeSet : BOOL;
+END_VAR
+VAR
+	direction : (IN, OUT, HOLD);
+	step : Homing;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF NOT bEnable THEN
+	valveIn := FALSE;
+	valveOut := FALSE;
+	RETURN;
+END_IF
+
+IF home OR innerLimit (*OR outerLimit*) THEN
+	direction := HOLD;
+END_IF
+
+CASE direction OF
+	HOLD:
+		valveIn := FALSE;
+		valveOut := FALSE;
+		
+	IN:
+		valveIn := TRUE;
+		valveOut := FALSE;
+		
+	OUT:
+		valveIn := FALSE;
+		valveOut := TRUE;
+		
+END_CASE]]></ST>
+    </Implementation>
+    <Method Name="homingSequence" Id="{c3ff30f8-ced2-4f8e-b758-e21ca109ec69}">
+      <Declaration><![CDATA[METHOD homingSequence : BOOL
+(*
+this version of homing always traverses to the inner limit before returning to home,
+eliminating the possibility of reaching the outer limit while homing
+*)]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CASE step OF
+	Homing.IDLE:
+		step := Homing.REDO;
+		
+	Homing.REDO: //technically HOME_IN, towards travel limit
+		valveIn := TRUE;
+		valveOut := FALSE;
+		
+		IF NOT innerLimit THEN
+			valveIn := FALSE;
+			valveOut := FALSE;
+			step := Homing.HOME_OUT;
+		END_IF
+		
+	Homing.HOME_OUT: //towards home
+		valveIn := FALSE;
+		valveOut := TRUE;
+		
+		IF NOT home THEN //if reached home
+			valveIn := FALSE;
+			valveOut := FALSE;
+			step := Homing.DONE;
+		END_IF
+		
+	Homing.DONE:
+		valveIn := FALSE;
+		valveOut := FALSE;
+		homeSet := TRUE;
+		
+		homingSequence := TRUE;		
+	
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="slideIn" Id="{c905417d-ebb0-4426-b712-8b35f4512697}">
+      <Declaration><![CDATA[METHOD slideIn : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[direction := IN;
+
+slideIn := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="slideOut" Id="{d6cfbb92-1846-4f17-b88f-dcdab10c19f1}">
+      <Declaration><![CDATA[METHOD slideOut : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[direction := OUT;
+
+slideOut := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="stop" Id="{c035c442-83bc-4f21-a06c-19730e7f9f48}">
+      <Declaration><![CDATA[METHOD stop : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[valveIn := FALSE;
+valveOut := FALSE;
+direction := HOLD;
+
+stop := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="AirPiston">
+      <LineId Id="55" Count="0" />
+      <LineId Id="57" Count="0" />
+      <LineId Id="59" Count="1" />
+      <LineId Id="58" Count="0" />
+      <LineId Id="56" Count="0" />
+      <LineId Id="35" Count="2" />
+      <LineId Id="40" Count="0" />
+      <LineId Id="39" Count="0" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="44" Count="10" />
+      <LineId Id="42" Count="0" />
+    </LineIds>
+    <LineIds Name="AirPiston.homingSequence">
+      <LineId Id="342" Count="26" />
+      <LineId Id="371" Count="1" />
+      <LineId Id="369" Count="1" />
+      <LineId Id="7" Count="0" />
+    </LineIds>
+    <LineIds Name="AirPiston.slideIn">
+      <LineId Id="7" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="8" Count="0" />
+    </LineIds>
+    <LineIds Name="AirPiston.slideOut">
+      <LineId Id="8" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="AirPiston.stop">
+      <LineId Id="5" Count="0" />
+      <LineId Id="9" Count="1" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="12" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,68 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="MaterialStorage" Id="{dcd61309-37ee-4727-afc9-669fba533248}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK MaterialStorage
+VAR_OUTPUT
+	slots : ARRAY[1..GVL.maxQueue] OF STRING;
+	//units : ARRAY[0..GVL.maxQueue] OF INT;
+	
+	empty AT %I* : ARRAY[1..GVL.maxQueue] OF BOOL;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="findSlot" Id="{f0786625-8c57-43b6-af34-67307c7a7bb3}">
+      <Declaration><![CDATA[METHOD findSlot : BOOL
+VAR_INPUT
+	materialID : STRING;
+END_VAR
+VAR_OUTPUT
+	atSlot : INT := -1;
+END_VAR
+VAR
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF materialID = '' THEN
+	RETURN;
+END_IF
+
+FOR i:=0 TO GVL.maxQueue BY 1 DO
+	IF slots[i] = materialID THEN
+		atSlot := i;
+		findSlot := TRUE;
+		RETURN;
+	END_IF
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="getSlotsAsArray" Id="{80137db6-c2d9-4f11-ad61-62688f3299e7}">
+      <Declaration><![CDATA[METHOD getSlotsAsArray : POINTER TO STRING]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[getSlotsAsArray := ADR(slots);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="setupSlots" Id="{f8762705-6a29-4d8f-9219-4df3d8551e27}">
+      <Declaration><![CDATA[METHOD setupSlots : BOOL
+VAR_INPUT
+	setSlots : REFERENCE TO ARRAY[1..GVL.maxQueue] OF STRING;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[slots := setSlots;]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="MaterialStorage">
+      <LineId Id="28" Count="0" />
+    </LineIds>
+    <LineIds Name="MaterialStorage.findSlot">
+      <LineId Id="142" Count="9" />
+      <LineId Id="13" Count="0" />
+    </LineIds>
+    <LineIds Name="MaterialStorage.getSlotsAsArray">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="MaterialStorage.setupSlots">
+      <LineId Id="8" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

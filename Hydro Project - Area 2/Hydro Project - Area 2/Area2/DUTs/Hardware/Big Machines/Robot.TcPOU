@@ -1,0 +1,249 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="Robot" Id="{eb67bef1-a989-40ea-b42f-613db9ec9e7a}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK Robot
+VAR_OUTPUT
+	forceStop AT %Q* : BOOL;
+	resetSignal AT %Q* : BOOL;
+	
+	taskID AT %Q* : INT;
+	parameters AT %Q* : ARRAY[1..3] OF INT;
+	
+	outputs AT %Q* : ARRAY[1..50] OF INT;
+	inputs AT %I* : ARRAY[1..20] OF INT;
+	
+	completedTask AT %I* : INT;
+	tool AT %I* : SectionEnum;
+	
+	reserved : BOOL;
+	reservation : SectionEnum := SectionEnum.NULL_SECTION;
+	
+	operational : BOOL;
+	ready : BOOL;
+	//busy : BOOL;
+	done : BOOL;
+	error : BOOL;
+	errId : DINT;
+END_VAR
+VAR
+	step : (SEND_COMMAND, WAIT);
+END_VAR
+VAR_STAT CONSTANT	
+	emptyRegister : ARRAY[0..2] OF INT := [3(0)];
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF completedTask = taskID THEN
+	done := TRUE;
+END_IF]]></ST>
+    </Implementation>
+    <Method Name="command" Id="{6180ebeb-6fb3-4e45-8d5f-010642c60433}">
+      <Declaration><![CDATA[METHOD command : BOOL
+VAR_INPUT
+	task : INT;
+	param1 : INT;
+	param2 : INT;
+	param3 : INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//command := reserve();
+
+//IF command THEN
+	(*
+	taskId := task;
+	parameters[1] := param1;
+	parameters[2] := param2;
+	parameters[3] := param3;
+	*)
+	
+	outputs[1] := task;
+	outputs[2] := param1;
+	outputs[3] := param2;
+	outputs[4] := param3;
+//END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="eStop" Id="{974b2363-087f-4f71-a37b-fdee6dacfa65}">
+      <Declaration><![CDATA[METHOD eStop : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[forceStop := TRUE;
+eStop := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="release" Id="{7fed4361-8a94-445d-8040-f071f846d639}">
+      <Declaration><![CDATA[METHOD release : BOOL
+VAR_INPUT
+	sectionReservation : SectionEnum;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF reservation = sectionReservation AND reserved THEN
+	reservation := -1;
+	reserved := FALSE;
+	release := TRUE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="reserve" Id="{1e01deef-588d-4739-a104-23ce337539cb}">
+      <Declaration><![CDATA[METHOD reserve : BOOL
+VAR_INPUT
+	sectionReservation : SectionEnum;
+END_VAR
+(*
+some sections may use the same robot so it must be reserved before use
+both sections need to check if the robot is open to commands before use
+*)]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF
+	(reserved AND reservation = SectionReservation) OR_ELSE
+	(NOT reserved OR sectionReservation = SectionEnum.NULL_SECTION)
+THEN
+	reservation := sectionReservation;
+	reserved := TRUE;
+	reserve := TRUE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="reset" Id="{89eb6678-027f-45a1-a94f-ae23b58ecc5c}">
+      <Declaration><![CDATA[METHOD reset : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[release(reservation);
+
+resetSignal := TRUE;
+done := FALSE;
+taskID := 0;
+parameters := emptyRegister;
+
+MEMSET(ADR(outputs), 0, SIZEOF(outputs));
+
+IF ready AND completedTask = 0 THEN
+	resetSignal := FALSE;
+	reset := TRUE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="resume" Id="{1d12dfe1-c8ff-4b57-9b31-0d4b08a72b4a}">
+      <Declaration><![CDATA[METHOD resume : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[forceStop := FALSE;
+
+resume := NOT error AND errId = 0;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="setCommandAndWait" Id="{b4d5330c-16b1-46ee-86e8-d062da45d238}">
+      <Declaration><![CDATA[METHOD setCommandAndWait : BOOL
+VAR_INPUT
+	task, param1, param2, param3 : INT;
+END_VAR
+(*
+this method sends a command and waits for completion
+MAKE SURE TO RESERVE THE ROBOT FIRST
+*)]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CASE step OF
+	SEND_COMMAND: //send command
+		command(
+			task:= task, 
+			param1:= param1, 
+			param2:= param2, 
+			param3:= param3);
+		
+		step := WAIT;
+		
+	WAIT:
+		IF done THEN
+			release(reservation);
+			
+			IF NOT reset() THEN
+				RETURN;
+			END_IF
+			
+			step := 0;
+			
+			setCommandAndWait := TRUE;
+		END_IF
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="setParamsAndWait" Id="{861e79f4-9d73-4326-81bf-3ad217fcca64}">
+      <Declaration><![CDATA[METHOD setParamsAndWait : BOOL
+VAR_INPUT
+	newOutputs : REFERENCE TO ARRAY[1..50] OF INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[outputs := newOutputs;
+
+IF done THEN
+	//release(); //let each section manually release
+	
+	IF NOT reset() THEN
+		RETURN;
+	END_IF
+	
+	step := 0;
+
+	setParamsAndWait := TRUE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="Robot">
+      <LineId Id="47" Count="0" />
+      <LineId Id="52" Count="0" />
+      <LineId Id="51" Count="0" />
+    </LineIds>
+    <LineIds Name="Robot.command">
+      <LineId Id="42" Count="0" />
+      <LineId Id="58" Count="0" />
+      <LineId Id="43" Count="5" />
+      <LineId Id="66" Count="0" />
+      <LineId Id="72" Count="0" />
+      <LineId Id="67" Count="2" />
+      <LineId Id="71" Count="0" />
+      <LineId Id="49" Count="0" />
+    </LineIds>
+    <LineIds Name="Robot.eStop">
+      <LineId Id="5" Count="1" />
+    </LineIds>
+    <LineIds Name="Robot.release">
+      <LineId Id="5" Count="0" />
+      <LineId Id="13" Count="1" />
+      <LineId Id="11" Count="1" />
+    </LineIds>
+    <LineIds Name="Robot.reserve">
+      <LineId Id="83" Count="6" />
+      <LineId Id="71" Count="0" />
+    </LineIds>
+    <LineIds Name="Robot.reset">
+      <LineId Id="28" Count="1" />
+      <LineId Id="14" Count="0" />
+      <LineId Id="27" Count="0" />
+      <LineId Id="31" Count="0" />
+      <LineId Id="30" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="32" Count="0" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="16" Count="1" />
+    </LineIds>
+    <LineIds Name="Robot.resume">
+      <LineId Id="5" Count="0" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="6" Count="0" />
+    </LineIds>
+    <LineIds Name="Robot.setCommandAndWait">
+      <LineId Id="111" Count="21" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="Robot.setParamsAndWait">
+      <LineId Id="35" Count="11" />
+      <LineId Id="28" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

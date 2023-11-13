@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="MaterialStorage" Id="{590f9ee7-a84c-4ed6-8a24-e07398726f61}">
+    <Declaration><![CDATA[TYPE MaterialStorage :
+STRUCT
+	slots : ARRAY[0..GVL.maxQueue] OF STRING;
+	units : ARRAY[0..GVL.maxQueue] OF INT;
+END_STRUCT
+END_TYPE]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,208 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="WoodBunkTable" Id="{dc0f3bd0-85c7-41ea-839e-cecdb56a654c}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK WoodBunkTable EXTENDS MaterialStorage
+VAR
+	//slots : ARRAY[1..numSlots] OF STRING;
+	occupied AT %I* : ARRAY[1..numSlots] OF BOOL;
+	//sensors must turn HIGH before bunk arrives, and turn LOW after bunk leaves
+	
+	i : INT(1..10);
+END_VAR
+VAR_STAT CONSTANT
+	numSlots : INT := 10;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[FOR i:=1 TO numSlots BY 1 DO
+	IF NOT occupied[i] THEN
+		slots[i] := '';
+	END_IF
+END_FOR]]></ST>
+    </Implementation>
+    <Method Name="autofill" Id="{0b1558f0-abe0-46a4-ba25-2d74dda1538c}">
+      <Declaration><![CDATA[METHOD autofill : BOOL
+VAR_INPUT
+	materialID : STRING;
+END_VAR
+VAR
+	i : INT;
+	slot : INT;
+END_VAR
+(*
+this method will automatically find an open slot
+*)]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF isFull() OR materialID = '' THEN
+	RETURN;
+END_IF
+
+IF findOpenSlot(materialID, openSlot=> slot) THEN
+	place(slot, materialID);
+	autofill := TRUE;
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="findOpenSlot" Id="{4ad7fd0b-197f-42ee-aa6d-941184505c0d}">
+      <Declaration><![CDATA[METHOD findOpenSlot : BOOL
+VAR_INPUT
+	materialID : STRING;
+END_VAR
+VAR_OUTPUT
+	openSlot : INT := 0;
+END_VAR
+VAR
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF FIND(materialID, 'WDW') > 0 THEN //top wide, load in slot 0-1
+	FOR i:=1 TO 2 BY 1 DO
+		IF NOT occupied[i] THEN
+			findOpenSlot := TRUE;
+			openSlot := i;
+			RETURN;
+		END_IF
+	END_FOR
+	
+ELSIF FIND(materialID, 'WDT') > 0 OR FIND(materialID, 'WDS') > 0 THEN //top std and sides, load in slot 2-9
+	FOR i:=3 TO 10 BY 1 DO
+		IF NOT occupied[i] THEN
+			findOpenSlot := TRUE;
+			openSlot := i;
+			RETURN;
+		END_IF
+	END_FOR
+	
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="findSlot" Id="{43e5bcb3-33a4-445d-ab40-bb9cefd27ac2}">
+      <Declaration><![CDATA[METHOD findSlot : BOOL
+VAR_INPUT
+	materialID : STRING;
+END_VAR
+VAR_OUTPUT
+	atSlot : INT;
+END_VAR
+VAR
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i:=1 TO numSlots BY 1 DO
+	IF slots[i] = materialID THEN
+		atSlot := i;
+		findSlot := TRUE;
+		RETURN;
+	END_IF
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="isEmpty" Id="{a89780a4-d604-444d-ba70-4bd950a2e867}">
+      <Declaration><![CDATA[METHOD isEmpty : BOOL
+VAR
+	i : INT;
+	temp : BOOL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i:=1 TO numSlots BY 1 DO
+	temp := temp OR occupied[i]; //TRUE if any slots are occupied
+END_FOR
+
+isEmpty := NOT temp; //invert result - FALSE if any slots are occupied]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="isFull" Id="{a709fd63-7090-49a1-8c6d-2d710e9ddde8}">
+      <Declaration><![CDATA[METHOD isFull : BOOL
+VAR
+	i : INT;
+	temp : BOOL := TRUE;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i:=1 TO numSlots BY 1 DO
+	temp := temp AND occupied[i];
+END_FOR
+
+isFull := TEMP;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="place" Id="{47c85d53-1f37-4db8-9692-6ad12f349b85}">
+      <Declaration><![CDATA[METHOD place : BOOL
+VAR_INPUT
+	i : INT;
+	materialID : STRING;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF slots[i] = '' AND NOT occupied[i] THEN
+	slots[i] := materialID;
+	place := TRUE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="remove" Id="{426c1438-d5a3-4715-8770-70aeabf0c7fb}">
+      <Declaration><![CDATA[METHOD remove : BOOL
+VAR_INPUT
+	i : INT;
+END_VAR
+VAR_OUTPUT
+	materialID : STRING;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF slots[i] <> '' AND occupied[i] THEN
+	materialID := slots[i];
+	slots[i] := '';
+	
+	remove := TRUE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="WoodBunkTable">
+      <LineId Id="9" Count="0" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="21" Count="1" />
+      <LineId Id="20" Count="0" />
+    </LineIds>
+    <LineIds Name="WoodBunkTable.autofill">
+      <LineId Id="5" Count="0" />
+      <LineId Id="8" Count="0" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="21" Count="0" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="20" Count="0" />
+    </LineIds>
+    <LineIds Name="WoodBunkTable.findOpenSlot">
+      <LineId Id="63" Count="17" />
+      <LineId Id="27" Count="0" />
+    </LineIds>
+    <LineIds Name="WoodBunkTable.findSlot">
+      <LineId Id="52" Count="5" />
+      <LineId Id="7" Count="0" />
+    </LineIds>
+    <LineIds Name="WoodBunkTable.isEmpty">
+      <LineId Id="6" Count="1" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="11" Count="0" />
+    </LineIds>
+    <LineIds Name="WoodBunkTable.isFull">
+      <LineId Id="5" Count="0" />
+      <LineId Id="8" Count="1" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="11" Count="0" />
+    </LineIds>
+    <LineIds Name="WoodBunkTable.place">
+      <LineId Id="5" Count="0" />
+      <LineId Id="8" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="WoodBunkTable.remove">
+      <LineId Id="5" Count="0" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="12" Count="2" />
+      <LineId Id="8" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
