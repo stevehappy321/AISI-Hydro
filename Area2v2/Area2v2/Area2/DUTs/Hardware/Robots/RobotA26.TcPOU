@@ -134,7 +134,7 @@ END_VAR
         <Implementation>
           <ST><![CDATA[refreshParameters();
 
-Ready := taskID = 0 AND completedTask = 0;]]></ST>
+Ready := taskID = 0 AND completedTask = 0 AND NOT error;]]></ST>
         </Implementation>
       </Get>
     </Property>

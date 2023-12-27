@@ -152,6 +152,9 @@
     <Compile Include="DUTs\Hardware\Robots\RobotA22.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="DUTs\Watchdog.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="DUTs\ONE_BIT.TcDUT">
       <SubType>Code</SubType>
     </Compile>
@@ -244,10 +247,7 @@
       <SubType>Code</SubType>
       <LinkAlways>true</LinkAlways>
     </Compile>
-    <Compile Include="POUs\CallHardware.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\ConveyorControlModule.TcPOU">
+    <Compile Include="HARDWARE_DISTRUBUTION\ConveyorControlModule.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="PlcTask.TcTTO">
@@ -286,7 +286,7 @@
     <Compile Include="POUs\Helper Functions\Hardware Modules\SetSuctions.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\Helper Functions\Hardware Modules\SetSuctionsPtrArr.TcPOU">
+    <Compile Include="POUs\Helper Functions\Hardware Modules\SetSuctionsPtr.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\Helper Functions\Hardware Modules\SetupHardware.TcPOU">
@@ -295,7 +295,10 @@
     <Compile Include="POUs\Helper Functions\Hardware Modules\SuctionQuality.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\Helper Functions\Material Functions\GetPositionMasterLength.TcPOU">
+    <Compile Include="POUs\Helper Functions\Hardware Modules\SuctionQualityPtr.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\Helper Functions\Material Functions\GetPairMasterLength.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\Helper Functions\Material Functions\GetMaterialLength.TcPOU">
@@ -353,6 +356,19 @@
     <Compile Include="Sections\A21b - Wood Bunk\WoodBunkEx.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Sections\A22 - Cardboard\AOIs\AOI_LoadCornerCardboard.TcPOU">
+      <SubType>Code</SubType>
+      <LinkAlways>true</LinkAlways>
+    </Compile>
+    <Compile Include="Sections\A22 - Cardboard\AOIs\AOI_LoadCornerGuard.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Sections\A22 - Cardboard\AOIs\AOI_LoadFlatCardboard.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Sections\A22 - Cardboard\CardboardEx.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Sections\A26 - Spacer Recollection\SpacerRecollectionUnit.TcPOU">
       <SubType>Code</SubType>
     </Compile>
@@ -402,6 +418,7 @@
     <Folder Include="HARDWARE_DISTRUBUTION" />
     <Folder Include="POUs\Helper Functions\Hardware Modules" />
     <Folder Include="POUs\Helper Functions\Utility" />
+    <Folder Include="Sections\A22 - Cardboard\AOIs" />
     <Folder Include="Sections\Abstract" />
     <Folder Include="POUs\Helper Functions\Other" />
     <Folder Include="POUs\Helper Functions\General" />
@@ -414,6 +431,7 @@
     <Folder Include="Sections\A21b - Wood Bunk" />
     <Folder Include="Sections\A21b - Wood Bunk\AOIs" />
     <Folder Include="Sections\A26 - Spacer Recollection" />
+    <Folder Include="Sections\A22 - Cardboard" />
     <Folder Include="VISUs" />
     <Folder Include="POUs" />
   </ItemGroup>

@@ -4,8 +4,8 @@
     <Declaration><![CDATA[TYPE Material :
 STRUCT
 	code : STRING;
-	width : REAL;
-	length : REAL;
+	width : LREAL;
+	length : LREAL;
 END_STRUCT
 END_TYPE
 (*

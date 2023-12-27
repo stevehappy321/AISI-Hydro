@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
   <POU Name="GetMaterialLength" Id="{3168ca70-88ff-44da-a8e2-6eae63f5c2da}" SpecialFunc="None">
-    <Declaration><![CDATA[FUNCTION GetMaterialLength : REAL
+    <Declaration><![CDATA[FUNCTION GetMaterialLength : LREAL
 VAR_INPUT
 	material : STRING;
 END_VAR

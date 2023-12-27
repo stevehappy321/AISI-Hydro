@@ -28,39 +28,14 @@ VAR
 	pushLargeConveyorPos : REAL;
 END_VAR]]></Declaration>
     <Implementation>
-      <ST><![CDATA[{warning disable C0371}
-callLocalModules(); //call local modules
+      <ST><![CDATA[aoiBlocks(); //call AOIs and large library FBs
 
-this^.aoiBlocks(); //call AOIs and large library FBs
-
-SUPER^();
-
-CASE status OF //add additional instructions for each state
-	SectionTask.IDLE:
-		//
-	
-	SectionTask.ALIGNING:
-		//
-		
-	SectionTask.ACTIVE:
-		//
-		
-	SectionTask.CLEARING:
-		aoiLoadLeft.reset();
-		aoiLoadRight.reset();
-		
-	SectionTask.COMPLETE:	
-		//
-		
-	-100:
-		RETURN;
-		
-END_CASE]]></ST>
+SUPER^();]]></ST>
     </Implementation>
-    <Folder Name="Actions" Id="{1d4cf889-3e68-46d8-ad77-8ad472520e03}" />
+    <Folder Name="Actions_Cyclic" Id="{1d4cf889-3e68-46d8-ad77-8ad472520e03}" />
     <Folder Name="PML Conditions" Id="{db3fb587-f62c-413e-86fe-ffc9cd2d39ad}" />
     <Folder Name="PML Inter. States" Id="{ab9cbcbe-212b-4c2d-a6dc-6cefed8dd476}" />
-    <Method Name="aoiBlocks" Id="{3aed7339-6bf5-4e31-a3ab-5532ab7d73f9}" FolderPath="Actions\">
+    <Method Name="aoiBlocks" Id="{3aed7339-6bf5-4e31-a3ab-5532ab7d73f9}" FolderPath="Actions_Cyclic\">
       <Declaration><![CDATA[METHOD PROTECTED aoiBlocks : BOOL
 VAR_INPUT
 END_VAR
@@ -92,12 +67,6 @@ aoiLoadRight(
 	error=> , 
 	recovery=> , 
 	failCounter=> );]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="callLocalModules" Id="{bea4cf3f-a5a1-4b36-af59-25abcfb940a0}" FolderPath="Actions\">
-      <Declaration><![CDATA[METHOD PROTECTED callLocalModules : BOOL]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[]]></ST>
       </Implementation>
     </Method>
     <Method Name="load" Id="{fb843105-64e1-44e7-8bcd-619ab2de166a}">
@@ -288,6 +257,15 @@ END_IF
 IF robotRight.Done THEN
 	robotRight.clearCommand();
 END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="manual" Id="{49a04b51-5215-4de4-bc90-fa8fd41f9b96}">
+      <Declaration><![CDATA[METHOD PROTECTED manual : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
       </Implementation>
     </Method>
     <Method Name="process" Id="{4451bc85-ba29-4c10-8925-9cecf5fa2b5d}">
@@ -604,6 +582,40 @@ END_VAR
         <ST><![CDATA[ps_Unsuspending := TRUE;]]></ST>
       </Implementation>
     </Method>
+    <Method Name="runSectionTasks" Id="{69ae0f9c-3b7e-4f7d-9514-05a650ec0734}">
+      <Declaration><![CDATA[METHOD PROTECTED runSectionTasks : BOOL
+VAR_INPUT
+	auto : BOOL;
+END_VAR
+VAR_OUTPUT
+	error : BOOL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[SUPER^.runSectionTasks(auto := auto, error => error);
+
+CASE status OF //add additional instructions for each state
+	SectionTask.IDLE:
+		//
+	
+	SectionTask.ALIGNING:
+		//
+		
+	SectionTask.ACTIVE:
+		//
+		
+	SectionTask.CLEARING:
+		aoiLoadLeft.reset();
+		aoiLoadRight.reset();
+		
+	SectionTask.COMPLETE:	
+		//
+		
+	-100:
+		RETURN;
+		
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
     <Method Name="unload" Id="{f6db5e74-df8c-4b7a-9a29-336483c6ebce}">
       <Declaration><![CDATA[METHOD PROTECTED unload : BOOL
 VAR_INPUT
@@ -614,31 +626,14 @@ END_VAR
 //remove from staging table]]></ST>
       </Implementation>
     </Method>
-    <Method Name="usesProcess" Id="{fc01cfd2-2a72-47a9-a4b9-22b48c53ed66}">
-      <Declaration><![CDATA[METHOD PROTECTED usesProcess : BOOL
-VAR
-	i : INT;
-END_VAR]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[FOR i:=0 TO Consts.maxPairs BY 1 DO
-	IF PositionIsValid(materialsArr[i]) THEN
-		usesProcess := TRUE;
-		RETURN;
-	END_IF
-END_FOR]]></ST>
-      </Implementation>
-    </Method>
     <LineIds Name="ChipboardEx">
-      <LineId Id="5180" Count="26" />
-      <LineId Id="5123" Count="0" />
+      <LineId Id="5183" Count="1" />
+      <LineId Id="5207" Count="0" />
     </LineIds>
     <LineIds Name="ChipboardEx.aoiBlocks">
       <LineId Id="30" Count="0" />
       <LineId Id="6" Count="23" />
       <LineId Id="5" Count="0" />
-    </LineIds>
-    <LineIds Name="ChipboardEx.callLocalModules">
-      <LineId Id="17" Count="0" />
     </LineIds>
     <LineIds Name="ChipboardEx.load">
       <LineId Id="415" Count="3" />
@@ -687,6 +682,9 @@ END_FOR]]></ST>
       <LineId Id="17" Count="0" />
       <LineId Id="19" Count="1" />
     </LineIds>
+    <LineIds Name="ChipboardEx.manual">
+      <LineId Id="5" Count="0" />
+    </LineIds>
     <LineIds Name="ChipboardEx.process">
       <LineId Id="72" Count="48" />
       <LineId Id="140" Count="0" />
@@ -722,8 +720,7 @@ END_FOR]]></ST>
       <LineId Id="7" Count="0" />
     </LineIds>
     <LineIds Name="ChipboardEx.ps_Execute">
-      <LineId Id="28" Count="4" />
-      <LineId Id="10" Count="0" />
+      <LineId Id="60" Count="5" />
     </LineIds>
     <LineIds Name="ChipboardEx.ps_Held">
       <LineId Id="5" Count="0" />
@@ -780,16 +777,13 @@ END_FOR]]></ST>
     <LineIds Name="ChipboardEx.ps_Unsuspending">
       <LineId Id="5" Count="0" />
     </LineIds>
+    <LineIds Name="ChipboardEx.runSectionTasks">
+      <LineId Id="292" Count="1" />
+      <LineId Id="272" Count="19" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
     <LineIds Name="ChipboardEx.unload">
       <LineId Id="5" Count="1" />
-    </LineIds>
-    <LineIds Name="ChipboardEx.usesProcess">
-      <LineId Id="2" Count="0" />
-      <LineId Id="6" Count="0" />
-      <LineId Id="11" Count="0" />
-      <LineId Id="13" Count="0" />
-      <LineId Id="12" Count="0" />
-      <LineId Id="7" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

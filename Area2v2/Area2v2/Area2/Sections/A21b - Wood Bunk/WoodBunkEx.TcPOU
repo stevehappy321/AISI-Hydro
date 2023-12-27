@@ -60,11 +60,11 @@ to call the base implementation, add:
 to the concrete FB's implementation of that state-method
 *)]]></ST>
     </Implementation>
-    <Folder Name="Actions_Methods" Id="{4a4594ef-dea4-4aa0-b286-04c344ad8bce}" />
+    <Folder Name="Actions_Cyclic" Id="{4a4594ef-dea4-4aa0-b286-04c344ad8bce}" />
     <Folder Name="PML Conditions" Id="{c72861c0-c0ce-4674-aeb2-9bafbcf1ffb2}" />
     <Folder Name="PML States" Id="{bb7e80d1-aaba-45a3-942d-4c0ae1b7e0a1}" />
     <Folder Name="TaskEx" Id="{5b3fc18f-f550-457a-8a17-1d786d7a73b0}" />
-    <Method Name="aoiBlocks" Id="{8c2b7778-065d-411a-81bc-dde8062443b8}" FolderPath="Actions_Methods\">
+    <Method Name="aoiBlocks" Id="{8c2b7778-065d-411a-81bc-dde8062443b8}" FolderPath="Actions_Cyclic\">
       <Declaration><![CDATA[METHOD PROTECTED aoiBlocks : BOOL]]></Declaration>
       <Implementation>
         <NWL>
@@ -2109,41 +2109,6 @@ to the concrete FB's implementation of that state-method
         </NWL>
       </Implementation>
     </Method>
-    <Method Name="callLocalModules" Id="{07598648-6d7c-40a9-837b-f3a0d7d704f9}" FolderPath="Actions_Methods\">
-      <Declaration><![CDATA[METHOD PROTECTED callLocalModules : BOOL
-VAR_INPUT
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[{warning disable C0371}
-(*
-insertionLeft(
-	enable:= TRUE, 
-	slider:= verticalDriveLeft, 
-	screw:= horizontalDriveLeft, 
-	contact=> , 
-	softContact=> , 
-	active=> , 
-	error=> , 
-	home=> , 
-	homingComplete=> , 
-	sliderPos=> );
-	
-insertionRight(
-	enable:= TRUE, 
-	slider:= verticalDriveRight, 
-	screw:= horizontalDriveRight,  
-	contact=> , 
-	softContact=> , 
-	active=> , 
-	error=> , 
-	home=> , 
-	homingComplete=> , 
-	sliderPos=> );
-*)
-suctionRelease(IN:= , PT:= suctionReleaseDelay, Q=> , ET=> );]]></ST>
-      </Implementation>
-    </Method>
     <Method Name="load" Id="{41d6aef3-60c1-439a-bdd2-e372cfed0011}">
       <Declaration><![CDATA[METHOD PROTECTED load : BOOL
 VAR_INPUT
@@ -2435,6 +2400,15 @@ IF robotRight.Done THEN
 END_IF]]></ST>
       </Implementation>
     </Method>
+    <Method Name="manual" Id="{0c3f7a60-10c4-482a-82e7-c6357c99d1f0}">
+      <Declaration><![CDATA[METHOD PROTECTED manual : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
     <Method Name="process" Id="{125184ca-77bd-471a-a90f-30ac270f7324}">
       <Declaration><![CDATA[METHOD PROTECTED process : BOOL
 VAR_INPUT
@@ -2448,6 +2422,14 @@ VAR
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[{warning disable C0371}
+IF iPair >= Consts.maxPairs THEN
+	process := TRUE;
+	RETURN;
+ELSIF NOT PositionIsValid(pair := currentPair) THEN
+	iPair := iPair + 1;
+	RETURN;
+END_IF
+
 CASE step OF
 	IDLE:
 		IF auto OR_ELSE execute THEN
@@ -2505,17 +2487,16 @@ CASE step OF
 			error := TRUE;
 			RETURN;
 		END_IF
-		(*
+		
 		IF 
-			insertionLeft.sliderPos <> demoHeight/2 //OR 
-			//insertionRight.sliderPos <> demoHeight/2 //OR 
-			//NOT insertionBottom.contact
+			insertionLeft.sliderPos <> demoHeight/2 OR 
+			insertionRight.sliderPos <> demoHeight/2
 		THEN
-			insertionLeft.slideAbsolute(demoHeight/2);
-			//insertionRight.slideAbsolute(demoHeight/2);
+			insertionLeft.align(demoHeight/2);
+			insertionRight.align(demoHeight/2);
 			RETURN;
 		END_IF
-		*)
+		
 		
 		IF insertionLeft.Contact THEN
 			latchLeft := TRUE;
@@ -2530,7 +2511,9 @@ CASE step OF
 		END_IF
 		pistonBottom.extend();
 		
-	STRAP:	
+	STRAP:
+		suctionRelease(IN:= , PT:= suctionReleaseDelay, Q=> , ET=> );
+		
 		strapper.bEnable := TRUE;
 		IF strapper.done THEN
 			suctionRelease.IN := FALSE;
@@ -2558,11 +2541,8 @@ CASE step OF
 		END_IF
 		
 	RELEASE: //release command		
-		//insertionLeft.slideAbsolute(0);
-		//insertionRight.slideAbsolute(0);
-		
-		insertionLeft.release();
-		insertionRight.release();
+		insertionLeft.toHome();
+		insertionRight.toHome();
 		pistonBottom.retract();
 		
 		IF 
@@ -2575,10 +2555,8 @@ CASE step OF
 	
 	COMPLETE:
 		//reset everything
-		iPair := (iPair + 1) MOD Consts.maxPairs;
+		iPair := iPair + 1;
 		step := IDLE;
-		
-		process := TRUE;
 END_CASE]]></ST>
       </Implementation>
     </Method>
@@ -2680,35 +2658,7 @@ VAR_OUTPUT
 	error : BOOL;
 END_VAR]]></Declaration>
       <Implementation>
-        <ST><![CDATA[SUPER^.ps_Execute();
-
-CASE status OF //add additional instructions for each state
-	SectionTask.IDLE:
-		//
-	
-	SectionTask.ALIGNING:
-		stage(error => error);
-		
-	SectionTask.ACTIVE:
-		//
-		
-	SectionTask.CLEARING:
-		aoiLoadLeft.reset();
-		aoiLoadRight.reset();
-		
-		aoiStageLeft.reset();
-		aoiStageRight.reset();
-		
-		aoiTemplateLeft.reset();
-		aoiTemplateRight.reset();
-		
-	SectionTask.COMPLETE:	
-		//
-		
-	-100:
-		//
-		
-END_CASE]]></ST>
+        <ST><![CDATA[SUPER^.ps_Execute();]]></ST>
       </Implementation>
     </Method>
     <Method Name="ps_Held" Id="{9d7440d6-bc19-48cc-b67b-cef2292c495c}" FolderPath="PML States\">
@@ -2889,6 +2839,46 @@ END_VAR
         <ST><![CDATA[ps_Unsuspending := TRUE;]]></ST>
       </Implementation>
     </Method>
+    <Method Name="runSectionTasks" Id="{b1351305-e851-4156-92d6-e8291baa67e7}">
+      <Declaration><![CDATA[METHOD PROTECTED FINAL runSectionTasks : BOOL
+VAR_INPUT
+	auto : BOOL;
+END_VAR
+VAR_OUTPUT
+	error : BOOL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[SUPER^.runSectionTasks(auto := auto, error => error);
+
+CASE status OF //add additional instructions for each state
+	SectionTask.IDLE:
+		//
+	
+	SectionTask.ALIGNING:
+		stage(error => error);
+		
+	SectionTask.ACTIVE:
+		//
+		
+	SectionTask.CLEARING:
+		aoiLoadLeft.reset();
+		aoiLoadRight.reset();
+		
+		aoiStageLeft.reset();
+		aoiStageRight.reset();
+		
+		aoiTemplateLeft.reset();
+		aoiTemplateRight.reset();
+		
+	SectionTask.COMPLETE:	
+		//
+		
+	-100:
+		//
+		
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
     <Method Name="stage" Id="{394ea3b0-a477-4afc-b551-89e83b2984a7}">
       <Declaration><![CDATA[METHOD PROTECTED stage : BOOL
 VAR_OUTPUT
@@ -3039,20 +3029,6 @@ END_VAR
 //remove from staging table]]></ST>
       </Implementation>
     </Method>
-    <Method Name="usesProcess" Id="{d877291e-fefd-46f0-815e-67a91f9afecd}">
-      <Declaration><![CDATA[METHOD PROTECTED usesProcess : BOOL
-VAR
-	i : INT;
-END_VAR]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[FOR i:=0 TO Consts.maxPairs BY 1 DO
-	IF PositionIsValid(materialsArr[i]) THEN
-		usesProcess := TRUE;
-		RETURN;
-	END_IF
-END_FOR]]></ST>
-      </Implementation>
-    </Method>
     <Method Name="validateInsertion" Id="{b1904323-60a7-4bcf-ac74-c2042e21b0b7}">
       <Declaration><![CDATA[METHOD PROTECTED validateInsertion : BOOL
 VAR_INPUT
@@ -3109,10 +3085,6 @@ validateSuctionQuality :=
       <LineId Id="10638" Count="0" />
       <LineId Id="10635" Count="2" />
       <LineId Id="10632" Count="0" />
-    </LineIds>
-    <LineIds Name="WoodBunkEx.callLocalModules">
-      <LineId Id="6" Count="25" />
-      <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="WoodBunkEx.load">
       <LineId Id="1193" Count="0" />
@@ -3241,12 +3213,26 @@ validateSuctionQuality :=
       <LineId Id="17" Count="0" />
       <LineId Id="19" Count="1" />
     </LineIds>
+    <LineIds Name="WoodBunkEx.manual">
+      <LineId Id="5" Count="0" />
+    </LineIds>
     <LineIds Name="WoodBunkEx.process">
-      <LineId Id="208" Count="5" />
+      <LineId Id="208" Count="0" />
+      <LineId Id="374" Count="1" />
+      <LineId Id="377" Count="0" />
+      <LineId Id="376" Count="0" />
+      <LineId Id="380" Count="1" />
+      <LineId Id="379" Count="0" />
+      <LineId Id="373" Count="0" />
+      <LineId Id="209" Count="4" />
       <LineId Id="237" Count="35" />
       <LineId Id="274" Count="0" />
       <LineId Id="363" Count="0" />
-      <LineId Id="275" Count="87" />
+      <LineId Id="275" Count="17" />
+      <LineId Id="294" Count="20" />
+      <LineId Id="392" Count="1" />
+      <LineId Id="315" Count="28" />
+      <LineId Id="347" Count="13" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="WoodBunkEx.ps_AbortCondition">
@@ -3281,9 +3267,7 @@ validateSuctionQuality :=
       <LineId Id="7" Count="0" />
     </LineIds>
     <LineIds Name="WoodBunkEx.ps_Execute">
-      <LineId Id="42" Count="1" />
-      <LineId Id="16" Count="25" />
-      <LineId Id="10" Count="0" />
+      <LineId Id="42" Count="0" />
     </LineIds>
     <LineIds Name="WoodBunkEx.ps_Held">
       <LineId Id="5" Count="0" />
@@ -3346,6 +3330,11 @@ validateSuctionQuality :=
     <LineIds Name="WoodBunkEx.ps_Unsuspending">
       <LineId Id="5" Count="0" />
     </LineIds>
+    <LineIds Name="WoodBunkEx.runSectionTasks">
+      <LineId Id="35" Count="1" />
+      <LineId Id="9" Count="25" />
+      <LineId Id="8" Count="0" />
+    </LineIds>
     <LineIds Name="WoodBunkEx.stage">
       <LineId Id="1128" Count="0" />
       <LineId Id="1133" Count="1" />
@@ -3404,14 +3393,6 @@ validateSuctionQuality :=
     </LineIds>
     <LineIds Name="WoodBunkEx.unload">
       <LineId Id="5" Count="1" />
-    </LineIds>
-    <LineIds Name="WoodBunkEx.usesProcess">
-      <LineId Id="2" Count="0" />
-      <LineId Id="6" Count="0" />
-      <LineId Id="11" Count="0" />
-      <LineId Id="13" Count="0" />
-      <LineId Id="12" Count="0" />
-      <LineId Id="7" Count="0" />
     </LineIds>
     <LineIds Name="WoodBunkEx.validateInsertion">
       <LineId Id="76" Count="3" />

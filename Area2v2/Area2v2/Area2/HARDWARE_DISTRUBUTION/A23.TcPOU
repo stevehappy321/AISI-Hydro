@@ -68,8 +68,6 @@ END_VAR
     <Method Name="setupHardware" Id="{a64c747f-a35f-4a39-8af5-03ecfd93413f}">
       <Declaration><![CDATA[METHOD PRIVATE setupHardware : BOOL
 VAR
-	iCornerGuardSlot : CornerGuard;
-	iCardboardSlot : Cardboard;
 	i : INT;
 END_VAR]]></Declaration>
       <Implementation>

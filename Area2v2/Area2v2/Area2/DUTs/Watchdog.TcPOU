@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="Watchdog" Id="{5441069f-d199-4420-9a7a-e035c7bf04a5}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK Watchdog
+VAR_INPUT
+	enable : BOOL;
+	
+	toggleBit : BOOL;
+	timeoutWidth : TIME := DEFAULT_ADS_TIMEOUT;
+END_VAR
+VAR_OUTPUT
+	timeout : BOOL;
+END_VAR
+VAR	
+	timer : TON;
+	timerTrig : R_TRIG;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[timerTrig(
+	CLK:= timerTrig.CLK XOR toggleBit,
+	Q=> ); //reset timer
+
+timer(IN:= NOT timerTrig.Q, PT:= timeoutWidth, Q=> timeout, ET=> );]]></ST>
+    </Implementation>
+    <LineIds Name="Watchdog">
+      <LineId Id="15" Count="2" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="9" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

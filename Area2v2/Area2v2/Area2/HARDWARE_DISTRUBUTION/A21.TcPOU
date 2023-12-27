@@ -80,7 +80,9 @@ callHardware();]]></ST>
     <Method Name="callHardware" Id="{cbd6668a-4a61-4a31-9125-2161ec10dadd}">
       <Declaration><![CDATA[METHOD PRIVATE callHardware : BOOL]]></Declaration>
       <Implementation>
-        <ST><![CDATA[robot1(strapSafety := (NOT strapperA21.enable AND NOT strapperA21.execute AND strapperA21.home));	
+        <ST><![CDATA[{warning disable C0371}
+
+robot1(strapSafety := (NOT strapperA21.enable AND NOT strapperA21.execute AND strapperA21.home));	
 robot2(strapSafety := (NOT strapperA21.enable AND NOT strapperA21.execute AND strapperA21.home));
 
 skidA21Left(slots := skidSlotsA21Left);
@@ -94,10 +96,10 @@ magazineA21Right(slots := magazineSlotsA21Right);
 
 strapperA21(extSafety := robot1.strapSafetyIn AND robot2.strapSafetyIn);
 
-verticalDriveA21Left();
-verticalDriveA21Right();
-horizontalDriveA21Left();
-horizontalDriveA21Right();
+verticalDriveA21Left(bEnable := TRUE);
+verticalDriveA21Right(bEnable := TRUE);
+horizontalDriveA21Left(bEnable := TRUE);
+horizontalDriveA21Right(bEnable := TRUE);
 
 insertionA21Left(
 	slider:= verticalDriveA21Left, 
@@ -120,6 +122,24 @@ insertionA21Right(
 	sliderPos=> );
 
 pistonA21Bottom();
+
+stackLightCIP(
+	pmlState:= sectionCIP.pmlState, 
+	lowMaterial:= , 
+	materialExhausted:= , 
+	red=> , 
+	yellow=> , 
+	blue=> , 
+	green=> );
+	
+stackLightWB(
+	pmlState:= sectionWB.pmlState, 
+	lowMaterial:= , 
+	materialExhausted:= , 
+	red=> , 
+	yellow=> , 
+	blue=> , 
+	green=> );
 
 (*
 tempLeft := TO_INT(BoolPtrArrayToInteger(arr := stagingTableLeft.occupied, lowerBound := 1, upperBound := 10));
@@ -185,7 +205,7 @@ END_VAR
                           <v n="LValue">false</v>
                           <v n="Boolean">false</v>
                           <v n="IsInstance">true</v>
-                          <v n="Id">140L</v>
+                          <v n="Id">151L</v>
                         </o>
                         <o n="OutputItems" t="OutputItemList">
                           <l2 n="OutputItems" cet="Operand">
@@ -381,6 +401,38 @@ END_VAR
                               <v n="Boolean">false</v>
                               <v n="IsInstance">false</v>
                               <v n="Id">18L</v>
+                            </o>
+                            <o>
+                              <v n="Operand">""</v>
+                              <v n="Type">"E_PMLState"</v>
+                              <v n="Comment">""</v>
+                              <v n="SymbolComment">""</v>
+                              <v n="Address">""</v>
+                              <o n="Flags" t="Flags">
+                                <v n="Flags">0</v>
+                                <v n="Fixed">false</v>
+                                <v n="Extensible">false</v>
+                              </o>
+                              <v n="LValue">true</v>
+                              <v n="Boolean">false</v>
+                              <v n="IsInstance">false</v>
+                              <v n="Id">148L</v>
+                            </o>
+                            <o>
+                              <v n="Operand">""</v>
+                              <v n="Type">"E_PMLCustomUnitMode"</v>
+                              <v n="Comment">""</v>
+                              <v n="SymbolComment">""</v>
+                              <v n="Address">""</v>
+                              <o n="Flags" t="Flags">
+                                <v n="Flags">0</v>
+                                <v n="Fixed">false</v>
+                                <v n="Extensible">false</v>
+                              </o>
+                              <v n="LValue">true</v>
+                              <v n="Boolean">false</v>
+                              <v n="IsInstance">false</v>
+                              <v n="Id">150L</v>
                             </o>
                             <o>
                               <v n="Operand">""</v>
@@ -750,8 +802,6 @@ END_VAR
                             <v>ENO</v>
                             <v>bundleOut</v>
                             <v>bypass</v>
-                            <v>pmlModeString</v>
-                            <v>pmlStateString</v>
                             <v>stop</v>
                             <v>execute</v>
                             <v>hold</v>
@@ -760,6 +810,10 @@ END_VAR
                             <v>busy</v>
                             <v>done</v>
                             <v>error</v>
+                            <v>pmlModeString</v>
+                            <v>pmlStateString</v>
+                            <v>pmlState</v>
+                            <v>pmlMode</v>
                             <v>iBundle</v>
                             <v>iPair</v>
                           </l2>
@@ -767,16 +821,18 @@ END_VAR
                             <v>BOOL</v>
                             <v>Bundle</v>
                             <v>BOOL</v>
+                            <v>BOOL</v>
+                            <v>BOOL</v>
+                            <v>BOOL</v>
+                            <v>BOOL</v>
+                            <v>BOOL</v>
+                            <v>BOOL</v>
+                            <v>BOOL</v>
+                            <v>BOOL</v>
                             <v>STRING</v>
                             <v>STRING</v>
-                            <v>BOOL</v>
-                            <v>BOOL</v>
-                            <v>BOOL</v>
-                            <v>BOOL</v>
-                            <v>BOOL</v>
-                            <v>BOOL</v>
-                            <v>BOOL</v>
-                            <v>BOOL</v>
+                            <v>E_PMLState</v>
+                            <v>E_PMLCustomUnitMode</v>
                             <v>INT (0..Consts.maxQueue)</v>
                             <v>INT (0..Consts.maxPairs)</v>
                           </l2>
@@ -787,7 +843,7 @@ END_VAR
                         <n n="STSnippet" />
                         <v n="ContainsExtensibleInputs">false</v>
                         <v n="ProvidesSTSnippet">false</v>
-                        <v n="Id">141L</v>
+                        <v n="Id">152L</v>
                       </o>
                     </l2>
                     <l2 n="Connectors" />
@@ -819,7 +875,7 @@ END_VAR
                           <v n="LValue">false</v>
                           <v n="Boolean">false</v>
                           <v n="IsInstance">true</v>
-                          <v n="Id">110L</v>
+                          <v n="Id">144L</v>
                         </o>
                         <o n="OutputItems" t="OutputItemList">
                           <l2 n="OutputItems" cet="Operand">
@@ -1552,8 +1608,6 @@ END_VAR
                             <v>ENO</v>
                             <v>bundleOut</v>
                             <v>bypass</v>
-                            <v>pmlModeString</v>
-                            <v>pmlStateString</v>
                             <v>stop</v>
                             <v>execute</v>
                             <v>hold</v>
@@ -1562,6 +1616,8 @@ END_VAR
                             <v>busy</v>
                             <v>done</v>
                             <v>error</v>
+                            <v>pmlModeString</v>
+                            <v>pmlStateString</v>
                             <v>iBundle</v>
                             <v>iPair</v>
                           </l2>
@@ -1569,16 +1625,16 @@ END_VAR
                             <v>BOOL</v>
                             <v>Bundle</v>
                             <v>BOOL</v>
+                            <v>BOOL</v>
+                            <v>BOOL</v>
+                            <v>BOOL</v>
+                            <v>BOOL</v>
+                            <v>BOOL</v>
+                            <v>BOOL</v>
+                            <v>BOOL</v>
+                            <v>BOOL</v>
                             <v>STRING</v>
                             <v>STRING</v>
-                            <v>BOOL</v>
-                            <v>BOOL</v>
-                            <v>BOOL</v>
-                            <v>BOOL</v>
-                            <v>BOOL</v>
-                            <v>BOOL</v>
-                            <v>BOOL</v>
-                            <v>BOOL</v>
                             <v>INT (0..Consts.maxQueue)</v>
                             <v>INT (0..Consts.maxPairs)</v>
                           </l2>
@@ -1589,7 +1645,7 @@ END_VAR
                         <n n="STSnippet" />
                         <v n="ContainsExtensibleInputs">false</v>
                         <v n="ProvidesSTSnippet">false</v>
-                        <v n="Id">111L</v>
+                        <v n="Id">145L</v>
                       </o>
                     </l2>
                     <l2 n="Connectors" />
@@ -1664,15 +1720,6 @@ FOR i:=1 TO Consts.maxQueue BY 1 DO //get wood bunk magazine + chipboard skid av
 END_FOR
 
 //--------------------------------------------------
-
-//enable all drives
-verticalDriveA21Left.bEnable := 
-verticalDriveA21Right.bEnable := 
-horizontalDriveA21Left.bEnable := 
-horizontalDriveA21Right.bEnable := 
-pistonA21Bottom.bEnable := 
-TRUE;
-
 conveyorsCIP[1] := ADR(A21_SC_C18);
 conveyorsCIP[2] := ADR(A21_LSC_C19);
 conveyorsCIP[3] := ADR(A21_LSC_C20);
@@ -1690,18 +1737,24 @@ conveyorsWB[1] := ADR(A21_LSC_C21);]]></ST>
       <LineId Id="51" Count="0" />
     </LineIds>
     <LineIds Name="A21.callHardware">
+      <LineId Id="74" Count="1" />
       <LineId Id="6" Count="17" />
       <LineId Id="36" Count="0" />
       <LineId Id="38" Count="17" />
       <LineId Id="37" Count="0" />
       <LineId Id="35" Count="0" />
-      <LineId Id="24" Count="10" />
+      <LineId Id="24" Count="0" />
+      <LineId Id="57" Count="7" />
+      <LineId Id="56" Count="0" />
+      <LineId Id="65" Count="0" />
+      <LineId Id="67" Count="6" />
+      <LineId Id="66" Count="0" />
+      <LineId Id="25" Count="9" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="A21.setupHardware">
-      <LineId Id="6" Count="30" />
-      <LineId Id="5" Count="0" />
-      <LineId Id="43" Count="4" />
+      <LineId Id="6" Count="23" />
+      <LineId Id="44" Count="3" />
       <LineId Id="42" Count="0" />
     </LineIds>
   </POU>

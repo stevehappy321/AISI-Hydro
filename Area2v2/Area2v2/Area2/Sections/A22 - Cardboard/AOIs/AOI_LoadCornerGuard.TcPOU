@@ -1,0 +1,228 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="AOI_LoadCornerGuard" Id="{6c239b53-1d1c-4642-a611-445469807580}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK AOI_LoadCornerGuard
+VAR_INPUT
+	execute : BOOL;
+END_VAR
+VAR_IN_OUT CONSTANT
+	sectionID : SectionEnum;
+END_VAR
+VAR_IN_OUT
+	robot : RobotA22;
+	magazine : SkidMagazine;
+	loadedMaterials : ARRAY[*] OF STRING;
+END_VAR
+VAR_INPUT
+	surfaceID : Surface;
+	material : STRING;
+	
+	suctions : POINTER TO SuctionPad; //access from 0 to numPads-1, not LOWER_BOUND to UPPER_BOUND
+	numPads : DINT;
+END_VAR
+VAR_OUTPUT
+	donePulse : BOOL; //this signal turns on 1 cycle after done turns true, should not affect the program structure
+	done : BOOL;
+	busy : BOOL;
+	error : BOOL;
+	
+	recovery : BOOL;
+	failCounter : INT;
+END_VAR
+VAR
+	run : BOOL;
+	trigger : R_TRIG;
+	doneTrigger : R_TRIG;
+	
+	column : INT;
+	
+	suctionTimer : TON;
+	step : (IDLE, PREP_ROBOT, GET_FROM_STORAGE, LOAD_TO_INSERTION, COMPLETE, RECOVERY_IDLE, RECOVERY_REMOVE, RECOVERY_LOAD);
+	
+	i : DINT;
+END_VAR
+VAR CONSTANT
+	suctionDelay : TIME := T#2S;
+	suctionDistance : INT := 10;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[{warning disable C0371}
+
+trigger(CLK:= execute, Q=> );
+doneTrigger(CLK:= done, Q=> donePulse);
+busy := trigger.Q OR step > 0;
+
+IF step > IDLE AND_THEN NOT preExecution() THEN //conditions to track before execution
+	RETURN;
+END_IF
+
+(*
+if required bunk was not found on table - restage entire table
+if bunk was not loaded correctly - remove bunk, then restage entire table
+*)
+CASE step OF
+	IDLE:
+		IF trigger.Q THEN
+			recovery := FALSE;
+			done := FALSE;
+			error := FALSE;
+			step := PREP_ROBOT;
+		END_IF
+		
+	PREP_ROBOT:
+		robot.clearCommand();
+		IF robot.Ready THEN
+			step := GET_FROM_STORAGE;
+			column := 0;
+		END_IF
+		
+	GET_FROM_STORAGE:		
+		IF NOT magazine.findSlot(material := material, index => column) THEN
+			error := TRUE;
+			RETURN;
+		END_IF
+		
+		IF robot.eoatDistance < suctionDistance THEN //move from table to robot gripper
+			robot.HoldMaterial := magazine.getSlot(i := column, error => );
+		END_IF
+		
+		IF robot.Done THEN
+			step := COMPLETE;
+			RETURN;
+		ELSIF robot.materialAtHoldingPosition > 0 THEN
+			step := LOAD_TO_INSERTION;
+			RETURN;
+		END_IF
+		
+		CASE surfaceID OF
+			Surface.TOP_LEFT, Surface.TOP_RIGHT:			robot.setGroup(group := 1, value := TaskA22.LOAD_CORNER_GUARD_UPPER);
+			Surface.BOTTOM_LEFT, SURFACE.BOTTOM_RIGHT:		robot.setGroup(group := 1, value := TaskA22.LOAD_CORNER_GUARD_LOWER);
+		END_CASE
+		robot.setGroup(group := 2, value := column); 
+			
+	LOAD_TO_INSERTION:
+		IF robot.materialAtHoldingPosition > 0 AND robot.HoldMaterial <> '' THEN //move from gripper to insertion
+			loadedMaterials[surfaceID] := robot.HoldMaterial;
+			robot.HoldMaterial := '';
+		END_IF
+		
+		//numPads/3 <= i < numPads/3 * 2
+		FOR i:=(numPads/3)*1 TO (numPads/3)*2-1 BY 1 DO //middle third suctions only
+			suctions[i].enable := TRUE;
+		END_FOR
+		
+		IF robot.Done THEN
+			suctionTimer.IN := FALSE;
+			step := COMPLETE;
+			RETURN;
+		END_IF
+		
+		suctionTimer(IN:= , PT:= suctionDelay, Q=> , ET=> );
+		suctionTimer.IN := TRUE;
+		
+		IF suctionTimer.Q THEN
+			robot.setGroup(group := 10, value := robot.materialAtHoldingPosition);
+		END_IF
+	
+	COMPLETE:
+		robot.clearCommand();
+		
+		IF //check insertion quality
+			SuctionQualityPtr(
+				suctions := suctions, 
+				numPads := numPads, 
+				insertionMaterial := loadedMaterials[surfaceID], 
+				recipeMaterial := material)
+		THEN
+			done := TRUE;
+			column := 0;
+			step := 0;
+			
+		ELSE //recovery - remove and reload
+			failCounter := failCounter + 1;
+			step := RECOVERY_IDLE;
+		END_IF
+		
+	//---------RECOVERY-----------------------------------------
+	RECOVERY_IDLE:
+		robot.clearCommand();
+		IF robot.Ready THEN
+			step := RECOVERY_REMOVE;
+		END_IF
+		
+	RECOVERY_REMOVE:
+		IF robot.Done THEN
+			step := RECOVERY_LOAD;
+			RETURN;
+		END_IF
+		
+		CASE surfaceID OF
+			Surface.TOP_LEFT, Surface.TOP_RIGHT:			robot.setGroup(group := 1, value := TaskA22.REMOVE_CORNER_GUARD_UPPER);
+			Surface.BOTTOM_LEFT, SURFACE.BOTTOM_RIGHT:		robot.setGroup(group := 1, value := TaskA22.REMOVE_CORNER_GUARD_LOWER);
+		END_CASE
+		
+	RECOVERY_LOAD:	
+		recovery := TRUE;
+		error := TRUE;
+		
+END_CASE]]></ST>
+    </Implementation>
+    <Method Name="preExecution" Id="{1b61c048-cb77-417f-a8fb-292799ef3a09}">
+      <Declaration><![CDATA[METHOD PRIVATE preExecution : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[{warning disable C0371}
+IF material = '' THEN
+	done := TRUE;
+	RETURN;
+END_IF
+
+IF //robot must be ready before execution
+	robot.error OR 
+	robot.reservation <> sectionID OR 
+	robot.tool <> sectionID
+THEN
+	error := TRUE;
+	RETURN;
+END_IF
+
+preExecution := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="reset" Id="{3e68d448-7733-4530-8325-f7bd9fdbbdad}">
+      <Declaration><![CDATA[METHOD reset : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[done := FALSE;
+busy := FALSE;
+error := FALSE;
+recovery := FALSE;
+failCounter := 0;
+
+column := 0;
+step := 0;]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="AOI_LoadCornerGuard">
+      <LineId Id="367" Count="95" />
+      <LineId Id="464" Count="22" />
+      <LineId Id="85" Count="0" />
+    </LineIds>
+    <LineIds Name="AOI_LoadCornerGuard.preExecution">
+      <LineId Id="18" Count="0" />
+      <LineId Id="24" Count="2" />
+      <LineId Id="9" Count="8" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="20" Count="0" />
+      <LineId Id="19" Count="0" />
+    </LineIds>
+    <LineIds Name="AOI_LoadCornerGuard.reset">
+      <LineId Id="21" Count="6" />
+      <LineId Id="12" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

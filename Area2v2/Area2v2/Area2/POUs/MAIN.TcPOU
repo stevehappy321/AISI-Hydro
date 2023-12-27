@@ -45,7 +45,7 @@ END_VAR
 VAR //sections
 	spacerRecollector : SpacerRecollectionUnit;
 	//paperSection : PaperEx;
-	//cardboardCornerGuardSection : CardboardCornerGuardEx;
+	cardboardSection : CardboardEx;
 	chipboardSection : ChipboardEx;
 	woodBunkSection : WoodBunkEx;
 	//outputSection : AreaOutputEx;	
@@ -53,7 +53,6 @@ END_VAR
 VAR
 	fbLocalSystemTime : FB_LocalSystemTime;
 	dbLogger : SqlDatabaseAccessor;
-	//conveyorController : ConveyorControlUnit;
 	
 	pmlState : E_PMLState;
 	pmlCommand : E_PMLCommand;
@@ -101,8 +100,12 @@ A26(spacerRecollector := spacerRecollector);
 (*
 A24()
 A23()
-A22()
 *)
+A22(
+	sectionCC:= cardboardSection,
+	bundlesQueue:= bundlesQueue, 
+	bundlesBypass:= bundlesBypass);
+	
 A21(
 	sectionCIP:= chipboardSection, 
 	sectionWB:= woodBunkSection, 
@@ -809,8 +812,10 @@ END_IF]]></ST>
       <LineId Id="4482" Count="0" />
       <LineId Id="4512" Count="0" />
       <LineId Id="4588" Count="0" />
-      <LineId Id="4507" Count="2" />
-      <LineId Id="4503" Count="0" />
+      <LineId Id="4507" Count="1" />
+      <LineId Id="4603" Count="0" />
+      <LineId Id="4509" Count="0" />
+      <LineId Id="4669" Count="3" />
       <LineId Id="4510" Count="0" />
       <LineId Id="4589" Count="3" />
       <LineId Id="4511" Count="0" />

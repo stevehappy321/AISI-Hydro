@@ -1002,7 +1002,7 @@ External Setpoint Generation:
 		</System>
 		<Plc>
 			<Project GUID="{E4C31D2B-679A-4B63-A160-76D77225E648}" Name="Area2" PrjFilePath="Area2\Area2.plcproj" TmcFilePath="Area2\Area2.tmc" ReloadTmc="true" AmsPort="851" FileArchiveSettings="#x000e" SymbolicMapping="true">
-				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcPath="Area2\Area2.tmc" TmcHash="{0520C0D8-3A22-3CFE-A224-6FF7292277BD}">
+				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcPath="Area2\Area2.tmc" TmcHash="{E8B43352-CF18-259C-EAEE-319552BE4F31}">
 					<Name>Area2 Instance</Name>
 					<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
 					<Vars VarGrpType="1">
@@ -1025,6 +1025,66 @@ External Setpoint Generation:
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
+							<Name>A26.robot7.inputs</Name>
+							<Type GUID="{0CC845D8-9BA1-18CF-F192-2496916AED96}">ARRAY [1..20] OF WORD</Type>
+						</Var>
+						<Var>
+							<Name>A26.robot7.offline</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A26.robot7.watchdogBit</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.robot3.inputs</Name>
+							<Type GUID="{0CC845D8-9BA1-18CF-F192-2496916AED96}">ARRAY [1..20] OF WORD</Type>
+						</Var>
+						<Var>
+							<Name>A22.robot3.offline</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.robot3.watchdogBit</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.robot4.inputs</Name>
+							<Type GUID="{0CC845D8-9BA1-18CF-F192-2496916AED96}">ARRAY [1..20] OF WORD</Type>
+						</Var>
+						<Var>
+							<Name>A22.robot4.offline</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.robot4.watchdogBit</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A21.robot1.inputs</Name>
+							<Type GUID="{0CC845D8-9BA1-18CF-F192-2496916AED96}">ARRAY [1..20] OF WORD</Type>
+						</Var>
+						<Var>
+							<Name>A21.robot1.offline</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A21.robot1.watchdogBit</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A21.robot2.inputs</Name>
+							<Type GUID="{0CC845D8-9BA1-18CF-F192-2496916AED96}">ARRAY [1..20] OF WORD</Type>
+						</Var>
+						<Var>
+							<Name>A21.robot2.offline</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A21.robot2.watchdogBit</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
 							<Name>A26.spacerPresent_A24_LRC_C06</Name>
 							<Type>BOOL</Type>
 						</Var>
@@ -1039,14 +1099,6 @@ External Setpoint Generation:
 						<Var>
 							<Name>A26.spacerPresent_A24_LRC_C12</Name>
 							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A26.robot7.offline</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A26.robot7.inputs</Name>
-							<Type GUID="{0CC845D8-9BA1-18CF-F192-2496916AED96}">ARRAY [1..20] OF WORD</Type>
 						</Var>
 						<Var>
 							<Name>A26.robotSliderA26.innerLimit</Name>
@@ -1196,22 +1248,6 @@ External Setpoint Generation:
 						<Var>
 							<Name>A21.A21_LSC_C21.retracted</Name>
 							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A21.robot1.offline</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A21.robot1.inputs</Name>
-							<Type GUID="{0CC845D8-9BA1-18CF-F192-2496916AED96}">ARRAY [1..20] OF WORD</Type>
-						</Var>
-						<Var>
-							<Name>A21.robot2.offline</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A21.robot2.inputs</Name>
-							<Type GUID="{0CC845D8-9BA1-18CF-F192-2496916AED96}">ARRAY [1..20] OF WORD</Type>
 						</Var>
 						<Var>
 							<Name>A21.toolStorageA21Right.pos1ChipboardEOAT</Name>
@@ -1937,22 +1973,6 @@ External Setpoint Generation:
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
-							<Name>A22.robot3.offline</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.robot3.inputs</Name>
-							<Type GUID="{0CC845D8-9BA1-18CF-F192-2496916AED96}">ARRAY [1..20] OF WORD</Type>
-						</Var>
-						<Var>
-							<Name>A22.robot4.offline</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.robot4.inputs</Name>
-							<Type GUID="{0CC845D8-9BA1-18CF-F192-2496916AED96}">ARRAY [1..20] OF WORD</Type>
-						</Var>
-						<Var>
 							<Name>A22.benderA22Left.ready</Name>
 							<Type>BOOL</Type>
 						</Var>
@@ -2550,6 +2570,54 @@ External Setpoint Generation:
 							<Type GUID="{FCDAFB1E-2CF0-0830-625A-4C0917D98604}">ARRAY [1..50] OF WORD</Type>
 						</Var>
 						<Var>
+							<Name>A22.robot3.forceStop</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.robot3.resetSignal</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.robot3.outputs</Name>
+							<Type GUID="{FCDAFB1E-2CF0-0830-625A-4C0917D98604}">ARRAY [1..50] OF WORD</Type>
+						</Var>
+						<Var>
+							<Name>A22.robot4.forceStop</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.robot4.resetSignal</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.robot4.outputs</Name>
+							<Type GUID="{FCDAFB1E-2CF0-0830-625A-4C0917D98604}">ARRAY [1..50] OF WORD</Type>
+						</Var>
+						<Var>
+							<Name>A21.robot1.forceStop</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A21.robot1.resetSignal</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A21.robot1.outputs</Name>
+							<Type GUID="{FCDAFB1E-2CF0-0830-625A-4C0917D98604}">ARRAY [1..50] OF WORD</Type>
+						</Var>
+						<Var>
+							<Name>A21.robot2.forceStop</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A21.robot2.resetSignal</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A21.robot2.outputs</Name>
+							<Type GUID="{FCDAFB1E-2CF0-0830-625A-4C0917D98604}">ARRAY [1..50] OF WORD</Type>
+						</Var>
+						<Var>
 							<Name>A26.robotSliderA26.axis.PlcToNc</Name>
 							<Type GUID="{63A84524-72E3-41C8-BEAB-4CCE44690A13}" Namespace="MC">PLCTONC_AXIS_REF</Type>
 						</Var>
@@ -2671,30 +2739,6 @@ External Setpoint Generation:
 						<Var>
 							<Name>A21.A21_LSC_C21.lifterReset</Name>
 							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A21.robot1.forceStop</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A21.robot1.resetSignal</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A21.robot1.outputs</Name>
-							<Type GUID="{FCDAFB1E-2CF0-0830-625A-4C0917D98604}">ARRAY [1..50] OF WORD</Type>
-						</Var>
-						<Var>
-							<Name>A21.robot2.forceStop</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A21.robot2.resetSignal</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A21.robot2.outputs</Name>
-							<Type GUID="{FCDAFB1E-2CF0-0830-625A-4C0917D98604}">ARRAY [1..50] OF WORD</Type>
 						</Var>
 						<Var>
 							<Name>A21.suctionA21Bottom[1].enable</Name>
@@ -3265,30 +3309,6 @@ External Setpoint Generation:
 						<Var>
 							<Name>A22.A22_LSC_C17.lifterReset</Name>
 							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.robot3.forceStop</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.robot3.resetSignal</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.robot3.outputs</Name>
-							<Type GUID="{FCDAFB1E-2CF0-0830-625A-4C0917D98604}">ARRAY [1..50] OF WORD</Type>
-						</Var>
-						<Var>
-							<Name>A22.robot4.forceStop</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.robot4.resetSignal</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.robot4.outputs</Name>
-							<Type GUID="{FCDAFB1E-2CF0-0830-625A-4C0917D98604}">ARRAY [1..50] OF WORD</Type>
 						</Var>
 						<Var>
 							<Name>A22.benderA22Left.enable</Name>

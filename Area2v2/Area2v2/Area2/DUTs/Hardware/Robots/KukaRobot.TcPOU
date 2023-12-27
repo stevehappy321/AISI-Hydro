@@ -6,8 +6,6 @@ VAR_OUTPUT
 	forceStop AT %Q* : BOOL;
 	resetSignal AT %Q* : BOOL;
 	
-	offline AT %I* : BOOL;
-	operational : BOOL;
 	reservation : INT := SectionEnum.NULL_SECTION;
 	
 	error : BOOL;
@@ -17,17 +15,28 @@ VAR_OUTPUT
 	inputs AT %I* : ARRAY[1..20] OF WORD;
 END_VAR
 VAR
+	heartbeat : Watchdog;
+	
+	offline AT %I* : BOOL;
+	toggleBit AT %I* : BOOL;
+	
 	hmiReservation : STRING;
 END_VAR
 (*
-generic KUKA robot with 50 WORD outputs and 20 WORD inputs
+generic KUKA robot with 20 WORD outputs and 20 WORD inputs, connected to Beckhoff IPC via EL6692 or EL6695 EtherCAT bridge
 includes minimal diagnostics to detect if robot is offline
 robots should always be reserved before sending a task
 *)]]></Declaration>
     <Implementation>
-      <ST><![CDATA[operational := NOT offline;
+      <ST><![CDATA[heartbeat(
+	enable := NOT offline,
+	toggleBit:= toggleBit,
+	timeoutWidth:= T#200MS,
+	timeout=> );
 
-error := offline; //add any addition conditions with OR]]></ST>
+error := offline OR heartbeat.timeout; //add any addition conditions with OR
+
+]]></ST>
     </Implementation>
     <Folder Name="Properties" Id="{8ffe1e39-61c1-4398-8ddf-38564de07f51}" />
     <Property Name="Busy" Id="{152763dc-c4e3-4017-bc80-d712b47856e1}" FolderPath="Properties\">
@@ -208,9 +217,8 @@ outputs[group] := value;]]></ST>
       </Implementation>
     </Method>
     <LineIds Name="KukaRobot">
-      <LineId Id="136" Count="0" />
-      <LineId Id="157" Count="0" />
-      <LineId Id="156" Count="0" />
+      <LineId Id="251" Count="7" />
+      <LineId Id="186" Count="0" />
     </LineIds>
     <LineIds Name="KukaRobot.Busy.Get">
       <LineId Id="2" Count="0" />

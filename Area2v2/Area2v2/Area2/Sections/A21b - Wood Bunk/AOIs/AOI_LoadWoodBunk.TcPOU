@@ -118,8 +118,8 @@ CASE step OF
 		END_IF
 		
 		CASE surfaceID OF
-			Surface.TOP, Surface.BOTTOM:	SetSuctionsPtrArr(suctions := suctions, numPads := numPads, state := TRUE);
-			Surface.LEFT, Surface.RIGHT:	SetSuctionsPtrArr(suctions := suctions, numPads := numPads, state := TRUE);
+			Surface.TOP, Surface.BOTTOM:	SetSuctionsPtr(suctions := suctions, numPads := numPads, state := TRUE);
+			Surface.LEFT, Surface.RIGHT:	SetSuctionsPtr(suctions := suctions, numPads := numPads, state := TRUE);
 		END_CASE
 		
 		IF robot.Done THEN

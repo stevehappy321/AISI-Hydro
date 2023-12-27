@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="SuctionQualityPtr" Id="{ac8e9afb-0ca2-4faa-aa99-c7323dd4df65}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION SuctionQualityPtr  : BOOL
+VAR_INPUT
+	suctions : POINTER TO SuctionPad;
+	numPads : DINT;
+END_VAR
+VAR_INPUT
+	insertionMaterial : STRING;
+	recipeMaterial : STRING;
+END_VAR
+VAR
+	i : DINT;
+	
+	failedVacuums : INT;
+	numVacuums : INT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[(*
+IF insertionMaterial <> recipeMaterial THEN //reintroduce this condition later
+	RETURN;
+END_IF
+*)
+
+FOR i:=0 TO numPads BY 1 DO
+	IF suctions[i].enable THEN
+		numVacuums := numVacuums + 1;
+		IF NOT suctions[i].occupied THEN
+			failedVacuums := failedVacuums + 1;
+		END_IF
+	END_IF
+	
+END_FOR
+
+//SuctionQualityPtrArr := failedVacuums < (numVacuums * 1/3);
+SuctionQualityPtr := TRUE;]]></ST>
+    </Implementation>
+    <LineIds Name="SuctionQualityPtr">
+      <LineId Id="108" Count="16" />
+      <LineId Id="7" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

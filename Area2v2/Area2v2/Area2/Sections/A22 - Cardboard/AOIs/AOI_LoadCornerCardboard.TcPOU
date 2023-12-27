@@ -1,0 +1,364 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="AOI_LoadCornerCardboard" Id="{50e7d683-270b-4117-9d9c-9a7da0b4c180}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK AOI_LoadCornerCardboard
+VAR_INPUT
+	execute : BOOL;
+END_VAR
+VAR_IN_OUT CONSTANT
+	sectionID : SectionEnum;
+END_VAR
+VAR_IN_OUT
+	robot : RobotA22;
+	skid : SkidMagazine;
+	loadedMaterials : ARRAY[*] OF STRING;
+	overheadTray : STRING;
+END_VAR
+VAR_INPUT
+	surfaceID : Surface;
+	material : STRING;
+	
+	suctions : POINTER TO SuctionPad; //access from 0 to numPads-1, not LOWER_BOUND to UPPER_BOUND
+	numPads : DINT;
+	
+	hasBendingMachine : BOOL;
+	foldPos0 : INT;
+	foldPos1 : INT;
+END_VAR
+VAR_OUTPUT
+	donePulse : BOOL; //this signal turns on 1 cycle after done turns true and remains on for 1 cycle
+	done : BOOL;
+	busy : BOOL;
+	error : BOOL;
+	
+	recovery : BOOL;
+	failCounter : INT;
+END_VAR
+VAR
+	run : BOOL;
+	trigger : R_TRIG;
+	doneTrigger : R_TRIG;
+	
+	column : INT;
+	
+	suctionTimer : TON;
+	
+	step : (IDLE, PREP_ROBOT, //common
+			GET_FROM_STORAGE, PLACE_TO_OVERHEAD, //left robot only
+			GET_FROM_OVERHEAD, //right robot only
+			LOAD_TO_INSERTION, COMPLETE, RECOVERY_IDLE, RECOVERY_REMOVE, RECOVERY_LOAD); //common
+	
+	i : DINT;
+END_VAR
+VAR CONSTANT
+	suctionDelay : TIME := T#2S;
+	suctionDistance : INT := 10;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[{warning disable C0371}
+
+trigger(CLK:= execute, Q=> );
+doneTrigger(CLK:= done, Q=> donePulse);
+busy := trigger.Q OR step > 0;
+
+IF step > IDLE AND_THEN NOT preExecution() THEN //conditions to track before execution
+	RETURN;
+END_IF
+
+CASE step OF
+	IDLE:
+		IF trigger.Q THEN
+			step := PREP_ROBOT;
+		END_IF
+		
+	PREP_ROBOT:
+		robot.clearCommand();
+		IF robot.Ready THEN
+			IF NOT hasBendingMachine THEN //IMPORTANT - this condition differentiates left and right sequences
+				step := GET_FROM_STORAGE;
+			ELSE
+				step := GET_FROM_OVERHEAD;
+			END_IF
+		END_IF
+		
+	//----------LEFT ROBOT----------------------------------------
+	GET_FROM_STORAGE:
+		_GetFromStorage();
+	
+	PLACE_TO_OVERHEAD:
+		_PlaceToOverhead();
+	
+	//----------RIGHT ROBOT----------------------------------------
+	GET_FROM_OVERHEAD:
+		_GetFromOverhead();
+		
+	//----------COMMON----------------------------------------
+	LOAD_TO_INSERTION:
+		_LoadToInsertion();
+		
+	COMPLETE:
+		robot.clearCommand();
+
+		IF //check insertion quality
+			SuctionQualityPtr(
+				suctions := suctions,
+				numPads := numPads, 
+				insertionMaterial := loadedMaterials[surfaceID], 
+				recipeMaterial := material) 
+		THEN
+			done := TRUE;
+			column := 0;
+			step := 0;
+			
+		ELSE //recovery
+			failCounter := failCounter + 1;
+			step := RECOVERY_IDLE;
+		END_IF
+		
+	RECOVERY_IDLE:
+		robot.clearCommand();
+		IF robot.Ready THEN
+			step := RECOVERY_REMOVE;
+		END_IF
+		
+	RECOVERY_REMOVE:
+		IF robot.Done THEN
+			step := RECOVERY_LOAD;
+			RETURN;
+		END_IF
+	
+		CASE surfaceID OF
+			Surface.TOP_RIGHT:		robot.setGroup(group := 1, value := TaskA22.REMOVE_CARDBOARD_UPPER_CORNER);
+			Surface.BOTTOM_RIGHT:	robot.setGroup(group := 1, value := TaskA22.REMOVE_CARDBOARD_LOWER_CORNER);
+		END_CASE
+		
+	RECOVERY_LOAD:
+		error := TRUE;
+		recovery := TRUE;
+			
+		IF hasBendingMachine THEN
+			step := 0;
+		END_IF
+		
+END_CASE]]></ST>
+    </Implementation>
+    <Folder Name="State Methods" Id="{1959529e-21a9-485d-9dfa-32b172bd2435}" />
+    <Method Name="_Complete" Id="{01f1bd23-8845-4b8f-989d-23ffccc62b75}" FolderPath="State Methods\">
+      <Declaration><![CDATA[METHOD PRIVATE _Complete : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[{warning disable C0371}
+robot.clearCommand();
+
+IF //check insertion quality
+	SuctionQualityPtr(
+		suctions := suctions,
+		numPads := numPads, 
+		insertionMaterial := loadedMaterials[surfaceID], 
+		recipeMaterial := material) 
+THEN
+	done := TRUE;
+	column := 0;
+	step := 0;
+	
+ELSE //recovery
+	failCounter := failCounter + 1;
+	step := RECOVERY_IDLE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="_GetFromOverhead" Id="{041760de-c748-4413-8fda-151e8718831b}" FolderPath="State Methods\">
+      <Declaration><![CDATA[METHOD PRIVATE _GetFromOverhead : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[{warning disable C0371}
+IF overheadTray = '' AND robot.HoldMaterial = '' THEN
+	RETURN;
+END_IF
+
+IF robot.eoatDistance < suctionDistance THEN
+	robot.HoldMaterial := overheadTray;
+	overheadTray := '';
+END_IF
+
+IF robot.Done THEN
+	step := COMPLETE;
+	RETURN;
+ELSIF robot.materialAtHoldingPosition > 0 THEN
+	step := LOAD_TO_INSERTION;
+	RETURN;
+END_IF
+
+CASE surfaceID OF
+	Surface.TOP_RIGHT:		robot.setGroup(group := 1, value := TaskA22.LOAD_OVERHEAD_TO_UPPER_CORNER);
+	Surface.BOTTOM_RIGHT:	robot.setGroup(group := 1, value := TaskA22.LOAD_OVERHEAD_TO_LOWER_CORNER);
+END_CASE
+robot.setGroup(group := 2, value := 0);
+robot.setGroup(group := 3, value := 0);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="_GetFromStorage" Id="{6b85ab32-5064-4cc1-bc41-34bf8bab4d9c}" FolderPath="State Methods\">
+      <Declaration><![CDATA[METHOD PRIVATE _GetFromStorage : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[{warning disable C0371}
+IF NOT skid.findSlot(material := material, index=> column) THEN
+	error := TRUE;
+	RETURN;
+END_IF
+
+IF robot.eoatDistance < suctionDistance THEN
+	robot.HoldMaterial := skid.getSlot(i := column);
+END_IF
+
+IF robot.Done THEN
+	
+	CASE surfaceID OF //determine what to do with the cardboard - load to insertion or move to overhead tray
+		Surface.TOP_RIGHT, Surface.BOTTOM_RIGHT:	step := PLACE_TO_OVERHEAD;
+		Surface.TOP_LEFT, Surface.BOTTOM_LEFT:		step := LOAD_TO_INSERTION;
+	END_CASE
+	
+	RETURN;
+END_IF
+
+robot.setGroup(group := 1, value := TaskA22.TRANSFER_TO_BENDER);
+robot.setGroup(group := 2, value := foldPos0);
+robot.setGroup(group := 3, value := foldPos1);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="_LoadToInsertion" Id="{8195120c-face-454a-bc6d-f0c2a4c4eb4a}" FolderPath="State Methods\">
+      <Declaration><![CDATA[METHOD PRIVATE _LoadToInsertion : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[{warning disable C0371}
+FOR i:=(numPads/3)*0 TO (numPads/3)*1 - 1 BY 1 DO //first third suctions only
+	suctions[i].enable := TRUE;
+END_FOR
+
+FOR i:=(numPads/3)*2 TO (numPads/3)*3 - 1 BY 1 DO //last third suctions only
+	suctions[i].enable := TRUE;
+END_FOR
+
+IF robot.Done THEN
+	suctionTimer.IN := FALSE;
+	step := COMPLETE;
+	RETURN;
+END_IF
+
+suctionTimer(IN:= , PT:= suctionDelay, Q=> , ET=> );
+suctionTimer.IN := TRUE;
+
+IF suctionTimer.Q THEN
+	robot.setGroup(group := 10, value := robot.materialAtHoldingPosition);
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="_PlaceToOverhead" Id="{9a503942-6869-4945-822a-d0c6001e202e}" FolderPath="State Methods\">
+      <Declaration><![CDATA[METHOD PRIVATE _PlaceToOverhead : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[{warning disable C0371}
+IF robot.Done THEN
+	step := COMPLETE;
+	RETURN;
+END_IF
+
+robot.setGroup(group := 1, value := TaskA22.TRANSFER_TO_OVERHEAD);
+robot.setGroup(group := 2, value := 0);
+robot.setGroup(group := 3, value := 0);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="preExecution" Id="{35273153-01b8-48cb-86e7-3775c61f033c}">
+      <Declaration><![CDATA[METHOD PRIVATE preExecution : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[{warning disable C0371}
+IF material = '' THEN
+	done := TRUE;
+	RETURN;
+END_IF
+
+IF //robot must be ready before execution
+	robot.error OR 
+	robot.reservation <> sectionID OR 
+	robot.tool <> sectionID
+THEN
+	error := TRUE;
+	RETURN;
+END_IF
+
+preExecution := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="reset" Id="{470b9d17-3610-437b-9b63-87fd6b2656df}">
+      <Declaration><![CDATA[METHOD reset : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[done := FALSE;
+busy := FALSE;
+error := FALSE;
+recovery := FALSE;
+failCounter := 0;
+
+column := 0;
+step := 0;]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="AOI_LoadCornerCardboard">
+      <LineId Id="791" Count="84" />
+      <LineId Id="292" Count="0" />
+    </LineIds>
+    <LineIds Name="AOI_LoadCornerCardboard._Complete">
+      <LineId Id="22" Count="0" />
+      <LineId Id="6" Count="15" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="AOI_LoadCornerCardboard._GetFromOverhead">
+      <LineId Id="28" Count="0" />
+      <LineId Id="6" Count="21" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="AOI_LoadCornerCardboard._GetFromStorage">
+      <LineId Id="27" Count="0" />
+      <LineId Id="6" Count="20" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="AOI_LoadCornerCardboard._LoadToInsertion">
+      <LineId Id="25" Count="0" />
+      <LineId Id="6" Count="18" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="AOI_LoadCornerCardboard._PlaceToOverhead">
+      <LineId Id="13" Count="0" />
+      <LineId Id="6" Count="6" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="AOI_LoadCornerCardboard.preExecution">
+      <LineId Id="9" Count="14" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="AOI_LoadCornerCardboard.reset">
+      <LineId Id="5" Count="0" />
+      <LineId Id="28" Count="0" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="29" Count="1" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="6" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

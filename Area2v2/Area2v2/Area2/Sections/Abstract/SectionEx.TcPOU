@@ -18,9 +18,7 @@ VAR_OUTPUT
 	bypass : BOOL; //assigned once the bundle head passes the section (status >= ACTIVE)
 END_VAR
 VAR_OUTPUT //PackML states + controls
-	pmlModeString : STRING;
-	pmlStateString : STRING;
-	
+	run : BOOL;
 	stop : BOOL;
 	execute : BOOL;
 	hold : BOOL;
@@ -31,17 +29,22 @@ VAR_OUTPUT //PackML states + controls
 	done : BOOL;
 	error : BOOL;
 	
+	pmlModeString : STRING;
+	pmlStateString : STRING;
+	
+	pmlState : E_PMLState;
+	pmlMode : E_PMLCustomUnitMode;
+	
 	iBundle : INT(0..Consts.maxQueue);
 	iPair : INT(0..Consts.maxPairs);
 END_VAR
-VAR
-	pmlState : E_PMLState;
+VAR //PackML types
 	pmlCommand : E_PMLCommand;
-	pmlStateMachine : PML_StateMachine;
-	
 	pmlModeRequest : E_PMLCustomUnitMode := ePMLCustomUnitMode_Production;
-	pmlMode : E_PMLCustomUnitMode;
+	
+	pmlStateMachine : PML_StateMachine;
 	pmlModeManager : PML_UnitModeManager;
+	pmlSemiAutoConfig : PML_UnitModeConfig;
 END_VAR
 VAR
 	currentBundle : REFERENCE TO Bundle;
@@ -81,6 +84,7 @@ error := error;
 
 blocks();
 
+configPmlModes();
 runPmlStates();]]></ST>
     </Implementation>
     <Folder Name="Abstract" Id="{931032f8-8fbc-437e-9feb-8dfcf4d8fa11}" />
@@ -111,10 +115,35 @@ pmlStateMachine(
 	nErrorID=> );]]></ST>
       </Implementation>
     </Method>
-    <Method Name="callLocalModules" Id="{01231dfd-d7d7-43f6-abd5-1b692bab6a1f}" FolderPath="Abstract\">
-      <Declaration><![CDATA[METHOD PROTECTED ABSTRACT callLocalModules : BOOL]]></Declaration>
+    <Method Name="configPmlModes" Id="{d11051fc-bac3-457c-818f-f7c03f9a4087}">
+      <Declaration><![CDATA[METHOD PROTECTED configPmlModes : BOOL]]></Declaration>
       <Implementation>
-        <ST><![CDATA[]]></ST>
+        <ST><![CDATA[pmlSemiAutoConfig(
+	eMode:= 4, 
+	sName:= 'SemiAuto', 
+	bDisableClearing:= FALSE, 
+	bDisableStarting:= FALSE, 
+	bDisableSuspended:= FALSE, 
+	bDisableStopping:= FALSE, 
+	bDisableAborting:= FALSE, 
+	bDisableHolding:= FALSE, 
+	bDisableHeld:= FALSE, 
+	bDisableUnholding:= FALSE, 
+	bDisableSuspending:= FALSE, 
+	bDisableUnsuspending:= FALSE, 
+	bDisableResetting:= FALSE, 
+	bDisableIdle:= FALSE, 
+	bDisableCompleting:= FALSE, 
+	bDisableComplete:= FALSE, 
+	bEnableUnitModeChangeStopped:= TRUE, 
+	bEnableUnitModeChangeIdle:= TRUE, 
+	bEnableUnitModeChangeSuspended:= FALSE, 
+	bEnableUnitModeChangeExecute:= FALSE, 
+	bEnableUnitModeChangeAborted:= TRUE, 
+	bEnableUnitModeChangeHeld:= FALSE, 
+	bEnableUnitModeChangeComplete:= FALSE, 
+	bError=> , 
+	nErrorId=> );]]></ST>
       </Implementation>
     </Method>
     <Method Name="connectTo" Id="{91d63988-c603-4003-a46a-ea71ce206f50}">
@@ -169,6 +198,15 @@ materials are loaded for the next incoming bundle, not the current bundle - may 
     </Method>
     <Method Name="maintenance" Id="{82cfe381-4627-47b2-becb-4530cc701c9e}" FolderPath="Abstract\">
       <Declaration><![CDATA[METHOD PROTECTED ABSTRACT maintenance : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="manual" Id="{ff0cde2d-d380-4afd-90d8-2768840c481a}" FolderPath="Abstract\">
+      <Declaration><![CDATA[METHOD PROTECTED ABSTRACT manual : BOOL
 VAR_INPUT
 END_VAR
 ]]></Declaration>
@@ -298,8 +336,8 @@ END_VAR]]></Declaration>
         <ST><![CDATA[CASE pmlMode OF
 	0: //invalid mode
 	ePMLCustomUnitMode_Production:		ps_Execute := runSectionTasks(auto := TRUE);
-	ePMLCustomUnitMode_Maintenance:		maintenance();
-	ePMLCustomUnitMode_Manual:			//
+	ePMLCustomUnitMode_Maintenance:		ps_Execute := maintenance();
+	ePMLCustomUnitMode_Manual:			ps_Execute := manual();
 	ePMLCustomUnitMode_SemiAuto:		ps_Execute := runSectionTasks(auto := FALSE);
 END_CASE]]></ST>
       </Implementation>
@@ -337,14 +375,11 @@ VAR_INPUT
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[(*
-IF BundleIsValid(currentBundle) THEN
-	ps_Idle := TRUE;
-	done := FALSE;
-END_IF
-*)
+        <ST><![CDATA[ps_Idle := run OR execute; (*start section input*)
 
-ps_Idle := TRUE; (*start section input*)]]></ST>
+IF execute THEN
+	run := TRUE;
+END_IF]]></ST>
       </Implementation>
     </Method>
     <Method Name="ps_Resetting" Id="{cb59b9e4-db36-4a6b-b9fd-e8381e0607d8}" FolderPath="PML States\">
@@ -594,11 +629,11 @@ END_CASE]]></ST>
       </Implementation>
     </Method>
     <Method Name="runSectionTasks" Id="{ff600a76-8305-47bd-9f4f-604426e1af1d}">
-      <Declaration><![CDATA[METHOD PROTECTED FINAL runSectionTasks : BOOL
+      <Declaration><![CDATA[METHOD PROTECTED runSectionTasks : BOOL
 VAR_INPUT
 	auto : BOOL;
 END_VAR
-VAR
+VAR_OUTPUT
 	error : BOOL;
 END_VAR]]></Declaration>
       <Implementation>
@@ -633,10 +668,6 @@ END_VAR]]></Declaration>
 			iPair := 0;
 			status := SectionTask.CLEARING;
 			
-		ELSIF NOT usesProcess() THEN //bundle does not use this section's processes
-			iPair := 0;
-			status := SectionTask.CLEARING;
-		
 		ELSIF currentBypass (*AND_THEN discharge()*) THEN //bundle failed in previous section, discharge this section's materials
 			IF unload() THEN
 				iPair := 0;
@@ -678,10 +709,7 @@ END_CASE]]></ST>
       </Implementation>
     </Method>
     <Method Name="shiftIterator" Id="{2b1c8dba-7a66-41d7-be54-23459718f73e}">
-      <Declaration><![CDATA[METHOD shiftIterator : BOOL
-VAR
-	i : INT;
-END_VAR]]></Declaration>
+      <Declaration><![CDATA[METHOD shiftIterator : BOOL]]></Declaration>
       <Implementation>
         <ST><![CDATA[//2023-10-24 - array of pointers replaced with iterator for MAIN's queue passed by pointer
 iBundle := iBundle - 1;]]></ST>
@@ -698,25 +726,16 @@ unload, unstage, etc
 *)]]></ST>
       </Implementation>
     </Method>
-    <Method Name="usesProcess" Id="{c1b6c909-9917-4b95-9231-7fe23c878d88}" FolderPath="Abstract\">
-      <Declaration><![CDATA[METHOD PROTECTED ABSTRACT usesProcess : BOOL]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[(*
-this method determines if a bundle uses materials that this section provides
-if a bundle does not use this section's process, then it can be skipped
-*)]]></ST>
-      </Implementation>
-    </Method>
     <LineIds Name="SectionEx">
-      <LineId Id="3797" Count="9" />
-      <LineId Id="3827" Count="0" />
+      <LineId Id="3844" Count="11" />
       <LineId Id="3587" Count="0" />
     </LineIds>
     <LineIds Name="SectionEx.blocks">
       <LineId Id="6" Count="17" />
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="SectionEx.callLocalModules">
+    <LineIds Name="SectionEx.configPmlModes">
+      <LineId Id="6" Count="24" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="SectionEx.connectTo">
@@ -738,6 +757,9 @@ if a bundle does not use this section's process, then it can be skipped
     </LineIds>
     <LineIds Name="SectionEx.maintenance">
       <LineId Id="20" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.manual">
+      <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="SectionEx.pConveyorMode.Get">
       <LineId Id="5" Count="0" />
@@ -774,7 +796,9 @@ if a bundle does not use this section's process, then it can be skipped
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="SectionEx.ps_Execute">
-      <LineId Id="67" Count="5" />
+      <LineId Id="67" Count="3" />
+      <LineId Id="78" Count="0" />
+      <LineId Id="72" Count="0" />
       <LineId Id="10" Count="0" />
     </LineIds>
     <LineIds Name="SectionEx.ps_Held">
@@ -787,14 +811,10 @@ if a bundle does not use this section's process, then it can be skipped
       <LineId Id="17" Count="0" />
     </LineIds>
     <LineIds Name="SectionEx.ps_Idle">
-      <LineId Id="13" Count="0" />
-      <LineId Id="6" Count="0" />
-      <LineId Id="9" Count="0" />
-      <LineId Id="8" Count="0" />
-      <LineId Id="5" Count="0" />
-      <LineId Id="14" Count="0" />
-      <LineId Id="16" Count="0" />
       <LineId Id="18" Count="0" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="24" Count="1" />
     </LineIds>
     <LineIds Name="SectionEx.ps_Resetting">
       <LineId Id="6" Count="0" />
@@ -867,12 +887,10 @@ if a bundle does not use this section's process, then it can be skipped
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="SectionEx.runSectionTasks">
-      <LineId Id="177" Count="58" />
-      <LineId Id="252" Count="0" />
-      <LineId Id="236" Count="5" />
-      <LineId Id="259" Count="1" />
-      <LineId Id="242" Count="3" />
-      <LineId Id="5" Count="0" />
+      <LineId Id="473" Count="0" />
+      <LineId Id="402" Count="29" />
+      <LineId Id="436" Count="36" />
+      <LineId Id="373" Count="0" />
     </LineIds>
     <LineIds Name="SectionEx.shiftIterator">
       <LineId Id="17" Count="0" />
@@ -882,11 +900,6 @@ if a bundle does not use this section's process, then it can be skipped
       <LineId Id="5" Count="0" />
       <LineId Id="11" Count="0" />
       <LineId Id="9" Count="0" />
-    </LineIds>
-    <LineIds Name="SectionEx.usesProcess">
-      <LineId Id="11" Count="0" />
-      <LineId Id="13" Count="1" />
-      <LineId Id="12" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

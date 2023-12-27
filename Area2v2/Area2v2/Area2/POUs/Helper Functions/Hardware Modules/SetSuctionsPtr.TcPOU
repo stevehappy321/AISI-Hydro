@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="SetSuctionsPtr" Id="{cf159f8a-7751-40dd-80c3-28a36de916ff}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION SetSuctionsPtr : BOOL
+VAR_INPUT
+	suctions : POINTER TO SuctionPad;
+	numPads : DINT;
+	
+	state : BOOL;
+END_VAR
+VAR
+	i : DINT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[FOR i:=0 TO numPads-1 BY 1 DO
+	suctions[i].enable := state;
+END_FOR]]></ST>
+    </Implementation>
+    <LineIds Name="SetSuctionsPtr">
+      <LineId Id="7" Count="0" />
+      <LineId Id="11" Count="1" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
