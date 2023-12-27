@@ -1,0 +1,228 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="A22" Id="{1b16486c-3037-4854-af07-df0c4a7cb5bc}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM A22
+VAR_IN_OUT
+	//sectionFiberboard : FiberboardEx;
+END_VAR
+VAR_OUTPUT //conveyors only
+	A22_SC_C15 		: ConveyorSC;
+	A22_LSC_C16 	: ConveyorLSC;
+	A22_LSC_C17 	: ConveyorLSC;
+END_VAR
+VAR
+	robot3, robot4 : RobotA22;
+	
+	benderA22Left : FoldingMachine;
+	
+	skidA22Left, skidA22Right : SkidMagazine;
+	magazineA22Left, magazineA22Right : SkidMagazine;
+	
+	wrapperA22 : WrapMachine;
+	overhead : STRING;
+	
+	horizontalDriveA22Left, horizontalDriveA22Right : ServoNC := (
+		limitSensorDefaultState := TRUE);
+		
+	verticalDriveA22Left, verticalDriveA22Right : ClearLinkMC := (
+		limitSensorDefaultState := TRUE, 
+		homingDirectionOut := TRUE, //outwards (up)
+		minPosition := (26*5 * 25.4),
+		displacementPerRotation := 5,
+		unitsPerPulse := 800); //800 counts = 1 rotation
+		
+	insertionA22Left : Insertion;
+	insertionA22Right : Insertion;
+
+	pistonA22Bottom : SimplePiston;
+	
+	(*
+	each insertion suction array has 3 pads
+	[1] - top/bottom
+	[2] - corner
+	[3] - side
+	*)
+	suctionA22TopLeft : ARRAY[1..3] OF SuctionPad;
+	suctionA22TopRight : ARRAY[1..3] OF SuctionPad;
+	suctionA22BottomLeft : ARRAY[1..3] OF SuctionPad; 
+	suctionA22BottomRight : ARRAY[1..3] OF SuctionPad;
+	
+	suctionA22Bottom : ARRAY[1..2] OF SuctionPad;
+END_VAR
+VAR //data arrays to be passed into material holder FBs - do not access directly
+	skidHmiA22Left, skidHmiA22Right AT %M* : ARRAY[1...Cardboard.size-1] OF MaterialSlot;
+	magazineHmiA22Left, magazineHmiA22Right AT %M* : ARRAY[1..CornerGuard.size-1] OF MaterialSlot;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[callHardware();
+
+setupHardware();
+
+runModules();]]></ST>
+    </Implementation>
+    <Method Name="callHardware" Id="{f4d985bb-fe7d-48e1-9a81-baebf0e31a92}">
+      <Declaration><![CDATA[METHOD PRIVATE callHardware : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[skidA22Left(slots := skidHmiA22Left);
+skidA22Right(slots := skidHmiA22Right);
+magazineA22Left(slots := magazineHmiA22Left);
+magazineA22Right(slots := magazineHmiA22Right);
+
+wrapperA22(extSafety := robot3.wrapSafetyIn AND robot4.wrapSafetyIn);
+
+verticalDriveA22Left(
+	bEnable:= , 
+	pulse=> , 
+	brakeRelease=> , 
+	enable=> , 
+	A=> , 
+	B=> , 
+	clear=> );
+verticalDriveA22Right(
+	bEnable:= , 
+	pulse=> , 
+	brakeRelease=> , 
+	enable=> , 
+	A=> , 
+	B=> , 
+	clear=> );
+
+horizontalDriveA22Left(bEnable:= , ready=> , position=> , velocity=> );
+horizontalDriveA22Right(bEnable:= , ready=> , position=> , velocity=> );
+
+insertionA22Left(
+	slider:= verticalDriveA22Left, 
+	screw:= horizontalDriveA22Left, 
+	contact=> , 
+	active=> , 
+	error=> , 
+	home=> , 
+	homingComplete=> , 
+	sliderPos=> );
+	
+insertionA22Right(
+	slider:= verticalDriveA22Right, 
+	screw:= horizontalDriveA22Right, 
+	contact=> , 
+	active=> , 
+	error=> , 
+	home=> , 
+	homingComplete=> , 
+	sliderPos=> );]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="runModules" Id="{610921f0-756a-4d32-a8a7-bd908cf51f55}">
+      <Declaration><![CDATA[METHOD PRIVATE runModules : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <NWL>
+          <XmlArchive>
+            <Data>
+              <o xml:space="preserve" t="NWLImplementationObject">
+                <v n="NetworkListComment">""</v>
+                <v n="DefaultViewMode">"Ld"</v>
+                <l2 n="NetworkList" cet="Network">
+                  <o>
+                    <v n="ILActive">false</v>
+                    <v n="FBDValid">false</v>
+                    <v n="ILValid">false</v>
+                    <l2 n="ILLines" />
+                    <v n="Comment">""</v>
+                    <v n="Title">""</v>
+                    <v n="Label">""</v>
+                    <v n="OutCommented">false</v>
+                    <l2 n="NetworkItems" />
+                    <l2 n="Connectors" />
+                    <v n="Id">5L</v>
+                  </o>
+                </l2>
+                <v n="BranchCounter">1</v>
+                <v n="ValidIds">true</v>
+              </o>
+            </Data>
+            <TypeList>
+              <Type n="Boolean">System.Boolean</Type>
+              <Type n="Int32">System.Int32</Type>
+              <Type n="Int64">System.Int64</Type>
+              <Type n="Network">{d9a99d73-b633-47db-b876-a752acb25871}</Type>
+              <Type n="NWLImplementationObject">{25e509de-33d4-4447-93f8-c9e4ea381c8b}</Type>
+              <Type n="String">System.String</Type>
+            </TypeList>
+          </XmlArchive>
+        </NWL>
+      </Implementation>
+    </Method>
+    <Method Name="setupHardware" Id="{665ab571-9ad5-4fd6-97d1-c6a60483f8fb}">
+      <Declaration><![CDATA[METHOD PRIVATE setupHardware : BOOL
+VAR
+	iCornerGuardSlot : CornerGuard;
+	iCardboardSlot : Cardboard;
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR iCornerGuardSlot:=1 TO WoodBunk.size-1 BY 1 DO //init wood bunk magazine slots
+	magazineA22Left.setSlot(i := iCornerGuardSlot, material := TO_STRING(iCornerGuardSlot), error => );
+	magazineA22Right.setSlot(i := iCornerGuardSlot, material := TO_STRING(iCornerGuardSlot), error => );
+END_FOR
+
+//--------------------------------------------------
+
+FOR iCardboardSlot:=1 TO Chipboard.size-1 BY 1 DO //init chipboard skid slots
+	skidA22Left.setSlot(i := iCardboardSlot, material := TO_STRING(iCardboardSlot), error => );
+	skidA22Right.setSlot(i := iCardboardSlot, material := TO_STRING(iCardboardSlot), error => );
+END_FOR
+
+//--------------------------------------------------
+
+FOR i:=1 TO Consts.maxQueue BY 1 DO //get corner guard magazine + cardboard skid availability from robot3 and robot4
+	{warning disable C0195}
+	skidA22Left.setOccupancy( i := i, occupancy := IntegerBitAccess(robot3.inputs[4], i-1) );
+	skidA22Right.setOccupancy( i := i, occupancy := IntegerBitAccess(robot4.inputs[4], i-1) );
+
+	magazineA22Left.setOccupancy( i := i, occupancy := IntegerBitAccess(robot4.inputs[3], i-1) );
+	magazineA22Right.setOccupancy( i := i, occupancy := IntegerBitAccess(robot4.inputs[3], i-1) );
+END_FOR
+
+//--------------------------------------------------
+
+//enable all drives
+verticalDriveA22Left.bEnable := 
+verticalDriveA22Right.bEnable := 
+horizontalDriveA22Left.bEnable := 
+horizontalDriveA22Right.bEnable := 
+pistonA22Bottom.bEnable := 
+TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="A22">
+      <LineId Id="5" Count="0" />
+      <LineId Id="61" Count="0" />
+      <LineId Id="60" Count="0" />
+      <LineId Id="63" Count="0" />
+      <LineId Id="62" Count="0" />
+    </LineIds>
+    <LineIds Name="A22.callHardware">
+      <LineId Id="6" Count="2" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="37" Count="7" />
+      <LineId Id="36" Count="0" />
+      <LineId Id="46" Count="6" />
+      <LineId Id="45" Count="0" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="35" Count="0" />
+      <LineId Id="12" Count="1" />
+      <LineId Id="15" Count="9" />
+      <LineId Id="26" Count="6" />
+      <LineId Id="11" Count="0" />
+    </LineIds>
+    <LineIds Name="A22.setupHardware">
+      <LineId Id="154" Count="30" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

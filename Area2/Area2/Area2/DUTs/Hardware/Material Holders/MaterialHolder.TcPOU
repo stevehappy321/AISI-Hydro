@@ -1,0 +1,214 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="MaterialHolder" Id="{b8766d7a-1d6a-4377-9cc8-53e16c54b972}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK MaterialHolder
+VAR_IN_OUT
+	slots : ARRAY[*] OF MaterialSlot;
+END_VAR
+VAR_OUTPUT
+	numSlots : INT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[numSlots := TO_INT(UPPER_BOUND(slots, 1) - LOWER_BOUND(slots, 1) + 1);]]></ST>
+    </Implementation>
+    <Method Name="clear" Id="{0079e54a-4897-43fe-babe-0b16afa40b6d}">
+      <Declaration><![CDATA[METHOD clear : BOOL
+VAR_INPUT
+END_VAR
+VAR
+	i : DINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i:=LOWER_BOUND(slots, 1) TO UPPER_BOUND(slots, 1) BY 1 DO
+	slots[i].material := '';
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="compareWith" Id="{4afee646-08b8-427d-8a63-8ec24d16b9e4}">
+      <Declaration><![CDATA[METHOD compareWith : BOOL
+VAR_INPUT
+	src : REFERENCE TO MaterialHolder;
+END_VAR
+VAR
+	i : DINT;
+	j : DINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF numSlots <> src.numSlots THEN
+	RETURN;
+END_IF
+
+FOR i:=LOWER_BOUND(slots, 1) TO UPPER_BOUND(slots, 1) BY 1 DO //iterate through this instance's slots
+	
+	IF getSlot(i:= i, occupancy=> , error=> ) <> src.getSlot(i:= j, occupancy=> , error=> ) THEN
+		RETURN;
+	END_IF
+
+END_FOR
+
+compareWith := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="copyFrom" Id="{42761ad0-e2c5-4114-8448-37728c13bd1e}">
+      <Declaration><![CDATA[METHOD copyFrom : BOOL
+VAR_INPUT
+	src : REFERENCE TO MaterialHolder;
+END_VAR
+VAR
+	i : DINT;
+	j : DINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[j := LOWER_BOUND(src.slots, 1);
+
+FOR i:=LOWER_BOUND(slots, 1) TO UPPER_BOUND(slots, 1) BY 1 DO //iterate through this instance's slots
+	
+	IF j <= UPPER_BOUND(src.slots, 1) THEN //if within bounds of src instance's slots
+		slots[i].material := src.slots[j].material;
+	END_IF
+	j := j + 1;
+	
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="findSlot" Id="{584be88a-e8b0-4046-8e86-717c358b8f08}">
+      <Declaration><![CDATA[METHOD findSlot : BOOL
+VAR_INPUT
+	material : STRING;
+END_VAR
+VAR_OUTPUT
+	index : INT := -1;
+END_VAR
+VAR
+	i : DINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[(*
+IF materialID = '' THEN
+	RETURN;
+END_IF
+*)
+FOR i:=LOWER_BOUND(slots, 1) TO UPPER_BOUND(slots, 1) BY 1 DO
+	IF slots[i].material = material THEN
+		index := TO_INT(i);
+		findSlot := TRUE;
+		RETURN;
+	END_IF
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="getSlot" Id="{de92b67f-dd7e-4c53-9c6e-8ccbe92049e8}">
+      <Declaration><![CDATA[METHOD getSlot : STRING
+VAR_INPUT
+	i : DINT;
+END_VAR
+VAR_OUTPUT
+	occupancy : BOOL;
+	error : BOOL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[error := i < LOWER_BOUND(slots, 1) OR i > UPPER_BOUND(slots, 1) (*OR slots = 0*);
+
+IF error THEN
+	RETURN;
+END_IF
+
+getSlot := slots[i].material;
+occupancy := isOccupied(i := i, error => error);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="getSlotsAsArray" Id="{dff81b33-35f2-4bb2-b5f5-baf2f77d8ad6}">
+      <Declaration><![CDATA[METHOD getSlotsAsArray : POINTER TO MaterialSlot]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[getSlotsAsArray := ADR(slots);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="isOccupied" Id="{e248ac69-fb6d-46e9-aac8-29ec13f4c904}">
+      <Declaration><![CDATA[METHOD isOccupied : BOOL
+VAR_INPUT
+	i : DINT;
+END_VAR
+VAR_OUTPUT
+	error : BOOL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[error := i < LOWER_BOUND(slots, 1) OR i > UPPER_BOUND(slots, 1);
+
+IF error THEN
+	RETURN;
+END_IF
+
+isOccupied := slots[i].occupied;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="setSlot" Id="{b2a4e65d-50f3-4f46-a49d-166b867372cc}">
+      <Declaration><![CDATA[METHOD setSlot : BOOL
+VAR_INPUT
+	i : INT;
+	material : STRING;
+END_VAR
+VAR_OUTPUT
+	error : BOOL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF i < LOWER_BOUND(slots, 1) OR i > UPPER_BOUND(slots, 1) THEN
+	error := TRUE;
+	RETURN;
+END_IF
+
+slots[i].material := material;]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="MaterialHolder">
+      <LineId Id="70" Count="0" />
+    </LineIds>
+    <LineIds Name="MaterialHolder.clear">
+      <LineId Id="5" Count="0" />
+      <LineId Id="18" Count="1" />
+    </LineIds>
+    <LineIds Name="MaterialHolder.compareWith">
+      <LineId Id="5" Count="0" />
+      <LineId Id="12" Count="1" />
+      <LineId Id="15" Count="2" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="24" Count="1" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="14" Count="0" />
+      <LineId Id="27" Count="0" />
+      <LineId Id="26" Count="0" />
+    </LineIds>
+    <LineIds Name="MaterialHolder.copyFrom">
+      <LineId Id="12" Count="1" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="15" Count="2" />
+      <LineId Id="14" Count="0" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="10" Count="0" />
+    </LineIds>
+    <LineIds Name="MaterialHolder.findSlot">
+      <LineId Id="209" Count="10" />
+      <LineId Id="13" Count="0" />
+    </LineIds>
+    <LineIds Name="MaterialHolder.getSlot">
+      <LineId Id="42" Count="5" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="55" Count="0" />
+    </LineIds>
+    <LineIds Name="MaterialHolder.getSlotsAsArray">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="MaterialHolder.isOccupied">
+      <LineId Id="39" Count="5" />
+      <LineId Id="13" Count="0" />
+    </LineIds>
+    <LineIds Name="MaterialHolder.setSlot">
+      <LineId Id="5" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="17" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,160 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="StrapMachine" Id="{195d23e9-3ade-4278-a206-bfe5b204b6b8}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK StrapMachine
+VAR_INPUT
+	bEnable : BOOL;
+END_VAR
+VAR_OUTPUT
+	enable AT %Q* : BOOL;
+	execute AT %Q* : BOOL;
+	reset AT %Q* : BOOL;
+	
+	error AT %I* : BOOL;
+	ready AT %I* : BOOL;
+	//busy (*AT %I**) : BOOL;
+	done AT %I* : BOOL;
+	home AT %I* : BOOL;
+	
+	timeout : BOOL;
+	
+	atBundleLevel AT %I* : BOOL;
+END_VAR
+VAR	
+	holdPost : TON;
+	timeoutDelay : TON;
+	resetDelay : TP;
+	
+	start : BOOL;
+	step : (SETUP, RUN, WAIT);
+END_VAR
+VAR_STAT CONSTANT
+	maxDelay : TIME := T#30S;
+	pulseWidth : TIME := T#500MS;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[holdPost(IN:= , PT:= pulseWidth, Q=> , ET=> );
+timeoutDelay(IN:= (step > 0), PT:= maxDelay, Q=> timeout, ET=> );
+
+resetDelay(IN:= error AND NOT resetDelay.Q , PT:= pulseWidth, Q=> , ET=> );
+reset := resetDelay.Q AND (resetDelay.ET > resetDelay.PT/2);
+
+IF timeoutDelay.Q THEN
+	timeoutDelay.IN := FALSE;
+	timeout := TRUE;
+	//busy := FALSE;
+	
+	start := FALSE;
+	step := SETUP;
+END_IF
+
+enable := bEnable AND robot1.strapSafetyIn AND robot2.strapSafetyIn;
+
+CASE step OF
+	SETUP:
+		IF error THEN
+			enable := FALSE;
+			execute := FALSE;
+			RETURN;
+		END_IF
+		
+		IF start AND enable (*AND ready*) THEN //strapping does not start if error
+			start := FALSE;
+			step := RUN;
+		END_IF
+	
+	RUN:
+		IF NOT execute THEN
+			execute := TRUE;
+			RETURN; //keeps execute TRUE for at least 1 cycle
+		END_IF
+		
+		IF execute AND NOT ready (*AND NOT home*) THEN
+			execute := FALSE;
+			step := WAIT;
+		END_IF
+		
+	WAIT: //due to the use of DC motors instead of stepper motors in the machine, a short delay is required before next strap
+		IF home THEN
+			holdPost.IN := TRUE;
+			execute := FALSE;
+			enable := FALSE;
+		END_IF
+		
+		IF holdPost.Q THEN
+			holdPost.IN := FALSE;
+			step := 0;
+		END_IF
+		
+END_CASE
+
+(*
+executePulse(IN:= , PT:= pulseTime, Q=> , ET=> );
+execute := executePulse.IN AND NOT executePulse.Q;
+
+IF executePulse.Q THEN
+	executePulse.IN := FALSE;
+END_IF
+
+
+resetPulse(IN:= , PT:= pulseTime, Q=> , ET=> );
+StrapMachineST.reset := resetPulse.IN AND NOT resetPulse.Q;
+
+IF resetPulse.Q THEN
+	executePulse.IN := FALSE;
+END_IF
+
+ready := enable AND NOT execute AND NOT StrapMachineST.reset AND NOT error AND home;
+*)]]></ST>
+    </Implementation>
+    <Method Name="clear" Id="{6ec69dfe-8ae5-445c-9814-e61a9b3ae255}">
+      <Declaration><![CDATA[METHOD clear : BOOL
+VAR_INPUT
+END_VAR
+(*
+reset should be continuously called until machine returns evidence that it is ready again
+machine is expected to not respond to reset signals if it is already in an idle state
+*)]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="strap" Id="{8221f6b6-4ed9-46c5-a2f2-3e9b4c2e4608}">
+      <Declaration><![CDATA[METHOD strap : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//IF ready AND NOT busy AND NOT error THEN
+	//busy := TRUE;
+	//start := TRUE;
+	//strap := TRUE;
+//END_IF
+
+start := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="StrapMachine">
+      <LineId Id="1853" Count="1" />
+      <LineId Id="1856" Count="0" />
+      <LineId Id="1930" Count="0" />
+      <LineId Id="1857" Count="14" />
+      <LineId Id="1873" Count="24" />
+      <LineId Id="1963" Count="1" />
+      <LineId Id="1900" Count="25" />
+      <LineId Id="576" Count="0" />
+    </LineIds>
+    <LineIds Name="StrapMachine.clear">
+      <LineId Id="87" Count="0" />
+    </LineIds>
+    <LineIds Name="StrapMachine.strap">
+      <LineId Id="19" Count="0" />
+      <LineId Id="49" Count="0" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="45" Count="0" />
+      <LineId Id="24" Count="0" />
+      <LineId Id="55" Count="0" />
+      <LineId Id="54" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

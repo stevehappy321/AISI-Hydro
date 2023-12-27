@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="SetSuctions" Id="{ea4602f4-5a93-4aed-aa04-7f635b8e777a}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION SetSuctions : BOOL
+VAR_IN_OUT
+	suctionPads : ARRAY[*] OF SuctionPad;
+END_VAR
+VAR_INPUT
+	state : BOOL;
+END_VAR
+VAR
+	i : DINT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[FOR i:=LOWER_BOUND(suctionPads, 1) TO UPPER_BOUND(suctionPads, 1) BY 1 DO
+	suctionPads[i].enable := state;
+END_FOR]]></ST>
+    </Implementation>
+    <LineIds Name="SetSuctions">
+      <LineId Id="14" Count="1" />
+      <LineId Id="7" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="BoolVLArrayToInteger" Id="{9d36b047-c6f5-4988-8250-82848c033c4d}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION BoolVLArrayToInteger : LINT;
+VAR_IN_OUT
+	arr : POINTER TO BOOL;
+END_VAR
+VAR
+	i : DINT;
+	j : DINT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[//FOR i:=numElements TO 0 BY -1 DO
+FOR i:=UPPER_BOUND(arr, 1) TO LOWER_BOUND(arr, 1) BY -1 DO
+	IF j < SIZEOF(BoolVLArrayToInteger) * 8 THEN
+		
+		BoolVLArrayToInteger.0 := arr[i];		
+		IF i <> LOWER_BOUND(arr, 1) THEN
+			BoolPtrArrayToInteger := SHL(BoolVLArrayToInteger, 1);
+		END_IF
+		
+	END_IF
+	
+	j := j + 1;
+END_FOR]]></ST>
+    </Implementation>
+    <LineIds Name="BoolVLArrayToInteger">
+      <LineId Id="148" Count="11" />
+      <LineId Id="94" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

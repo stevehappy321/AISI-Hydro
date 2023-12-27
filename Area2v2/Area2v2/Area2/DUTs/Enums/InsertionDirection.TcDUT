@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="InsertionDirection" Id="{7f336cec-9c26-404f-a199-b42cb756868d}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+TYPE InsertionDirection :
+(
+	IN,
+	OUT,
+	
+	size
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

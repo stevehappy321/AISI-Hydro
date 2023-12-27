@@ -1,0 +1,283 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="AdsClient" Id="{44c71e29-e3af-47f7-8a4d-c6aeaf573dea}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM AdsClient
+VAR_INPUT
+	ServerNetId			: STRING; 	(* Server AmsNetId *)
+	ServerPort 			: UINT;	(* Server port number *)
+END_VAR
+VAR_OUTPUT
+	bBusy				: BOOL;
+	err					: BOOL;
+	errid				: UDINT;
+	
+	localPrgName 		: STRING;
+	localNetId 			: STRING;
+	localPort 			: UINT;
+	
+	socketReady				: BOOL;
+	
+	remoteAccessPrefix	: STRING := 'AdsServer.area[2].';
+END_VAR
+VAR
+	setupTimer 			: TON;
+	
+	handle 				: AdsHandle;
+	numHandles 			: INT(0..maxHandles);
+	
+	setupStep 			: (SET_LOCAL_ENDPOINT, CLOSE_CONNECTIONS, SEND_CONNECTION_DATA, RECEIVE_SERVER_DATA, FINISH_SETUP);
+	
+	fbGetLocalAmsNetId	: FB_GetLocalAmsNetId;
+	
+	i : INT;
+	adsCtr : INT;
+END_VAR
+VAR CONSTANT
+	maxHandles			: INT := 6;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[socketReady := setup();
+IF NOT socketReady THEN //setup after initialization
+	RETURN;
+END_IF
+
+handle(
+	ServerNetId:= ServerNetId,
+	ServerPort:= ServerPort,
+	
+	remoteAccessPrefix := remoteAccessPrefix,
+	
+	bBusy=> bBusy,
+	err=> err,
+	errId=> errId,
+	
+	receiveBuffer=> ,
+	receiveStruct=> );]]></ST>
+    </Implementation>
+    <Folder Name="ADS" Id="{dfe492dc-3d3a-40ec-aa29-b6df5ddbba45}" />
+    <Method Name="fetchData" Id="{3b5fd1f1-ba17-40ea-a7dd-09ea92cdbd37}">
+      <Declaration><![CDATA[METHOD fetchData : BOOL
+VAR_IN_OUT
+	receiverStruct : AdsData;
+END_VAR
+VAR
+	emptyData : AdsData;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[receiverStruct := handle.receiveStruct;
+
+fetchData := MEMCMP(ADR(receiverStruct), ADR(emptyData), SIZEOF(AdsData)) <> 0; //returns false if no data
+
+handle.clearBuffer();]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="findHandle" Id="{079be97e-5014-4d83-9643-fd1ef51b0eab}">
+      <Declaration><![CDATA[METHOD PROTECTED findHandle : REFERENCE TO AdsHandle
+VAR_INPUT
+	remotePrgName : STRING;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF handle.getHandlerName() = remotePrgName THEN
+	findHandle REF= handle;
+	RETURN;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="queueData" Id="{2d03bad5-c281-4f00-9738-a2463f36f133}">
+      <Declaration><![CDATA[METHOD queueData : BOOL
+VAR_INPUT
+	data : REFERENCE TO AdsData;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[handle.queueData(data);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="read" Id="{60268ac6-dad6-45d0-812a-98ea43d012ed}" FolderPath="ADS\">
+      <Declaration><![CDATA[METHOD PROTECTED read : BOOL
+VAR_INPUT
+	remotePrgName : STRING;
+	symbol : STRING;
+	buffer : PVOID;
+	symbolSize : UDINT;
+END_VAR
+VAR
+	targetHandler : REFERENCE TO AdsHandle;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[targetHandler REF= findHandle(remotePrgName);
+
+IF __ISVALIDREF(targetHandler) THEN
+	targetHandler.read(symbol, buffer, symbolSize);
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="send" Id="{46dfc284-0a43-457c-a23d-27052b47308e}" FolderPath="ADS\">
+      <Declaration><![CDATA[METHOD PROTECTED send : BOOL
+VAR_INPUT
+	data : PVOID;
+	dataSize : UDINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[write(CONCAT(remoteAccessPrefix, 'genericBuffer'), data, dataSize);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="setup" Id="{eea7ab3c-0d28-4f9b-b8ec-bbdca7b703c2}">
+      <Declaration><![CDATA[METHOD PROTECTED setup : BOOL
+VAR
+	pass : BOOL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CASE setupStep OF
+	SET_LOCAL_ENDPOINT:
+		localPrgName := 'AREA_2';
+		localPort := 851;
+		
+		fbGetLocalAmsNetId(
+			bExecute:= , 
+			tTimeOut:= , 
+			bBusy=> , 
+			bError=> , 
+			nErrId=> , 
+			AddrString=> localNetId, 
+			AddrBytes=> );
+		fbGetLocalAmsNetId.bExecute := NOT fbGetLocalAmsNetId.bExecute;	
+		
+		IF
+			localPrgName <> '' AND
+			localNetId <> '' AND localNetId <> '0.0.0.0.0.0' OR
+			localPort <> 0
+		THEN
+			fbGetLocalAmsNetId.bExecute := FALSE;
+			handle.open(localPrgName, localNetId, localPort);
+			
+			setupStep := CLOSE_CONNECTIONS;
+		END_IF
+		
+	CLOSE_CONNECTIONS:
+		handle.close();
+		setupStep := SEND_CONNECTION_DATA;
+		
+	SEND_CONNECTION_DATA:
+		CASE adsCtr OF
+			0:
+				pass := handle.write(
+					symbol:= 'AdsServer.handle[1].socket.remotePrgName',
+					data:= ADR(localPrgName),
+					dataSize:= SIZEOF(localPrgName));
+			
+			1:
+				pass := handle.write(
+					symbol:= 'AdsServer.handle[1].socket.remoteNetId',
+					data:= ADR(localNetId),
+					dataSize:= SIZEOF(localNetId));
+			
+			2:
+				pass := handle.write(
+					symbol:= 'AdsServer.handle[1].socket.remotePort',
+					data:= ADR(localPort),
+					dataSize:= SIZEOF(localPort));
+			
+			3:
+				adsCtr := 0;
+				setupStep := RECEIVE_SERVER_DATA;
+				RETURN;
+			
+		END_CASE
+		
+		IF pass THEN
+			adsCtr := adsCtr + 1;
+		END_IF
+		
+	RECEIVE_SERVER_DATA:
+		CASE adsCtr OF
+			0:
+				pass := handle.read(
+					symbol:= 'AdsServer.handle[2].socket.localPrgName', 
+					buffer:= ADR(handle.socket.remotePrgName), 
+					symbolSize:= SIZEOF(handle.socket.remotePrgName));
+			
+			1:
+				pass := handle.read(
+					symbol:= 'AdsServer.handle[2].socket.localNetId', 
+					buffer:= ADR(handle.socket.remoteNetId), 
+					symbolSize:= SIZEOF(handle.socket.remoteNetId));
+			
+			2:
+				pass := handle.read(
+					symbol:= 'AdsServer.handle[2].socket.localPort', 
+					buffer:= ADR(handle.socket.remotePort), 
+					symbolSize:= SIZEOF(handle.socket.remotePort));
+			
+			3:
+				adsCtr := 0;
+				setupStep := FINISH_SETUP;
+				RETURN;
+			
+		END_CASE
+		
+		IF pass THEN
+			adsCtr := adsCtr + 1;
+		END_IF
+			
+	FINISH_SETUP:
+		setup := TRUE;
+		RETURN;
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="write" Id="{172ec271-7ab8-4521-953c-8ac00b6eb611}" FolderPath="ADS\">
+      <Declaration><![CDATA[METHOD PROTECTED write : BOOL
+VAR
+	remotePrgName : STRING := handle.socket.remotePrgName;
+END_VAR
+VAR_INPUT
+	symbol : STRING;
+	data : PVOID;
+	dataSize : UDINT;
+END_VAR
+VAR
+	targetHandle : REFERENCE TO AdsHandle;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[targetHandle REF= findHandle(remotePrgName);
+
+IF __ISVALIDREF(targetHandle) THEN
+	targetHandle.write(symbol, data, dataSize);
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="AdsClient">
+      <LineId Id="3776" Count="15" />
+      <LineId Id="3652" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsClient.fetchData">
+      <LineId Id="58" Count="3" />
+      <LineId Id="28" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsClient.findHandle">
+      <LineId Id="6" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="10" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsClient.queueData">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsClient.read">
+      <LineId Id="70" Count="3" />
+      <LineId Id="22" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsClient.send">
+      <LineId Id="128" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsClient.setup">
+      <LineId Id="720" Count="94" />
+      <LineId Id="300" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsClient.write">
+      <LineId Id="81" Count="3" />
+      <LineId Id="31" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

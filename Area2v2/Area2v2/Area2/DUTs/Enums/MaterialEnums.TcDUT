@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="MaterialEnums" Id="{d50b7890-b267-4d26-b05e-149002232c9e}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+{attribute 'to_string'}
+TYPE MaterialEnums :
+(
+	//CARDBOARD - 6 x 3
+	CAR20S, CAR20M, CAR20L, CAR28S, CAR28M, CAR28L, //base (flat)
+	CAR20SF, CAR20MF, CAR20LF, CAR28SF, CAR28MF, CAR28LF, //single folded (L shape) - F
+	CAR20SD, CAR20MD, CAR20LD, CAR28SD, CAR28MD, CAR28LD, //double folded (C shape) - D
+	
+	//CHIPBOARD - 2
+	CIP18, CIP54,
+	
+	//CORNER BOARD - 2
+	COR48, COR96,
+	
+	//PAPER - 1
+	PAP28,
+	
+	//WOOD BUNK - 21
+	WDT20, WDT22, WDT28, //top
+	WDB20, WDB22, WDB28, //bottom
+	WDS08, WDS10, WDS12, WDS14, WDS20, WDS22, WDS28, //side
+	WDS8X8, WDS8X10, WDS12X12, WDS12X14, WDS20X10, WDS20X12, //side combined - X
+	WDW20, WDW22, //special top (wide)
+	
+	size //number of materials
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

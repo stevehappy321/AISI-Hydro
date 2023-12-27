@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="BoolPtrArrayToInteger" Id="{125fe3f0-424f-4fff-9453-ca039cf450f3}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION BoolPtrArrayToInteger : LINT;
+VAR_INPUT
+	arr : POINTER TO BOOL;
+	lowerBound : DINT;
+	upperBound : DINT;
+END_VAR
+VAR
+	i : DINT;
+	j : DINT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[FOR i:=(upperBound-lowerBound) TO 0 BY -1 DO
+	IF j < SIZEOF(BoolPtrArrayToInteger) * 8 THEN
+		BoolPtrArrayToInteger.0 := arr[i];		
+		IF i <> 0 THEN
+			BoolPtrArrayToInteger := SHL(BoolPtrArrayToInteger, 1);
+		END_IF
+	END_IF
+	j := j + 1;
+END_FOR]]></ST>
+    </Implementation>
+    <LineIds Name="BoolPtrArrayToInteger">
+      <LineId Id="131" Count="0" />
+      <LineId Id="107" Count="0" />
+      <LineId Id="109" Count="0" />
+      <LineId Id="112" Count="2" />
+      <LineId Id="116" Count="0" />
+      <LineId Id="118" Count="0" />
+      <LineId Id="94" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

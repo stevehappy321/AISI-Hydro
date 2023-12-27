@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="Interval" Id="{f20c923f-8b47-4de8-9987-10b904ebc0dc}">
+    <Declaration><![CDATA[TYPE Interval :
+STRUCT
+	startPos : INT;
+	endPos : INT;
+END_STRUCT
+END_TYPE]]></Declaration>
+  </DUT>
+</TcPlcObject>

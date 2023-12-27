@@ -1,0 +1,204 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="AOI_LoadChipboard" Id="{403456b6-8a32-4454-9e15-815080b5fb2e}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK AOI_LoadChipboard
+VAR_IN_OUT CONSTANT
+	sectionID : SectionEnum;
+END_VAR
+VAR_INPUT
+	execute : BOOL;
+END_VAR
+VAR_IN_OUT
+	robot : RobotA21;
+	storage : SkidMagazine;
+	loadedMaterials : ARRAY[*] OF STRING;
+END_VAR
+VAR_INPUT
+	surfaceID : Surface;
+	material : STRING;
+END_VAR
+VAR_OUTPUT
+	busy : BOOL;
+	done : BOOL;
+	error : BOOL;
+	
+	recovery : BOOL;
+	failCounter : INT;
+	
+	donePulse : BOOL;
+END_VAR
+VAR
+	run : BOOL;
+	trigger : R_TRIG;
+	doneTrigger : R_TRIG;
+	
+	step : (IDLE, PREP_ROBOT, RETRACT_CONVEYORS, GET_FROM_SKID, LOAD_TO_BUNDLE, COMPLETE);
+	column : INT;
+END_VAR
+VAR CONSTANT
+	suctionDistance : INT := 10;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[{warning disable C0371}
+
+trigger(CLK:= execute, Q=> );
+doneTrigger(CLK:= done, Q=> donePulse);
+busy := trigger.Q OR step > 0;
+
+IF step > IDLE AND_THEN NOT preExecution() THEN //conditions to track before execution
+	RETURN;
+END_IF
+
+trigger(CLK:= execute, Q=> run);
+
+CASE step OF
+	IDLE:
+		IF trigger.Q THEN //reset outputs
+			done := FALSE;
+			error := FALSE;
+			recovery := FALSE;
+			
+			step := PREP_ROBOT;
+		END_IF
+	
+	PREP_ROBOT:
+		robot.clearCommand();
+		IF robot.Ready THEN
+			step := RETRACT_CONVEYORS;
+		END_IF
+	
+	RETRACT_CONVEYORS:
+		IF surfaceID = Surface.BOTTOM (*AND_THEN conveyors not retracted*) THEN
+			//retract conveyors
+			RETURN;
+		END_IF
+		step := GET_FROM_SKID;
+		
+	GET_FROM_SKID: //grab from chipboard skid
+		IF NOT storage.findSlot(material := material, index => column) THEN
+			error := TRUE;
+			RETURN;
+		(*
+		ELSIF surfaceID = Surface.BOTTOM (*AND_THEN (*conveyor not lowered*)*) THEN
+			//lower conveyor
+			RETURN;
+		*)
+		END_IF
+		
+		IF robot.eoatDistance < suctionDistance THEN
+			robot.HoldMaterial := storage.getSlot(i := column);
+		END_IF
+		
+		IF robot.Done THEN
+			step := COMPLETE;
+			RETURN;
+		ELSIF robot.materialAtHoldingPosition.4 OR robot.materialAtHoldingPosition.5 THEN //bits 4 and 5 = chipboard in position
+			step := LOAD_TO_BUNDLE;
+			RETURN;
+		END_IF
+		CASE surfaceID OF
+			Surface.TOP:		robot.setGroup(group := 1, value := TaskA21.PLACE_CHIPBOARD_TOP);
+			Surface.BOTTOM:		robot.setGroup(group := 1, value := TaskA21.PLACE_CHIPBOARD_BOTTOM);
+		END_CASE
+		robot.setGroup(group := 2, value := column);
+		
+	LOAD_TO_BUNDLE: //place to bundle
+		IF robot.Done THEN
+			step := COMPLETE;
+			RETURN;
+		END_IF
+		
+		IF robot.HoldMaterial <> '' THEN
+			loadedMaterials[surfaceID] := robot.HoldMaterial;
+			robot.HoldMaterial := '';
+		END_IF
+		
+	COMPLETE:
+		IF loadedMaterials[surfaceID] = material THEN
+			done := TRUE;
+			failCounter := 0;
+		ELSE
+			error := TRUE;
+			failCounter := failCounter + 1;
+		END_IF
+		step := 0;
+END_CASE
+
+busy := run OR step > 0;]]></ST>
+    </Implementation>
+    <Method Name="preExecution" Id="{26f45a99-07ed-487b-99a4-7b1c1cddff11}">
+      <Declaration><![CDATA[METHOD PRIVATE preExecution : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[{warning disable C0371}
+IF material = '' THEN
+	done := TRUE;
+	RETURN;
+END_IF
+
+IF //robot must be ready before execution
+	robot.error OR 
+	robot.reservation <> sectionID OR 
+	robot.tool <> sectionID
+THEN
+	error := TRUE;
+	RETURN;
+END_IF
+
+preExecution := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="reset" Id="{c555b2eb-8ea4-4c0e-ae04-a1dfdf5a7951}">
+      <Declaration><![CDATA[METHOD reset : BOOL
+VAR_INPUT
+END_VAR
+VAR
+	temp : AOI_LoadChipboard;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//(*
+done := FALSE;
+error := FALSE;
+recovery := FALSE;
+column := 0;
+step := 0;
+
+failCounter := 0;
+//*)
+//THIS^ := temp;]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="AOI_LoadChipboard">
+      <LineId Id="260" Count="1" />
+      <LineId Id="375" Count="5" />
+      <LineId Id="267" Count="5" />
+      <LineId Id="385" Count="5" />
+      <LineId Id="278" Count="37" />
+      <LineId Id="391" Count="0" />
+      <LineId Id="393" Count="0" />
+      <LineId Id="392" Count="0" />
+      <LineId Id="317" Count="23" />
+      <LineId Id="144" Count="0" />
+    </LineIds>
+    <LineIds Name="AOI_LoadChipboard.preExecution">
+      <LineId Id="18" Count="0" />
+      <LineId Id="6" Count="11" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="20" Count="0" />
+      <LineId Id="19" Count="0" />
+    </LineIds>
+    <LineIds Name="AOI_LoadChipboard.reset">
+      <LineId Id="23" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="6" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="24" Count="1" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

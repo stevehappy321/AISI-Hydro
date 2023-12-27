@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="AirMode" Id="{173f6303-00c3-42c1-ae55-69eeefbd9f2b}">
+    <Declaration><![CDATA[TYPE AirMode : 
+(
+	HOLD := 0,
+	IN,
+	OUT,
+	
+	size
+);
+END_TYPE]]></Declaration>
+  </DUT>
+</TcPlcObject>

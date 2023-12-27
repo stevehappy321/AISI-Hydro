@@ -1,0 +1,174 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="WrapMachine" Id="{a3ca7ffd-0355-457d-b5e4-e9e36ee78e64}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK WrapMachine
+VAR_OUTPUT
+	error AT %I* : BOOL;
+	ready AT %I* : BOOL;
+	busy AT %I* : BOOL;
+	done (*AT %I**) : BOOL;
+	home AT %I* : BOOL;
+	
+	rotations AT %Q* : INT;
+	execute AT %Q* : BOOL;
+	enable AT %Q* : BOOL;
+	reset AT %Q* : BOOL;
+	
+	timeout : BOOL;
+	
+	trayOccupied AT %I* : BOOL;
+	overheadMaterial : STRING;
+END_VAR
+VAR
+	holdPost : TON;
+	delay : TON;
+	
+	start : BOOL;
+	step : (SETUP, RUN, WAIT);
+END_VAR
+VAR_STAT CONSTANT
+	pulseTime : TIME := T#100MS;
+	holdTime : TIME := T#500MS;
+	maxDelay : TIME := T#30S;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[holdPost(IN:= , PT:= holdTime, Q=> , ET=> );
+delay(IN:= step > 0, PT:= maxDelay, Q=> , ET=> );
+
+IF delay.Q THEN
+	delay.IN := FALSE;
+	timeout := TRUE;
+	busy := FALSE;
+	step := SETUP;
+END_IF
+
+CASE step OF
+	SETUP:
+		busy := FALSE;
+		IF error THEN
+			reset := NOT reset;
+			enable := FALSE;//NOT enable;
+			
+		ELSE
+			reset := FALSE;
+			enable := TRUE;
+			
+			IF start THEN
+				start := FALSE;
+				step := RUN;
+			END_IF
+			
+		END_IF
+	
+	RUN:
+		execute := TRUE;
+		IF execute AND NOT home THEN
+			execute := FALSE;
+			step := WAIT;
+		END_IF
+		
+	WAIT:
+		IF home THEN
+			holdPost.IN := TRUE;
+			enable := FALSE;
+			execute := FALSE;
+		END_IF
+		
+		IF holdPost.Q THEN
+			holdPost.IN := FALSE;
+			done := TRUE;
+			step := 0;
+		END_IF
+		
+END_CASE]]></ST>
+    </Implementation>
+    <Method Name="clear" Id="{809335de-2787-442d-8a0b-81b9b3831244}">
+      <Declaration><![CDATA[METHOD clear : BOOL
+VAR_INPUT
+END_VAR
+(*
+reset should be continuously called until machine returns evidence that it is ready again
+machine is expected to not respond to reset signals if it is already in an idle state
+*)]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[enable := FALSE;
+execute := FALSE;
+
+IF error THEN
+	reset := NOT reset;
+	clear := NOT error;
+
+ELSE
+	reset := FALSE;
+	clear := TRUE;
+	
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="Overhead" Id="{0882126e-af1f-4d27-877e-7f5b304b50c7}">
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY Overhead : STRING]]></Declaration>
+      <Get Name="Get" Id="{e6593ae6-1da0-4f03-8552-9a4dd133e466}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Overhead := overheadMaterial;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{2f82440b-2742-491e-909e-980b12f71fec}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[overheadMaterial := Overhead;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Method Name="wrap" Id="{1ec79807-3015-428d-b6b1-6b5d17802bae}">
+      <Declaration><![CDATA[METHOD wrap : BOOL
+VAR_INPUT
+	reqRotations : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF ready AND NOT busy AND NOT error THEN
+	rotations := reqRotations;
+	busy := TRUE;
+	start := TRUE;
+	wrap := TRUE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="WrapMachine">
+      <LineId Id="43" Count="47" />
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="WrapMachine.clear">
+      <LineId Id="45" Count="1" />
+      <LineId Id="60" Count="0" />
+      <LineId Id="59" Count="0" />
+      <LineId Id="57" Count="0" />
+      <LineId Id="67" Count="0" />
+      <LineId Id="66" Count="0" />
+      <LineId Id="58" Count="0" />
+      <LineId Id="68" Count="0" />
+      <LineId Id="61" Count="0" />
+      <LineId Id="65" Count="0" />
+      <LineId Id="62" Count="0" />
+      <LineId Id="31" Count="0" />
+    </LineIds>
+    <LineIds Name="WrapMachine.Overhead.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="WrapMachine.Overhead.Set">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="WrapMachine.wrap">
+      <LineId Id="56" Count="0" />
+      <LineId Id="61" Count="0" />
+      <LineId Id="57" Count="2" />
+      <LineId Id="24" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="Stations" Id="{c00b457b-5a12-4494-8336-0878c400cbba}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+TYPE Stations :
+(
+	PAPER,
+	PAPER_WRAP,
+	CARDBOARD_CORNERGUARD,
+	CARDBOARD_CORNERGUARD_WRAP,
+	CHIPBOARD,
+	WOOD_BUNK,
+	size
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

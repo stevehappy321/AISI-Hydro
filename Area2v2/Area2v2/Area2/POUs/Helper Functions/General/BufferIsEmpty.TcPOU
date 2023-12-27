@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="BufferIsEmpty" Id="{3bb5270a-428b-42c6-a310-60383203fb93}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION BufferIsEmpty : BOOL
+VAR_IN_OUT
+	bufferArr : ARRAY[*] OF BYTE;
+END_VAR
+VAR
+	i : DINT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[FOR i:=LOWER_BOUND(bufferArr, 1) TO UPPER_BOUND(bufferArr, 1) BY 1 DO
+	IF bufferArr[i] <> 0 THEN
+		BufferIsEmpty := FALSE;
+		RETURN;
+	END_IF
+END_FOR
+BufferIsEmpty := TRUE;]]></ST>
+    </Implementation>
+    <LineIds Name="BufferIsEmpty">
+      <LineId Id="10" Count="5" />
+      <LineId Id="7" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

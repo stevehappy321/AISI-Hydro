@@ -1,0 +1,155 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="StagingTable" Id="{86f30268-c033-4b26-ab89-12e7cd4acf96}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK StagingTable EXTENDS MaterialHolder]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[SUPER^();]]></ST>
+    </Implementation>
+    <Method Name="autofill" Id="{85f89965-dfb3-421e-9fdd-f8a8434c5c09}">
+      <Declaration><![CDATA[METHOD autofill : BOOL
+VAR_INPUT
+	material : STRING;
+END_VAR
+VAR
+	i : INT;
+	slot : INT;
+END_VAR
+(*
+this method will automatically find an open slot
+*)]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF isFull() OR material = '' THEN
+	RETURN;
+END_IF
+
+IF findOpenSlot(material := material, openSlot=> slot) THEN
+	place(slot, material);
+	autofill := TRUE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="findOpenSlot" Id="{70b64d97-b0dd-4604-bcf4-e5f1f840892d}">
+      <Declaration><![CDATA[METHOD findOpenSlot : BOOL
+VAR_INPUT
+	material : STRING;
+END_VAR
+VAR_OUTPUT
+	openSlot : INT := 0;
+END_VAR
+VAR
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF FIND(material, 'WDW') > 0 THEN //top wide, load in slot 9-10
+	FOR i:=9 TO 10 BY 1 DO
+		IF slots[i].material = '' THEN
+			findOpenSlot := TRUE;
+			openSlot := i;
+			RETURN;
+		END_IF
+	END_FOR
+	
+ELSIF FIND(material, 'WD') > 0 THEN //standard width, load in slot 1-8
+	FOR i:=1 TO 8 BY 1 DO
+		IF slots[i].material = '' THEN
+			findOpenSlot := TRUE;
+			openSlot := i;
+			RETURN;
+		END_IF
+	END_FOR
+	
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="isEmpty" Id="{853383cf-82c8-43ea-b031-c9c33787565e}">
+      <Declaration><![CDATA[METHOD isEmpty : BOOL
+VAR
+	i : INT;
+	temp : BOOL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i:=1 TO numSlots BY 1 DO
+	temp := temp OR slots[i].occupied; //TRUE if any slots are occupied
+END_FOR
+
+isEmpty := NOT temp; //invert result - FALSE if any slots are occupied]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="isFull" Id="{debc6f61-e9f5-4fcf-9975-806ae5e84cf7}">
+      <Declaration><![CDATA[METHOD isFull : BOOL
+VAR
+	i : INT;
+	temp : BOOL := TRUE;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i:=1 TO numSlots BY 1 DO
+	temp := temp AND slots[i].occupied;
+END_FOR
+
+isFull := temp;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="place" Id="{bb7401bd-65d3-4fcc-bcf4-393f54f9df10}">
+      <Declaration><![CDATA[METHOD place : BOOL
+VAR_INPUT
+	i : INT;
+	materialID : STRING;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF slots[i].material = '' THEN
+	slots[i].material := materialID;
+	place := TRUE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="remove" Id="{3a843bdc-d585-4891-a014-f6828230b4c8}">
+      <Declaration><![CDATA[METHOD remove : BOOL
+VAR_INPUT
+	i : INT;
+END_VAR
+VAR_OUTPUT
+	material : STRING;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[remove := slots[i].material <> '';
+
+material := slots[i].material;
+slots[i].material := '';]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="StagingTable">
+      <LineId Id="80" Count="0" />
+    </LineIds>
+    <LineIds Name="StagingTable.autofill">
+      <LineId Id="86" Count="7" />
+    </LineIds>
+    <LineIds Name="StagingTable.findOpenSlot">
+      <LineId Id="63" Count="8" />
+      <LineId Id="90" Count="0" />
+      <LineId Id="73" Count="7" />
+      <LineId Id="27" Count="0" />
+    </LineIds>
+    <LineIds Name="StagingTable.isEmpty">
+      <LineId Id="6" Count="1" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="11" Count="0" />
+    </LineIds>
+    <LineIds Name="StagingTable.isFull">
+      <LineId Id="5" Count="0" />
+      <LineId Id="8" Count="1" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="11" Count="0" />
+    </LineIds>
+    <LineIds Name="StagingTable.place">
+      <LineId Id="5" Count="0" />
+      <LineId Id="8" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="StagingTable.remove">
+      <LineId Id="53" Count="2" />
+      <LineId Id="21" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

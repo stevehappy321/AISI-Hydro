@@ -1,0 +1,58 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="SetupHardware" Id="{ad70243f-26d6-4655-b24b-2a994d19bc18}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION SetupHardware : BOOL
+VAR
+	iWoodBunkSlot : WoodBunk;
+	iChipboardSlot : Chipboard;
+	
+	i : INT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[FOR iWoodBunkSlot:=1 TO WoodBunk.size-1 BY 1 DO //init wood bunk magazine slots
+	magazineA21Left.setSlot(i := iWoodBunkSlot, material := TO_STRING(iWoodBunkSlot), error => );
+	magazineA21Right.setSlot(i := iWoodBunkSlot, material := TO_STRING(iWoodBunkSlot), error => );
+END_FOR
+
+//--------------------------------------------------
+
+FOR iChipboardSlot:=1 TO Chipboard.size-1 BY 1 DO //init chipboard skid slots
+	skidA21Left.setSlot(i := iChipboardSlot, material := TO_STRING(iChipboardSlot), error => );
+	skidA21Right.setSlot(i := iChipboardSlot, material := TO_STRING(iChipboardSlot), error => );
+END_FOR
+
+//--------------------------------------------------
+
+FOR i:=1 TO Consts.maxQueue BY 1 DO //get wood bunk magazine + chipboard skid availability from robot1 and robot2
+	{warning disable C0195}
+	skidA21Left.setOccupancy( i := i, occupancy := IntegerBitAccess(robot1.inputs[4], i-1) );
+	skidA21Right.setOccupancy( i := i, occupancy := IntegerBitAccess(robot2.inputs[4], i-1) );
+
+	magazineA21Left.setOccupancy( i := i, occupancy := IntegerBitAccess(robot1.inputs[3], i-1) );
+	magazineA21Right.setOccupancy( i := i, occupancy := IntegerBitAccess(robot2.inputs[3], i-1) );
+END_FOR
+
+//--------------------------------------------------
+
+//enable all drives
+verticalDriveA21Left.bEnable := TRUE;
+verticalDriveA21Right.bEnable := TRUE;
+insertionA21Left.enable := TRUE;
+horizontalDriveA21Left.bEnable := TRUE;
+horizontalDriveA21Right.bEnable := TRUE;
+insertionA21Right.enable := TRUE;
+pistonA21Bottom.bEnable := TRUE;
+
+SetupHardware := TRUE;]]></ST>
+    </Implementation>
+    <LineIds Name="SetupHardware">
+      <LineId Id="262" Count="27" />
+      <LineId Id="299" Count="0" />
+      <LineId Id="290" Count="1" />
+      <LineId Id="300" Count="0" />
+      <LineId Id="292" Count="0" />
+      <LineId Id="302" Count="0" />
+      <LineId Id="301" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="CreateJsonDocumentManual" Id="{e92a94bb-6357-4e2e-aceb-ff7bdd64c4c4}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION CreateJsonDocumentManual : STRING(1000)
+VAR_INPUT
+	MaterialID : STRING;
+	CheckFor : STRING;
+	CameraNumber : INT;
+END_VAR
+VAR
+	fbJson : FB_JsonSaxWriter;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[fbJson.StartObject();
+
+fbJson.AddKey('MaterialID');
+fbJson.AddString(MaterialID);
+
+fbJson.AddKey('CheckFor');
+fbJson.AddString(CheckFor);
+
+fbJson.AddKey('CameraNumber');
+fbJson.AddString(CameraNumber);
+
+//below are keys for VisionPC to write to
+fbJson.AddKey('SuccessFlag');
+fbJson.AddKey('OrientAdjustX');
+fbJson.AddKey('OrientAdjustY');
+fbJson.AddKey('OrientAdjustX');
+
+fbJson.EndObject();
+
+CreateJsonDocumentManual := fbJson.GetDocument();]]></ST>
+    </Implementation>
+    <LineIds Name="CreateJsonDocumentManual">
+      <LineId Id="95" Count="18" />
+      <LineId Id="85" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

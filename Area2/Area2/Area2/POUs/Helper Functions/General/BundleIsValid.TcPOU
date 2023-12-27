@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="BundleIsValid" Id="{10192e08-9c9e-4199-98a2-e54aea68a69b}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION BundleIsValid : BOOL
+VAR_INPUT
+	b : REFERENCE TO Bundle;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[BundleIsValid := NOT(b.id = '');]]></ST>
+    </Implementation>
+    <LineIds Name="BundleIsValid">
+      <LineId Id="7" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

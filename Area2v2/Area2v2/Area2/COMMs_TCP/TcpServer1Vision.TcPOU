@@ -1,0 +1,394 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="TcpServer1Vision" Id="{31186d3a-eba3-4199-837d-a55fc3bf8971}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM TcpServer1Vision
+VAR_INPUT
+	ServerNetId			: STRING; 	(* Server AmsNetId *)
+	ServerAdr 			: STRING;	(* Server IP address *)
+	ServerPort 			: UDINT;	(* Server port number *)
+END_VAR
+VAR_OUTPUT
+	busy				: BOOL;
+	error				: BOOL;
+	errorId				: UDINT;
+	bytesReceived		: UDINT;
+	
+	receiveStruct		: TcpData;	(* Data received *)
+	connected 			: BOOL;
+END_VAR
+VAR
+	fbSocketCloseAll 	: FB_SocketCloseAll;
+	fbSocketClose 		: FB_SocketClose;
+	
+	fbSocketListen		: FB_SocketListen;
+	fbSocketAccept		: FB_SocketAccept;
+	fbSocketReceive		: FB_SocketReceive;
+	fbSocketSend 		: FB_SocketSend;
+	
+	listenerSocket		: T_HSOCKET;
+	dataSocket			: T_HSOCKET;
+	
+	sendQueue 			: TcpDataQueue;
+	sendBuffer 			: ARRAY[0..99] OF BYTE;
+	
+	sendHeartbeats		: BOOL;
+	autoDisconnect		: BOOL;
+	
+	setupStep 			: (CLOSE_CONNECTIONS, CREATE_LISTENER, ACCEPT_CONNECTION, FINISH_SETUP);
+	
+	setupTimer : TON;
+	connectionTimer	: TON;
+	heartbeatTimer : TON;
+END_VAR
+VAR CONSTANT
+	connectionTimeout	: TIME := T#30S; //time before connection is closed
+	heartbeatInterval	: TIME := T#20S; //heartbeat intervals
+	
+	incomingHeartbeat	: STRING := 'HEARTBEAT_CLIENT_TO_SERVER';
+	outgoingHeartbeat	: STRING := 'HEARTBEAT_SERVER_TO_CLIENT';
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[blocks();
+
+connected := setup();
+IF NOT connected THEN
+	RETURN;
+END_IF
+
+receive(); //receive in real time
+
+IF autoDisconnect THEN
+	autoDisconnectSeq();
+ELSE
+	connectionTimer.IN := FALSE;
+END_IF
+
+IF sendHeartbeats THEN
+	sendHeartbeatSeq();
+ELSE
+	heartbeatTimer.IN := FALSE;
+END_IF
+
+send();]]></ST>
+    </Implementation>
+    <Folder Name="Monitoring" Id="{e6c043a5-b2e8-4d3d-97b2-e0b6fdac7cf9}" />
+    <Method Name="autoDisconnectSeq" Id="{fa057c82-a854-4418-9eec-f598e1d70696}" FolderPath="Monitoring\">
+      <Declaration><![CDATA[METHOD PRIVATE autoDisconnectSeq : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[connectionTimer(IN := , PT := connectionTimeout, Q => , ET => );
+connectionTimer.IN := TRUE;
+
+IF connectionTimer.Q THEN
+	connectionTimer.IN := FALSE;
+	
+	closeSocket(dataSocket);
+	//closeSocket(listenerSocket);
+	
+	setupStep := CLOSE_CONNECTIONS;
+	RETURN;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="blocks" Id="{3b065dd9-c535-4aaf-836b-4a7354222d6b}">
+      <Declaration><![CDATA[METHOD PRIVATE blocks : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fbSocketClose(
+	sSrvNetId:= ServerNetId, 
+	hSocket:= dataSocket, 
+	bExecute:= , 
+	tTimeout:= , 
+	bBusy=> busy, 
+	bError=> error, 
+	nErrId=> errorId);
+	
+fbSocketCloseAll(
+	sSrvNetId:= ServerNetId, 
+	bExecute:= , 
+	tTimeout:= , 
+	bBusy=> , 
+	bError=> , 
+	nErrId=> );
+	
+IF fbSocketClose.bExecute OR fbSocketCloseAll.bExecute THEN
+	fbSocketClose.bExecute := FALSE;
+	fbSocketCloseAll.bExecute := FALSE;
+END_IF
+	
+fbSocketListen(
+	sSrvNetId:= ServerNetId, 
+	sLocalHost:= ServerAdr, 
+	nLocalPort:= ServerPort, 
+	bExecute:= , 
+	tTimeout:= , 
+	bBusy=> busy, 
+	bError=> error, 
+	nErrId=> errorId, 
+	hListener=> listenerSocket);
+
+fbSocketAccept(
+	sSrvNetId:= ServerNetId, 
+	hListener:= listenerSocket, 
+	bExecute:= , 
+	tTimeout:= , 
+	bAccepted=> , 
+	bBusy=> busy, 
+	bError=> error, 
+	nErrId=> errorId, 
+	hSocket=> dataSocket);
+	
+fbSocketReceive(
+	sSrvNetId:= ServerNetId, 
+	hSocket:= dataSocket, 
+	cbLen:= SIZEOF(receiveStruct), 
+	pDest:= ADR(receiveStruct), 
+	bExecute:= , 
+	tTimeout:= , 
+	bBusy=> busy, 
+	bError=> error, 
+	nErrId=> errorId, 
+	nRecBytes=> bytesReceived);
+	
+fbSocketSend(
+	sSrvNetId:= ServerNetId, 
+	hSocket:= dataSocket, 
+	cbLen:= SIZEOF(sendBuffer), 
+	pSrc:= ADR(sendBuffer), 
+	bExecute:= , 
+	tTimeout:= ,
+	bBusy=> busy, 
+	bError=> error, 
+	nErrId=> errorId);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="clearBuffer" Id="{e11626cc-d547-4da5-b914-46db9096f4ad}">
+      <Declaration><![CDATA[METHOD PRIVATE clearBuffer : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[MEMSET(ADR(receiveStruct), 0, SIZEOF(receiveStruct));]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="closeSocket" Id="{8abeeb6a-3def-49db-a601-97d4a951adc2}">
+      <Declaration><![CDATA[METHOD PRIVATE closeSocket : BOOL
+VAR_INPUT
+	socket : REFERENCE TO T_HSOCKET;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fbSocketClose.bExecute := TRUE;
+fbSocketClose.hSocket := socket;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="fetch" Id="{c5194247-71cc-491a-bc48-f7fdefcd5cbc}">
+      <Declaration><![CDATA[METHOD fetch : BOOL
+VAR_IN_OUT
+	receiverStruct : TcpData;
+END_VAR
+VAR
+	emptyData : TcpData;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fetch := MEMCMP(ADR(receiveStruct), ADR(emptyData), SIZEOF(TcpData)) <> 0; //returns false if no data
+
+receiverStruct := receiveStruct;
+receiveStruct := emptyData;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="queue" Id="{1f91282a-2bac-4fdd-b9eb-02e7de0408b2}">
+      <Declaration><![CDATA[METHOD queue : BOOL
+VAR_INPUT
+	data : REFERENCE TO TcpData;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[sendQueue.push(data);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="receive" Id="{91b8ab6c-1d5d-4063-8464-d1d9ec08631e}">
+      <Declaration><![CDATA[METHOD PRIVATE receive : BOOL
+VAR
+	heartbeatCheck : STRING;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fbSocketReceive.bExecute := NOT fbSocketReceive.bExecute;
+	
+MEMCPY(ADR(heartbeatCheck), ADR(receiveStruct), SIZEOF(heartbeatCheck));
+IF heartbeatCheck = incomingHeartbeat THEN
+	connectionTimer.IN := FALSE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="send" Id="{065ebe5c-f528-47e2-bb55-fb2de8f1332e}">
+      <Declaration><![CDATA[METHOD PRIVATE send : BOOL
+VAR
+	polledData : TcpData;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT fbSocketSend.bBusy THEN
+	polledData := sendQueue.poll();
+	MEMCPY(ADR(sendBuffer), ADR(polledData), MIN(SIZEOF(polledData), SIZEOF(sendBuffer)));
+END_IF
+
+IF NOT BufferIsEmpty(sendBuffer) THEN
+	fbSocketSend.bExecute := NOT fbSocketSend.bExecute;
+	
+ELSE
+	fbSocketSend.bExecute := FALSE;
+	
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="sendHeartbeatSeq" Id="{46f27e58-d664-4cd0-ad6e-436e818e6c29}" FolderPath="Monitoring\">
+      <Declaration><![CDATA[METHOD PRIVATE sendHeartbeatSeq : BOOL
+VAR
+	temp : TcpData;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[heartbeatTimer(IN := , PT := heartbeatInterval, Q =>, ET =>);
+heartbeatTimer.IN := TRUE;
+
+IF heartbeatTimer.Q THEN
+	MEMCPY(ADR(temp), ADR(outgoingHeartbeat), SIZEOF(outgoingHeartbeat));
+	queue(temp);
+	
+	heartbeatTimer.IN := FALSE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="setup" Id="{95af496a-6494-483d-8183-1e3d0946c139}">
+      <Declaration><![CDATA[METHOD PRIVATE setup : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CASE setupStep OF
+	CLOSE_CONNECTIONS:
+		fbSocketCloseAll( bExecute:= TRUE );
+		fbSocketCloseAll( bExecute:= FALSE );
+		setupStep := CREATE_LISTENER;
+		
+	CREATE_LISTENER:
+		fbSocketListen.bExecute := TRUE;
+		setupStep := ACCEPT_CONNECTION;
+		
+	ACCEPT_CONNECTION:
+		fbSocketListen.bExecute := FALSE;
+		IF fbSocketListen.bError THEN
+			setupStep := CLOSE_CONNECTIONS;
+			RETURN;
+			
+		ELSIF NOT fbSocketListen.bBusy AND NOT fbSocketListen.bError THEN
+			fbSocketAccept.bExecute := FALSE;
+			setupTimer(IN:= , PT:= T#500MS, Q=> , ET=> );
+			setupTimer.IN := TRUE;
+			IF setupTimer.Q THEN
+				fbSocketAccept.bExecute := TRUE;
+				setupTimer.IN := FALSE;
+			END_IF
+		
+			IF fbSocketAccept.bAccepted THEN
+				setupTimer.IN := FALSE;
+				setupStep := FINISH_SETUP;
+			END_IF
+		END_IF
+		
+		
+	FINISH_SETUP:
+		setup := TRUE;
+		//fbSocketClose(bExecute := TRUE);
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="TcpServer1Vision">
+      <LineId Id="3536" Count="1" />
+      <LineId Id="3059" Count="7" />
+      <LineId Id="3078" Count="3" />
+      <LineId Id="3083" Count="1" />
+      <LineId Id="3091" Count="4" />
+      <LineId Id="2864" Count="0" />
+    </LineIds>
+    <LineIds Name="TcpServer1Vision.autoDisconnectSeq">
+      <LineId Id="6" Count="10" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="TcpServer1Vision.blocks">
+      <LineId Id="6" Count="6" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="15" Count="5" />
+      <LineId Id="14" Count="0" />
+      <LineId Id="66" Count="2" />
+      <LineId Id="70" Count="0" />
+      <LineId Id="69" Count="0" />
+      <LineId Id="21" Count="0" />
+      <LineId Id="23" Count="19" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="43" Count="0" />
+      <LineId Id="45" Count="9" />
+      <LineId Id="44" Count="0" />
+      <LineId Id="55" Count="0" />
+      <LineId Id="57" Count="8" />
+      <LineId Id="56" Count="0" />
+    </LineIds>
+    <LineIds Name="TcpServer1Vision.clearBuffer">
+      <LineId Id="12" Count="0" />
+    </LineIds>
+    <LineIds Name="TcpServer1Vision.closeSocket">
+      <LineId Id="47" Count="1" />
+    </LineIds>
+    <LineIds Name="TcpServer1Vision.fetch">
+      <LineId Id="23" Count="0" />
+      <LineId Id="27" Count="0" />
+      <LineId Id="26" Count="0" />
+      <LineId Id="19" Count="0" />
+    </LineIds>
+    <LineIds Name="TcpServer1Vision.queue">
+      <LineId Id="121" Count="0" />
+    </LineIds>
+    <LineIds Name="TcpServer1Vision.receive">
+      <LineId Id="81" Count="0" />
+      <LineId Id="93" Count="3" />
+      <LineId Id="72" Count="0" />
+    </LineIds>
+    <LineIds Name="TcpServer1Vision.send">
+      <LineId Id="399" Count="6" />
+      <LineId Id="412" Count="0" />
+      <LineId Id="406" Count="1" />
+      <LineId Id="413" Count="0" />
+      <LineId Id="408" Count="0" />
+    </LineIds>
+    <LineIds Name="TcpServer1Vision.sendHeartbeatSeq">
+      <LineId Id="6" Count="3" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="16" Count="1" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="TcpServer1Vision.setup">
+      <LineId Id="296" Count="0" />
+      <LineId Id="299" Count="0" />
+      <LineId Id="301" Count="0" />
+      <LineId Id="377" Count="0" />
+      <LineId Id="303" Count="0" />
+      <LineId Id="307" Count="1" />
+      <LineId Id="317" Count="0" />
+      <LineId Id="323" Count="0" />
+      <LineId Id="320" Count="1" />
+      <LineId Id="310" Count="0" />
+      <LineId Id="358" Count="0" />
+      <LineId Id="411" Count="1" />
+      <LineId Id="423" Count="0" />
+      <LineId Id="416" Count="0" />
+      <LineId Id="428" Count="0" />
+      <LineId Id="424" Count="0" />
+      <LineId Id="429" Count="0" />
+      <LineId Id="419" Count="0" />
+      <LineId Id="425" Count="0" />
+      <LineId Id="427" Count="0" />
+      <LineId Id="426" Count="0" />
+      <LineId Id="420" Count="1" />
+      <LineId Id="430" Count="0" />
+      <LineId Id="422" Count="0" />
+      <LineId Id="417" Count="1" />
+      <LineId Id="395" Count="0" />
+      <LineId Id="349" Count="1" />
+      <LineId Id="352" Count="1" />
+      <LineId Id="300" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

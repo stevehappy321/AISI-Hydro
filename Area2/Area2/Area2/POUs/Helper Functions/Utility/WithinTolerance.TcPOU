@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="WithinTolerance" Id="{4e9ced49-a952-4cb0-b414-35672bc8309e}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION WithinTolerance : BOOL
+VAR_INPUT
+	v1 : LREAL;
+	v2 : LREAL;
+	tolerance : LREAL;
+END_VAR
+(*
+checks if v1 close enough to v2 within a given margin
+*)]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[WithinTolerance := ABS(v1-v2) < tolerance;]]></ST>
+    </Implementation>
+    <LineIds Name="WithinTolerance">
+      <LineId Id="7" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

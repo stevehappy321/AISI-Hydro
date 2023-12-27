@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="TcpData" Id="{60aaff42-2411-4769-849d-be4bef18a246}">
+    <Declaration><![CDATA[{attribute 'enable_dynamic_creation'}
+TYPE TcpData :
+UNION
+	binaryData : ARRAY[0..1000] OF BYTE; //contents
+	toString : STRING(1000);
+END_UNION
+END_TYPE]]></Declaration>
+  </DUT>
+</TcPlcObject>

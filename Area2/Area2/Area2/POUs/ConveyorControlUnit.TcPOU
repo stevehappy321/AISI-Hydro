@@ -1,0 +1,109 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="ConveyorControlUnit" Id="{318a19f0-e7ed-42e5-b785-80a2c36ff413}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK ConveyorControlUnit
+VAR_IN_OUT
+	conveyors : ARRAY[*] OF POINTER TO ConveyorSC;
+END_VAR
+VAR
+	firstConveyor : DINT;
+	lastConveyor : DINT;
+	
+	spoolTimer : TON;
+	i : DINT := 1;
+END_VAR
+VAR CONSTANT
+	spoolSpacing : TIME := T#100MS;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[firstConveyor := LOWER_BOUND(conveyors, 1);
+lastConveyor := UPPER_BOUND(conveyors, 1);
+
+linkCompute();
+
+spoolTimer(IN:= , PT:= spoolSpacing, Q=> , ET=> );
+spoolTimer.IN := TRUE;
+IF
+	(conveyors[i]^.requestedMode = ConveyorMode.FORWARD OR conveyors[i]^.requestedMode = ConveyorMode.BACKWARD) AND //conveyor requests motion
+	conveyors[i]^.requestedMode <> conveyors[i]^.trueMode AND //conveyor request differs from current operation
+	spoolTimer.Q //ready to spool
+THEN
+	//spool up conveyor
+	i := (i + 1) MOD (lastConveyor - firstConveyor + 1) + 1;
+	spoolTimer.IN := FALSE;
+END_IF]]></ST>
+    </Implementation>
+    <Method Name="linkCompute" Id="{4b47d7ec-4657-4dc5-8694-93a08a021dcf}">
+      <Declaration><![CDATA[METHOD PRIVATE linkCompute : BOOL
+VAR
+	i : DINT;
+	j : DINT;
+	
+	linkStart : DINT := -1;
+	linkEnd : DINT := -1;
+	
+	priorityInLink : ConveyorMode;
+END_VAR
+(*
+link interation method 
+slower, but will correctly set all operations every cycle
+*)]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i:=LOWER_BOUND(conveyors, 1) TO UPPER_BOUND(conveyors, 1) BY 1 DO
+	IF conveyors[i]^.IsOccupied THEN
+		
+		IF linkStart = -1 THEN
+			linkStart := i;
+		END_IF
+		
+		priorityInLink := MAX(priorityInLink, conveyors[i]^.requestedMode);
+		linkEnd := i;
+		
+	ELSIF linkStart <> -1 AND linkEnd <> -1 THEN //set all conveyor operations to priorityInLink
+		linkEnd := i-1;
+		
+		FOR j:=linkStart TO linkEnd BY 1 DO
+			conveyors[j]^.setMode(priorityInLink);
+		END_FOR
+		
+		linkStart := -1;
+		linkEnd := -1;
+		priorityInLink := ConveyorMode.IDLE;
+		
+		CONTINUE;
+	END_IF
+	
+END_FOR
+
+IF linkStart > -1 AND linkEnd > -1 THEN
+	FOR j:=linkStart TO linkEnd BY 1 DO
+		conveyors[j]^.setMode(priorityInLink);
+	END_FOR
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="ConveyorControlUnit">
+      <LineId Id="119" Count="0" />
+      <LineId Id="122" Count="0" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="104" Count="0" />
+      <LineId Id="106" Count="0" />
+      <LineId Id="83" Count="0" />
+      <LineId Id="73" Count="0" />
+      <LineId Id="92" Count="0" />
+      <LineId Id="99" Count="0" />
+      <LineId Id="90" Count="1" />
+      <LineId Id="96" Count="0" />
+      <LineId Id="101" Count="0" />
+      <LineId Id="103" Count="0" />
+      <LineId Id="97" Count="0" />
+    </LineIds>
+    <LineIds Name="ConveyorControlUnit.linkCompute">
+      <LineId Id="6" Count="0" />
+      <LineId Id="127" Count="20" />
+      <LineId Id="28" Count="7" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

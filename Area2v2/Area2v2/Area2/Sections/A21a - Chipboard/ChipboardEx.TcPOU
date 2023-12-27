@@ -1,0 +1,795 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="ChipboardEx" Id="{4fb9c3b0-6386-4034-a58f-58f8ce2d611a}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK ChipboardEx EXTENDS SectionEx
+VAR_IN_OUT
+	A21_SC_C18 : ConveyorSC;
+	A21_LSC_C19 : ConveyorLSC;
+	A21_LSC_C20 : ConveyorLSC;
+END_VAR
+VAR_IN_OUT
+	robotLeft, robotRight : RobotA21;
+	toolStorageLeft, toolStorageRight : A21ToolStorage;
+	
+	skidLeft, skidRight : SkidMagazine;
+END_VAR
+VAR	
+	step : (IDLE, RETRACT_CONVEYOR, LOAD_CIP, EXTEND_CONVEYOR, COMPLETE := 1050);
+	
+	loadSet : INT;
+END_VAR
+VAR //bundle data
+	materialsArr : (*REFERENCE TO*) ARRAY[0..Consts.maxPairs] OF PositionMaterials;
+END_VAR
+VAR
+	aoiLoadLeft, aoiLoadRight : AOI_LoadChipboard;
+	
+	pushSmallConveyorPos : REAL;
+	pushLargeConveyorPos : REAL;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[{warning disable C0371}
+callLocalModules(); //call local modules
+
+this^.aoiBlocks(); //call AOIs and large library FBs
+
+SUPER^();
+
+CASE status OF //add additional instructions for each state
+	SectionTask.IDLE:
+		//
+	
+	SectionTask.ALIGNING:
+		//
+		
+	SectionTask.ACTIVE:
+		//
+		
+	SectionTask.CLEARING:
+		aoiLoadLeft.reset();
+		aoiLoadRight.reset();
+		
+	SectionTask.COMPLETE:	
+		//
+		
+	-100:
+		RETURN;
+		
+END_CASE]]></ST>
+    </Implementation>
+    <Folder Name="Actions" Id="{1d4cf889-3e68-46d8-ad77-8ad472520e03}" />
+    <Folder Name="PML Conditions" Id="{db3fb587-f62c-413e-86fe-ffc9cd2d39ad}" />
+    <Folder Name="PML Inter. States" Id="{ab9cbcbe-212b-4c2d-a6dc-6cefed8dd476}" />
+    <Method Name="aoiBlocks" Id="{3aed7339-6bf5-4e31-a3ab-5532ab7d73f9}" FolderPath="Actions\">
+      <Declaration><![CDATA[METHOD PROTECTED aoiBlocks : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[{warning disable C0371}
+aoiLoadRight(
+	sectionID:= sectionID, 
+	execute:= ,
+	robot:= robotRight, 
+	storage:= skidRight,
+	loadedMaterials:= loadedMaterials,
+	surfaceID:= , 
+	material:= , 
+	loadedMaterials=> , 
+	done=> , 
+	error=> );
+	
+aoiLoadRight(
+	sectionID:= sectionID, 
+	execute:= , 
+	robot:= robotRight, 
+	storage:= skidRight,
+	loadedMaterials:= loadedMaterials, 
+	surfaceID:= , 
+	material:= , 
+	busy=> , 
+	done=> , 
+	error=> , 
+	recovery=> , 
+	failCounter=> );]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="callLocalModules" Id="{bea4cf3f-a5a1-4b36-af59-25abcfb940a0}" FolderPath="Actions\">
+      <Declaration><![CDATA[METHOD PROTECTED callLocalModules : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="load" Id="{fb843105-64e1-44e7-8bcd-619ab2de166a}">
+      <Declaration><![CDATA[METHOD PROTECTED load : BOOL
+VAR_INPUT
+	pairIndex : INT;
+END_VAR
+VAR_OUTPUT
+	error : BOOL;
+END_VAR
+VAR
+	pair : REFERENCE TO PositionMaterials REF= materialsArr[pairIndex];
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[{warning disable C0371}
+IF robotLeft.error AND robotLeft.error THEN
+	error := TRUE;
+	RETURN;
+
+ELSIF
+	( robotLeft.reservation <> sectionID AND_THEN robotLeft.reserve(sectionID) ) OR
+	( robotRight.reservation <> sectionID AND_THEN robotRight.reserve(sectionID) ) THEN
+	RETURN;
+	
+ELSIF //wrong tool and not finished changing tool
+	(robotLeft.tool <> sectionID AND_THEN NOT robotLeft.changeEOAT(targetTool := sectionID)) OR
+	(robotRight.tool <> sectionID AND_THEN NOT robotRight.changeEOAT(targetTool := sectionID))
+THEN
+	RETURN;
+END_IF
+//robots ok
+
+CASE loadSet OF
+	0: //left robot -> top, right robot -> bottom
+		IF aoiLoadLeft.done AND aoiLoadRight.done THEN
+			aoiLoadLeft.execute := aoiLoadRight.execute := FALSE;
+			loadSet := 10;
+			RETURN;
+		END_IF
+		
+		aoiLoadLeft.surfaceID := Surface.TOP;
+		aoiLoadLeft.material := pair.left;
+		
+		aoiLoadRight.surfaceID := Surface.BOTTOM;
+		aoiLoadRight.material := pair.right;
+		
+		aoiLoadLeft.execute := NOT aoiLoadLeft.recovery;
+		aoiLoadRight.execute := NOT aoiLoadRight.recovery;
+		
+	10: //recovery		
+		IF robotRight.error THEN //left ok, right error
+			
+			IF aoiLoadLeft.done THEN
+				aoiLoadLeft.execute := FALSE;
+				loadSet := COMPLETE;
+				RETURN;
+			END_IF
+			
+			aoiLoadLeft.surfaceID := Surface.BOTTOM;
+			aoiLoadLeft.material := pair.bottom;
+			aoiLoadLeft.execute := NOT aoiLoadLeft.recovery;
+			
+		ELSIF robotLeft.error THEN //left error, right ok
+			
+			IF aoiLoadRight.done THEN
+				aoiLoadRight.execute := FALSE;
+				loadSet := COMPLETE;
+				RETURN;
+			END_IF
+			
+			aoiLoadRight.surfaceID := Surface.TOP;
+			aoiLoadRight.material := pair.top;
+			aoiLoadRight.execute := NOT aoiLoadRight.recovery;
+			
+		END_IF
+		
+	COMPLETE:
+		loadSet := 0;
+		
+		robotLeft.release(sectionID);
+		robotRight.release(sectionID);
+		
+		load := TRUE;
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="loadingSequence" Id="{96d77f50-a148-46c4-8ea5-43c584f562c9}">
+      <Declaration><![CDATA[METHOD PRIVATE loadingSequence : BOOL
+VAR_IN_OUT
+	robot : RobotA21;
+	storage : SkidMagazine;
+	loadStep : INT;
+END_VAR
+VAR_INPUT
+	surfaceID : Surface;
+	material : STRING;
+END_VAR
+VAR_OUTPUT
+	fail : BOOL;
+END_VAR
+VAR
+	slot : INT;
+END_VAR
+VAR CONSTANT
+	suctionDistance : INT := 10;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[{warning disable C0371}
+IF material = '' THEN
+	loadingSequence := TRUE;
+	RETURN;
+END_IF
+
+CASE loadStep OF
+	0:
+		robot.clearCommand();
+		IF robot.Ready THEN
+			loadStep := 1;
+		END_IF
+	
+	1:
+		IF surfaceID = Surface.BOTTOM (*AND_THEN conveyors not retracted*) THEN
+			//retract conveyors
+			RETURN;
+		END_IF
+		loadStep := 10;
+		
+	10: //grab from chipboard skid
+		IF NOT storage.findSlot(material := material, index => slot) THEN
+			fail := TRUE;
+			RETURN;
+		(*
+		ELSIF surfaceID = Surface.BOTTOM (*AND_THEN (*conveyor not lowered*)*) THEN
+			//lower conveyor
+			RETURN;
+		*)
+		END_IF
+		
+		IF robot.eoatDistance < suctionDistance THEN
+			robot.HoldMaterial := storage.getSlot(i := slot);
+		END_IF
+		
+		IF robot.Done THEN
+			loadStep := COMPLETE;
+			RETURN;
+		ELSIF robot.materialAtHoldingPosition.4 OR robot.materialAtHoldingPosition.5 THEN //bits 4 and 5 are chipboard in position
+			loadStep := 20;
+			RETURN;
+		END_IF
+		
+		robot.setGroup(group := 1, value := TaskA21.PLACE_CHIPBOARD_TOP);
+		robot.setGroup(group := 2, value := slot);
+		
+	20: //place to bundle
+		IF robotLeft.Done THEN
+			loadStep := COMPLETE;
+			RETURN;
+		END_IF
+		
+		IF robot.HoldMaterial <> '' THEN
+			loadedMaterials[surfaceID] := robot.HoldMaterial;
+			robot.HoldMaterial := '';
+		END_IF
+		
+	COMPLETE:
+		IF loadedMaterials[surfaceID] = material THEN
+			loadingSequence := TRUE;
+		ELSE
+			loadStep := 0;
+		END_IF
+		
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="maintenance" Id="{8ea8cc70-de6a-428d-95f1-128be1ff5518}">
+      <Declaration><![CDATA[METHOD PROTECTED maintenance : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[{warning disable C0371}
+//no specific tasks yet, free run and testing
+
+IF robotLeft.Done THEN
+	robotLeft.clearCommand();
+END_IF
+
+IF robotRight.Done THEN
+	robotRight.clearCommand();
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="process" Id="{4451bc85-ba29-4c10-8925-9cecf5fa2b5d}">
+      <Declaration><![CDATA[METHOD PROTECTED process : BOOL
+VAR_INPUT
+	auto : BOOL;
+END_VAR
+VAR_OUTPUT
+	error : BOOL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CASE step OF
+	IDLE:
+		IF execute THEN
+			execute := FALSE;
+			step := RETRACT_CONVEYOR;
+		END_IF
+		
+	RETRACT_CONVEYOR:
+		(*
+		IF demoPair.bottom <> '' (*retract conveyors*) THEN
+			IF TRUE (*BLSC 1-3 retracted*) THEN
+				done := TRUE;
+			END_IF
+		ELSE
+			done := TRUE;
+		END_IF
+		
+		IF
+			(manualStep AND_THEN execute) OR
+			(NOT manualStep AND_THEN done)
+		THEN
+			done := FALSE;
+			step := LOAD_MATERIAL;
+		END_IF
+		*)
+		step := LOAD_CIP;
+	LOAD_CIP:
+		IF NOT done THEN
+			done := load(pairIndex:= iPair, error=> error);
+		END_IF
+		
+		IF
+			(auto AND done) OR
+			(NOT auto AND_THEN execute)
+		THEN
+			done := FALSE;
+			execute := FALSE;
+			
+			step := EXTEND_CONVEYOR;
+		END_IF
+		
+	EXTEND_CONVEYOR:
+		(*
+		IF FALSE (*conveyors not extended*) THEN
+			//extend conveyors
+		END_IF
+		
+		IF
+			(auto AND done) OR
+			(NOT auto AND_THEN execute) //conveyors extended
+		THEN
+			done := FALSE;
+			step := COMPLETE;
+		END_IF
+		*)
+		step := COMPLETE;
+	COMPLETE:
+		//reset everything
+		step := IDLE;
+		
+		process := TRUE;
+		
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_AbortCondition" Id="{a4e02a6f-1dd9-4b5b-975e-f31a9e1a9d39}" FolderPath="PML Conditions\">
+      <Declaration><![CDATA[METHOD PROTECTED ps_AbortCondition : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[{warning disable C0371}
+ps_AbortCondition :=
+	robotLeft.error OR 
+	robotRight.error;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Aborted" Id="{afdc7db0-3b5b-4aee-9866-560224678255}" FolderPath="PML Inter. States\">
+      <Declaration><![CDATA[METHOD PROTECTED ps_Aborted : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[ps_Aborted := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Aborting" Id="{bcb80c20-bb9a-4602-aac8-f5e829bea7b5}" FolderPath="PML Inter. States\">
+      <Declaration><![CDATA[METHOD PROTECTED ps_Aborting : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[{warning disable C0371}
+aoiLoadLeft.reset();
+aoiLoadRight.reset();
+
+robotLeft.clearCommand();
+robotRight.clearCommand();
+
+//stop conveyors
+
+ps_Aborting :=
+	NOT robotLeft.Busy AND
+	NOT robotRight.Busy;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Clearing" Id="{b2125dae-b934-401c-82c0-ec5c61aac454}" FolderPath="PML Inter. States\">
+      <Declaration><![CDATA[METHOD PROTECTED ps_Clearing : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[{warning disable C0371}
+(*reset conveyors*)
+
+ps_Clearing := 
+	NOT robotLeft.error AND
+	NOT robotRight.error;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Complete" Id="{3a58560f-0a59-46c9-bc57-3f927e6c5604}" FolderPath="PML Inter. States\">
+      <Declaration><![CDATA[METHOD PROTECTED ps_Complete : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[ps_Complete := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Completing" Id="{ae85e936-b28f-40b1-88cf-bf1e6568a8fb}" FolderPath="PML Inter. States\">
+      <Declaration><![CDATA[METHOD PROTECTED ps_Completing : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[ps_Completing := NOT occupied;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Execute" Id="{714ac46d-98f5-401b-b4b3-ecea285a4535}" FolderPath="PML Inter. States\">
+      <Declaration><![CDATA[METHOD PROTECTED ps_Execute : BOOL
+VAR_INPUT
+END_VAR
+VAR_OUTPUT
+	error : BOOL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CASE pmlMode OF
+	0: //invalid mode
+	ePMLCustomUnitMode_Production:	ps_Execute := process(auto := FALSE, error => error);
+	ePMLCustomUnitMode_Maintenance:	maintenance();
+	ePMLCustomUnitMode_Manual:		ps_Execute := process(auto := TRUE, error => error);
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Held" Id="{5d3a9043-e079-4b24-8274-400f24d0d74b}" FolderPath="PML Inter. States\">
+      <Declaration><![CDATA[METHOD PROTECTED ps_Held : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[ps_Held := NOT hold;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_HoldCondition" Id="{41e2994c-5099-4940-b7c7-3e4fc759762f}" FolderPath="PML Conditions\">
+      <Declaration><![CDATA[METHOD PROTECTED ps_HoldCondition : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Holding" Id="{643ec6b6-c148-4c47-8dc1-33bcf2229aa8}" FolderPath="PML Inter. States\">
+      <Declaration><![CDATA[METHOD PROTECTED ps_Holding : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[{warning disable C0371}
+//set robot to pause
+
+ps_Holding := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Idle" Id="{98779d53-39d9-4b39-a25b-6e8895bed8d5}" FolderPath="PML Inter. States\">
+      <Declaration><![CDATA[METHOD PROTECTED ps_Idle : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[ps_Idle := execute;
+execute := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Resetting" Id="{983ac4dd-1ff6-4e0c-b73e-4225e8740385}" FolderPath="PML Inter. States\">
+      <Declaration><![CDATA[METHOD PROTECTED ps_Resetting : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[{warning disable C0371}
+(*reset conveyors*)
+
+ps_Resetting := 
+	reset AND
+	NOT robotLeft.error AND
+	NOT robotRight.error;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Starting" Id="{2f649bf5-415a-4c25-bab7-838c2c091e48}" FolderPath="PML Inter. States\">
+      <Declaration><![CDATA[METHOD PROTECTED ps_Starting : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[{warning disable C0371}
+//extend conveyors
+
+ps_Starting := TRUE; //conveyors extended]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_StopCondition" Id="{407cd14f-28d7-4012-b3c5-757c8224f570}" FolderPath="PML Conditions\">
+      <Declaration><![CDATA[METHOD PROTECTED ps_StopCondition : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[ps_StopCondition := 
+	stop;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Stopped" Id="{aa28d534-a613-452a-b2e0-8f44d37a695f}" FolderPath="PML Inter. States\">
+      <Declaration><![CDATA[METHOD PROTECTED ps_Stopped : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[ps_Stopped := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Stopping" Id="{9f68947d-2675-4ef1-bbb2-5fc51830c320}" FolderPath="PML Inter. States\">
+      <Declaration><![CDATA[METHOD PROTECTED ps_Stopping : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[{warning disable C0371}
+aoiLoadLeft.reset();
+aoiLoadRight.reset();
+
+robotLeft.clearCommand();
+robotRight.clearCommand();
+
+//stop conveyors
+
+ps_Stopping :=
+	NOT robotLeft.Busy AND
+	NOT robotRight.Busy;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_SuspendCondition" Id="{8bba2239-2ad5-48af-8103-232f2ea190d9}" FolderPath="PML Conditions\">
+      <Declaration><![CDATA[METHOD PROTECTED ps_SuspendCondition : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Suspended" Id="{a84b5a2d-37b2-4437-9dbc-913b7d65499c}" FolderPath="PML Inter. States\">
+      <Declaration><![CDATA[METHOD PROTECTED ps_Suspended : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[ps_Suspended := NOT ps_SuspendCondition();]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Suspending" Id="{f12d78f3-9e13-4f1a-976e-cd31dc68bfd8}" FolderPath="PML Inter. States\">
+      <Declaration><![CDATA[METHOD PROTECTED ps_Suspending : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[ps_Suspending := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Unholding" Id="{3da58b83-15b5-4a80-962d-24acd5d42995}" FolderPath="PML Inter. States\">
+      <Declaration><![CDATA[METHOD PROTECTED ps_Unholding : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[ps_Unholding := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Unsuspending" Id="{e2a4d5ca-b527-4c8d-89e6-c12afb3c8b6c}" FolderPath="PML Inter. States\">
+      <Declaration><![CDATA[METHOD PROTECTED ps_Unsuspending : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[ps_Unsuspending := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="unload" Id="{f6db5e74-df8c-4b7a-9a29-336483c6ebce}">
+      <Declaration><![CDATA[METHOD PROTECTED unload : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//unload from insertion
+//remove from staging table]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="usesProcess" Id="{fc01cfd2-2a72-47a9-a4b9-22b48c53ed66}">
+      <Declaration><![CDATA[METHOD PROTECTED usesProcess : BOOL
+VAR
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i:=0 TO Consts.maxPairs BY 1 DO
+	IF PositionIsValid(materialsArr[i]) THEN
+		usesProcess := TRUE;
+		RETURN;
+	END_IF
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="ChipboardEx">
+      <LineId Id="5180" Count="26" />
+      <LineId Id="5123" Count="0" />
+    </LineIds>
+    <LineIds Name="ChipboardEx.aoiBlocks">
+      <LineId Id="30" Count="0" />
+      <LineId Id="6" Count="23" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="ChipboardEx.callLocalModules">
+      <LineId Id="17" Count="0" />
+    </LineIds>
+    <LineIds Name="ChipboardEx.load">
+      <LineId Id="415" Count="3" />
+      <LineId Id="554" Count="0" />
+      <LineId Id="421" Count="0" />
+      <LineId Id="530" Count="0" />
+      <LineId Id="529" Count="0" />
+      <LineId Id="422" Count="10" />
+      <LineId Id="509" Count="1" />
+      <LineId Id="514" Count="2" />
+      <LineId Id="508" Count="0" />
+      <LineId Id="517" Count="0" />
+      <LineId Id="521" Count="2" />
+      <LineId Id="525" Count="3" />
+      <LineId Id="519" Count="0" />
+      <LineId Id="534" Count="0" />
+      <LineId Id="447" Count="1" />
+      <LineId Id="544" Count="0" />
+      <LineId Id="540" Count="3" />
+      <LineId Id="539" Count="0" />
+      <LineId Id="535" Count="0" />
+      <LineId Id="537" Count="1" />
+      <LineId Id="536" Count="0" />
+      <LineId Id="460" Count="1" />
+      <LineId Id="553" Count="0" />
+      <LineId Id="549" Count="3" />
+      <LineId Id="472" Count="0" />
+      <LineId Id="545" Count="0" />
+      <LineId Id="547" Count="1" />
+      <LineId Id="546" Count="0" />
+      <LineId Id="473" Count="4" />
+      <LineId Id="479" Count="4" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="ChipboardEx.loadingSequence">
+      <LineId Id="279" Count="63" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="ChipboardEx.maintenance">
+      <LineId Id="21" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="25" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="15" Count="1" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="19" Count="1" />
+    </LineIds>
+    <LineIds Name="ChipboardEx.process">
+      <LineId Id="72" Count="48" />
+      <LineId Id="140" Count="0" />
+      <LineId Id="122" Count="11" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="ChipboardEx.ps_AbortCondition">
+      <LineId Id="14" Count="0" />
+      <LineId Id="6" Count="0" />
+      <LineId Id="8" Count="1" />
+    </LineIds>
+    <LineIds Name="ChipboardEx.ps_Aborted">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="ChipboardEx.ps_Aborting">
+      <LineId Id="6" Count="0" />
+      <LineId Id="24" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="10" Count="6" />
+      <LineId Id="20" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="ChipboardEx.ps_Clearing">
+      <LineId Id="14" Count="0" />
+      <LineId Id="18" Count="2" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="13" Count="0" />
+    </LineIds>
+    <LineIds Name="ChipboardEx.ps_Complete">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="ChipboardEx.ps_Completing">
+      <LineId Id="7" Count="0" />
+    </LineIds>
+    <LineIds Name="ChipboardEx.ps_Execute">
+      <LineId Id="28" Count="4" />
+      <LineId Id="10" Count="0" />
+    </LineIds>
+    <LineIds Name="ChipboardEx.ps_Held">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="ChipboardEx.ps_HoldCondition">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="ChipboardEx.ps_Holding">
+      <LineId Id="14" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="ChipboardEx.ps_Idle">
+      <LineId Id="5" Count="1" />
+    </LineIds>
+    <LineIds Name="ChipboardEx.ps_Resetting">
+      <LineId Id="15" Count="0" />
+      <LineId Id="23" Count="1" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="14" Count="0" />
+      <LineId Id="6" Count="0" />
+    </LineIds>
+    <LineIds Name="ChipboardEx.ps_Starting">
+      <LineId Id="11" Count="0" />
+      <LineId Id="8" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="ChipboardEx.ps_StopCondition">
+      <LineId Id="5" Count="1" />
+    </LineIds>
+    <LineIds Name="ChipboardEx.ps_Stopped">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="ChipboardEx.ps_Stopping">
+      <LineId Id="20" Count="0" />
+      <LineId Id="40" Count="9" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="ChipboardEx.ps_SuspendCondition">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="ChipboardEx.ps_Suspended">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="ChipboardEx.ps_Suspending">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="ChipboardEx.ps_Unholding">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="ChipboardEx.ps_Unsuspending">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="ChipboardEx.unload">
+      <LineId Id="5" Count="1" />
+    </LineIds>
+    <LineIds Name="ChipboardEx.usesProcess">
+      <LineId Id="2" Count="0" />
+      <LineId Id="6" Count="0" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="7" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

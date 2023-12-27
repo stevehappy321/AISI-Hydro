@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="A26" Id="{df70bd72-3010-4603-acfe-2b41c91cc9fb}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM A26
+VAR_IN_OUT
+	spacerRecollector : SpacerRecollectionUnit;
+END_VAR
+VAR
+	robot7 : RobotA26; //placeholder, will need another robot definition for A26
+	robotSliderA26 : ServoNC;
+END_VAR
+VAR //sensors to detect spacer on transfer conveyors
+	spacerPresent_A24_LRC_C02 AT %I* : BOOL;
+	spacerPresent_A24_LRC_C04 AT %I* : BOOL;
+	spacerPresent_A24_LRC_C06 AT %I* : BOOL;
+	spacerPresent_A24_LRC_C08 AT %I* : BOOL;
+	spacerPresent_A24_LRC_C10 AT %I* : BOOL;
+	spacerPresent_A24_LRC_C12 AT %I* : BOOL;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <LineIds Name="A26">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

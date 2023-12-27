@@ -1,0 +1,62 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="Bundle" Id="{82c668c6-b176-44fe-a15f-961ddcfe76a9}">
+    <Declaration><![CDATA[{attribute 'enable_dynamic_creation'}
+TYPE Bundle :
+STRUCT
+	id : STRING;
+	weight : REAL;
+	
+	length : INT;
+	width : INT;
+	height : INT;
+	
+	pieces : INT;
+	layers : INT;
+	piecesPerLayer : INT;
+	
+	extrusionWeight : INT;
+	extrusionHeight : INT;
+	extrusionWidth : INT;
+	
+	//if a process is true, send it to the correct area and turn it false when complete
+	reqProcesses : ARRAY[0..3] OF BOOL;
+	
+	manRE, autoRE : BOOL; //repacking - coming soon
+	manSS, autoSS : BOOL; //packaging
+	
+	currStep : USINT; //for runtime use only
+	
+	paperFront : BOOL;
+	paperBack : BOOL;
+	cardboardFront : BOOL;
+	cardboardBack : BOOL;
+	
+	paperTop : ARRAY[0..GVL.maxPairs] OF Interval;
+	paperLeft : ARRAY[0..GVL.maxPairs] OF Interval;
+	paperRight : ARRAY[0..GVL.maxPairs] OF Interval;
+	paperBottom : ARRAY[0..GVL.maxPairs] OF Interval;
+		
+	cardboard : ARRAY[0..GVL.maxPairs] OF PositionMaterials;
+	cardboardFolds : ARRAY[Surface.TOP_LEFT..Surface.BOTTOM_RIGHT] OF ARRAY[0..GVL.maxPairs] OF INT;
+	
+	topLeftFolds : ARRAY[0..GVL.maxPairs] OF INT;
+	topRightFolds : ARRAY[0..GVL.maxPairs] OF INT;
+	bottomLeftFolds : ARRAY[0..GVL.maxPairs] OF INT;
+	bottomRightFolds : ARRAY[0..GVL.maxPairs] OF INT;
+	
+	cornerGuard : ARRAY[0..GVL.maxPairs] OF PositionMaterials;
+	
+	chipboard : ARRAY[0..GVL.maxPairs] OF PositionMaterials;
+	woodBunk : ARRAY[0..GVL.maxPairs] OF PositionMaterials;
+	
+	cardboard_over_cornerGuard : BOOL;
+	
+	//for production log database
+	timeStart : TIMESTRUCT;
+	timeDone : TIMESTRUCT;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

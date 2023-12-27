@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="Cardboard" Id="{0c48615a-528d-4e44-97c0-50197dbe608d}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'to_string'}
+TYPE Cardboard :
+(
+	CAR20S := 1,
+	CAR20M,
+	CAR20L,
+	
+	CAR28S,
+	CAR28M,
+	CAR28L,
+	
+	size
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="Homing" Id="{dc235fed-8454-437f-835e-aff103900c83}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+TYPE Homing :
+(
+	IDLE,
+	
+	START,
+	RETRY,
+	
+	STOP,
+	SET,
+	DONE,
+	
+	size
+);
+END_TYPE
+(*
+general homing sequence:
+	on drive.homingSequence() call, home towards home sensor
+	if home reached, set position and finish homing as usual
+	if outer limit reached, traverse towards inner limit
+		when inner limit reached, retry homing
+*)]]></Declaration>
+  </DUT>
+</TcPlcObject>

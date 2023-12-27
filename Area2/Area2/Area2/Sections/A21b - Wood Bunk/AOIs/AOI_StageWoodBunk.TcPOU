@@ -1,0 +1,186 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="AOI_StageWoodBunk" Id="{6c864042-c983-4c24-b88e-aa9f17c286e4}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK AOI_StageWoodBunk
+VAR_INPUT
+	execute : BOOL;
+END_VAR
+VAR_IN_OUT CONSTANT
+	sectionID : SectionEnum;
+END_VAR
+VAR_IN_OUT
+	robot : RobotA21;
+	table : StagingTable;
+	magazine : SkidMagazine;
+END_VAR
+VAR_INPUT
+	slot : INT;
+	material : STRING;
+END_VAR
+VAR_OUTPUT
+	busy : BOOL;
+	done : BOOL; //this done signal stays on until next execution
+	error : BOOL;
+	
+	recovery : BOOL;
+	failCounter : INT;
+	
+	donePulse : BOOL; //this done signal only stays on for 1 cycle after completion
+END_VAR
+VAR
+	run : BOOL;
+	trigger : R_TRIG;	
+	doneTrigger : R_TRIG;
+	
+	column : INT;
+	step : (IDLE, PREP_ROBOT, GET_FROM_MAGAZINE, PLACE_ON_TABLE, COMPLETE);
+END_VAR
+VAR CONSTANT
+	suctionDistance : INT := 10;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[{warning disable C0371}
+{warning disable C0195}
+(*
+IF error THEN
+	step := IDLE;
+END_IF
+*)
+trigger(CLK:= execute, Q=> );
+doneTrigger(CLK:= done, Q=> donePulse);
+
+busy := trigger.Q OR step > 0;
+
+IF step > IDLE AND_THEN NOT preExecution() THEN //conditions to track before execution
+	RETURN;
+END_IF
+
+//follow the template as is
+CASE step OF
+	IDLE:
+		IF trigger.Q THEN //reset outputs
+			done := FALSE;
+			error := FALSE;
+			recovery := FALSE;
+			
+			step := PREP_ROBOT;
+		END_IF
+		
+	PREP_ROBOT:
+		robot.clearCommand();
+		IF robot.Ready THEN
+			step := GET_FROM_MAGAZINE;
+		END_IF
+	
+	GET_FROM_MAGAZINE: //grab from magazine
+		IF NOT magazine.findSlot(material := material, index => column) THEN
+			error := TRUE;
+			RETURN;
+		END_IF
+		
+		IF robot.eoatDistance < suctionDistance THEN //robot is grabbing material
+			robot.HoldMaterial := magazine.getSlot(i := column);
+		END_IF
+		
+		IF robot.Done THEN
+			step := COMPLETE;
+			RETURN;
+		END_IF
+		
+		robot.setGroup(group := 1, value := A21.STAGE_BUNK);
+		robot.setGroup(group := 2, value := column);
+		robot.setGroup(group := 3, value := slot);
+
+	COMPLETE: //check here if staging is successful or needs to be repeated
+		robot.clearCommand();
+		
+		IF table.isOccupied(slot) THEN
+			table.place(i := slot, materialID := robot.HoldMaterial);
+			robot.HoldMaterial := '';
+			
+			failCounter := 0;
+			done := TRUE;
+		ELSE
+			failCounter := failCounter + 1;
+		END_IF
+		
+		step := 0;
+		
+END_CASE]]></ST>
+    </Implementation>
+    <Method Name="preExecution" Id="{62a32b18-7886-4309-aa63-dec22eaab308}">
+      <Declaration><![CDATA[METHOD PRIVATE preExecution : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[{warning disable C0371}
+
+IF slot < 1 THEN //out of bounds for staging table
+	error := TRUE;
+	RETURN;
+ELSIF table.isFull() OR slot > 10 OR material = '' OR table.getSlot(i := slot, error => ) = material THEN
+	done := TRUE;
+	RETURN;
+END_IF
+
+IF //robot must be ready before execution
+	robot.error OR 
+	robot.reservation <> sectionID OR 
+	robot.tool <> sectionID
+THEN
+	error := TRUE;
+	RETURN;
+END_IF
+
+preExecution := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="reset" Id="{e16aedcc-d6f2-4922-848c-fad286bf1796}">
+      <Declaration><![CDATA[METHOD reset : BOOL
+VAR_INPUT
+END_VAR
+VAR
+	temp : AOI_StageWoodBunk;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//(*
+done := FALSE;
+error := FALSE;
+recovery := FALSE;
+slot := 0;
+step := 0;
+
+failCounter := 0;
+//*)
+//THIS^ := temp;]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="AOI_StageWoodBunk">
+      <LineId Id="1257" Count="66" />
+      <LineId Id="1127" Count="0" />
+    </LineIds>
+    <LineIds Name="AOI_StageWoodBunk.preExecution">
+      <LineId Id="18" Count="0" />
+      <LineId Id="22" Count="6" />
+      <LineId Id="21" Count="0" />
+      <LineId Id="10" Count="7" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="20" Count="0" />
+      <LineId Id="19" Count="0" />
+    </LineIds>
+    <LineIds Name="AOI_StageWoodBunk.reset">
+      <LineId Id="23" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="6" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="21" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

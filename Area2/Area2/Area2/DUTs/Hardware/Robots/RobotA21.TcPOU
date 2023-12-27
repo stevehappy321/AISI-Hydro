@@ -1,0 +1,314 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="RobotA21" Id="{b0860a5e-6e08-407c-9dba-697264065907}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK RobotA21 EXTENDS KukaRobot
+VAR_OUTPUT //from outputs array
+	{warning disable C0195}
+	taskID : A21;
+	param1 : INT;
+	param2 : INT;
+	Xmm : INT;
+	Ymm : INT;
+	Zmm : INT;
+	angle : INT;
+	stagingOccupancy : INT;
+	insertionSuctionStatus : INT;
+	magazineStatus : INT; //unused
+	inspectionValue : INT;
+	
+	strapSafetyOut : BOOL;
+END_VAR
+VAR_OUTPUT //from inputs array
+	tool : SectionEnum := SectionEnum.WOOD_BUNK;
+	suspendedMaterial : STRING;
+	//gripper : EOAT := (id := SectionEnum.WOOD_BUNK, material := '');
+	
+	completedTask : A21;
+	eoatDistance : INT;
+	woodBunkAvailability : INT;
+	chipboardAvailability : INT;
+	materialAtHoldingPosition : INT;
+	
+	strapSafetyIn : BOOL;
+END_VAR
+VAR
+	reservationEnum : SectionEnum;
+	hmiTask : STRING;
+	hmiTool : STRING;
+END_VAR
+(*
+extends KukaRobot
+assigns descriptive labels to each IO group from the array
+additional section-specific methods to get/set IO groups
+*)]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[(*
+parameters - aliases to IO elements
+command - full IO array
+*)
+{warning disable C0195}
+SUPER^();
+
+strapSafetyOut := NOT strapperA21.enable AND NOT strapperA21.execute;
+outputs[8].15 := strapSafetyOut;
+
+outputs[1] := taskID;
+outputs[2] := param1;
+outputs[3] := param2;
+outputs[4] := Xmm;
+outputs[5] := Ymm;
+outputs[6] := Zmm;
+outputs[7] := angle;
+outputs[8] := stagingOccupancy;
+outputs[9] := insertionSuctionStatus;
+outputs[10] := magazineStatus;
+outputs[11] := inspectionValue;
+
+outputs[8].15 := strapSafetyOut;
+
+refreshParameters();
+
+reservationEnum := reservation;
+IF reservationEnum = SectionEnum.NULL_SECTION THEN
+	hmiReservation := 'N/A';
+ELSE
+	hmiReservation := TO_STRING(reservationEnum);
+END_IF
+
+hmiTask := TO_STRING(taskID);
+hmiTool := TO_STRING(tool);]]></ST>
+    </Implementation>
+    <Folder Name="Parameters" Id="{a5b46e1c-8533-46ed-a8ad-d62fff793a82}" />
+    <Folder Name="Properties" Id="{ad3307e6-9124-4570-a731-47f88f315415}" />
+    <Property Name="Busy" Id="{6f9d2bc1-f359-4cb1-b877-e40e4cb82394}" FolderPath="Properties\">
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY Busy : BOOL]]></Declaration>
+      <Get Name="Get" Id="{7c3d9206-25c5-40cd-97b6-d1720b9c6547}">
+        <Declaration><![CDATA[VAR
+	//emptyOutput : ARRAY[1..50] OF INT;
+END_VAR
+//Busy stays TRUE until outputs are cleared AND completed task has elapsed
+//Ready is always inverse of Busy]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[refreshParameters();
+
+Busy := taskID <> 0 OR completedTask <> 0;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="changeEOAT" Id="{b34b1079-0991-4720-8e8b-1775bc7cb568}">
+      <Declaration><![CDATA[METHOD changeEOAT : BOOL
+VAR_INPUT
+	targetTool : SectionEnum;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[setGroup(group := 1, value := A21.TOOL_CHANGE_CHIPBOARD);
+setGroup(group := 1, value := A21.TOOL_CHANGE_BUNK);
+
+changeEOAT := tool = targetTool;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="clearCommand" Id="{d69d6ac7-011b-441c-a57c-fe92b24dbe4d}">
+      <Declaration><![CDATA[METHOD clearCommand : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[SUPER^.clearCommand();
+
+refreshParameters();]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="Done" Id="{ec91f7db-d369-4ccd-96a6-8c546c819905}" FolderPath="Properties\">
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY Done : BOOL]]></Declaration>
+      <Get Name="Get" Id="{db5928e1-8f49-4ce3-9b46-32c09cf8c3bf}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[refreshParameters();
+
+Done :=
+	completedTask = taskID AND
+	taskID <> 0 AND
+	completedTask <> 0;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="HoldMaterial" Id="{b7730445-e283-4b48-b743-120832da12cc}" FolderPath="Properties\">
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY HoldMaterial : STRING]]></Declaration>
+      <Get Name="Get" Id="{2762fd47-fa00-4290-9aa3-5efae0b94e11}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[HoldMaterial := suspendedMaterial;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{c55adcb1-d376-491b-861d-9a225fdfa230}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[suspendedMaterial := HoldMaterial;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="Ready" Id="{2211afcd-b7d1-49c9-9ad3-74a2131f3c71}" FolderPath="Properties\">
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY Ready : BOOL]]></Declaration>
+      <Get Name="Get" Id="{b7b46ee6-7f33-4480-b71e-df7113eb434b}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[refreshParameters();
+
+Ready := taskID = 0 AND completedTask = 0;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="refreshParameters" Id="{d3f0f2af-d14a-4706-a99d-db2f194a503a}">
+      <Declaration><![CDATA[METHOD PRIVATE refreshParameters : BOOL
+VAR_INPUT
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[{warning disable C0196}
+taskID := outputs[1];
+param1 := outputs[2];
+param2 := outputs[3];
+Xmm := outputs[4];
+Ymm := outputs[5];
+Zmm := outputs[6];
+angle := outputs[7];
+stagingOccupancy := outputs[8];
+insertionSuctionStatus := outputs[9];
+magazineStatus := outputs[10]; //unused
+inspectionValue := outputs[11];
+
+completedTask := inputs[1];
+eoatDistance := inputs[2];
+woodBunkAvailability := inputs[3];
+chipboardAvailability := inputs[4];
+materialAtHoldingPosition := inputs[5];
+//robotEOAT := inputs[6];
+
+strapSafetyIn := inputs[4].15;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="setGroup" Id="{503da7b7-4b1e-4183-bf7d-cd91f2000e32}" FolderPath="Parameters\">
+      <Declaration><![CDATA[METHOD setGroup : BOOL
+VAR_INPUT
+	group : INT;
+	value : INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[SUPER^.setGroup(group := group, value := value);
+
+refreshParameters();]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="setParameters" Id="{63737094-ec02-4d8b-ab73-fdb7bdb6cb72}" FolderPath="Parameters\">
+      <Declaration><![CDATA[METHOD setParameters : BOOL
+VAR_INPUT
+	newTaskID : INT;
+	newParam1 : INT;
+	newParam2 : INT;
+	newXmm : INT;
+	newYmm : INT;
+	newZmm : INT;
+	newAngle : INT;
+	newStagingOccupancy : INT;
+	newInsertionSuctionStatus : INT;
+	newMagazineStatus : INT; //unused
+	newInspectionValue : INT;
+END_VAR
+VAR_INPUT
+	strapSafety : BOOL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[setGroup(group := 1, value := newTaskID);
+setGroup(group := 2, value := newParam1);
+setGroup(group := 3, value := newParam2);
+setGroup(group := 4, value := newXmm);
+setGroup(group := 5, value := newYmm);
+setGroup(group := 6, value := newZmm);
+setGroup(group := 7, value := newAngle);
+
+newStagingOccupancy.15 := strapSafety;
+setGroup(group := 8, value := newStagingOccupancy);
+
+setGroup(group := 9, value := newInsertionSuctionStatus);
+setGroup(group := 10, value := newMagazineStatus);
+setGroup(group := 11, value := newInspectionValue);
+
+refreshParameters();]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="RobotA21">
+      <LineId Id="653" Count="33" />
+      <LineId Id="561" Count="0" />
+    </LineIds>
+    <LineIds Name="RobotA21.Busy.Get">
+      <LineId Id="6" Count="1" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="RobotA21.changeEOAT">
+      <LineId Id="7" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="8" Count="0" />
+    </LineIds>
+    <LineIds Name="RobotA21.clearCommand">
+      <LineId Id="14" Count="1" />
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="RobotA21.Done.Get">
+      <LineId Id="10" Count="0" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="2" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="14" Count="0" />
+    </LineIds>
+    <LineIds Name="RobotA21.HoldMaterial.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="RobotA21.HoldMaterial.Set">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="RobotA21.Ready.Get">
+      <LineId Id="5" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="RobotA21.refreshParameters">
+      <LineId Id="27" Count="0" />
+      <LineId Id="6" Count="15" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="24" Count="0" />
+      <LineId Id="23" Count="0" />
+    </LineIds>
+    <LineIds Name="RobotA21.setGroup">
+      <LineId Id="5" Count="0" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="16" Count="0" />
+    </LineIds>
+    <LineIds Name="RobotA21.setParameters">
+      <LineId Id="5" Count="0" />
+      <LineId Id="21" Count="5" />
+      <LineId Id="35" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="27" Count="0" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="28" Count="2" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="36" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

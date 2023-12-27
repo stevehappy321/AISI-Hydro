@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <Itf Name="I_MaterialSection" Id="{60a8100d-09a1-43bb-843f-e7486ceeed19}">
+    <Declaration><![CDATA[INTERFACE I_MaterialSection
+]]></Declaration>
+    <Method Name="changeRobotsEOAT" Id="{63d8ef9d-f8aa-4c79-af4b-d53b87a37256}">
+      <Declaration><![CDATA[METHOD changeRobotsEOAT : BOOL
+VAR_INPUT
+END_VAR]]></Declaration>
+    </Method>
+    <Method Name="load" Id="{7d7921c2-22d8-4c27-b548-abfae784bce2}">
+      <Declaration><![CDATA[METHOD load : BOOL
+VAR_INPUT
+	pair : REFERENCE TO PositionMaterials;
+END_VAR]]></Declaration>
+    </Method>
+    <Method Name="unload" Id="{84095436-e4a6-4f8a-a0c6-e9783af45db9}">
+      <Declaration><![CDATA[METHOD unload : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="usesMaterial" Id="{a5fca9bb-eb53-4844-8e77-c5b578cca39e}">
+      <Declaration><![CDATA[METHOD usesMaterial : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+    </Method>
+  </Itf>
+</TcPlcObject>

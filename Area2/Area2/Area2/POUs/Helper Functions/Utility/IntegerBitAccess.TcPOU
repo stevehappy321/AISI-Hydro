@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="IntegerBitAccess" Id="{b06922ad-687f-4f20-8c5d-74dac39fd7e3}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION IntegerBitAccess : BOOL
+VAR_INPUT
+	num : ULINT;
+	n : ULINT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IntegerBitAccess := (SHR(num, n) AND 1) > 0;]]></ST>
+    </Implementation>
+    <LineIds Name="IntegerBitAccess">
+      <LineId Id="19" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

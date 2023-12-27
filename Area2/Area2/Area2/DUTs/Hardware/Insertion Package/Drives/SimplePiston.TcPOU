@@ -1,0 +1,108 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="SimplePiston" Id="{dde29006-4667-4b14-a7a2-63eeff705cc1}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK SimplePiston
+VAR_INPUT
+	bEnable : BOOL;
+END_VAR
+VAR_OUTPUT
+	pistonExtend AT %Q* : BOOL;
+	pistonRetract AT %Q* : BOOL;
+	
+	extended AT %I* : BOOL;
+	retracted AT %I* : BOOL;
+	
+	busy : BOOL;
+END_VAR
+VAR
+	mode : (HOLD, IN, OUT);
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF
+	NOT bEnable OR
+	(retracted AND_THEN (pistonRetract OR mode = OUT)) OR
+	(extended AND_THEN (pistonExtend OR mode = IN))
+THEN
+	mode := HOLD;
+END_IF
+
+CASE mode OF
+	HOLD:
+		pistonRetract := FALSE;
+		pistonExtend := FALSE;
+		
+	IN:
+		pistonRetract := FALSE;
+		pistonExtend := TRUE;
+	
+	OUT:
+		pistonRetract := TRUE;
+		pistonExtend := FALSE;
+	
+END_CASE
+
+busy := mode = IN OR mode = OUT;]]></ST>
+    </Implementation>
+    <Method Name="extend" Id="{fbd21f08-0552-4f5d-8a8d-ad5b13e3fe59}">
+      <Declaration><![CDATA[METHOD extend : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[mode := IN;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="retract" Id="{6350375f-79f4-4ad8-abbd-ba1f3e2becc4}">
+      <Declaration><![CDATA[METHOD retract : BOOL
+VAR_INPUT
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[mode := OUT;
+
+retract := retracted;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="stop" Id="{7dbae53a-2431-4bcc-a0de-996a7010162a}">
+      <Declaration><![CDATA[METHOD stop : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[pistonExtend := FALSE;
+pistonRetract := FALSE;
+mode := HOLD;]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="SimplePiston">
+      <LineId Id="9" Count="0" />
+      <LineId Id="76" Count="0" />
+      <LineId Id="56" Count="0" />
+      <LineId Id="58" Count="0" />
+      <LineId Id="57" Count="0" />
+      <LineId Id="30" Count="1" />
+      <LineId Id="59" Count="0" />
+      <LineId Id="40" Count="0" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="44" Count="3" />
+      <LineId Id="53" Count="1" />
+      <LineId Id="48" Count="2" />
+      <LineId Id="55" Count="0" />
+      <LineId Id="52" Count="0" />
+      <LineId Id="43" Count="0" />
+      <LineId Id="93" Count="0" />
+      <LineId Id="92" Count="0" />
+    </LineIds>
+    <LineIds Name="SimplePiston.extend">
+      <LineId Id="6" Count="0" />
+    </LineIds>
+    <LineIds Name="SimplePiston.retract">
+      <LineId Id="5" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="8" Count="0" />
+    </LineIds>
+    <LineIds Name="SimplePiston.stop">
+      <LineId Id="6" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

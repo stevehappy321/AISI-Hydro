@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="TimestructToString" Id="{4fc5d7bb-92c9-4b42-9b13-6883a6bec71c}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION TimestructToString : STRING
+VAR_INPUT
+	t : REFERENCE TO TIMESTRUCT;
+END_VAR
+VAR
+	year : STRING;
+	month : STRING;
+	day : STRING;
+	
+	hour : STRING;
+	minute : STRING;
+	second : STRING;
+	
+	strIn : ARRAY[0..5] OF STRING(2);
+	
+	sCMD : STRING;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[strIn[0] := WORD_TO_STRING(t.wYear);
+strIn[1] := WORD_TO_STRING(t.wMonth);
+strIn[2] := WORD_TO_STRING(t.wDay);
+
+strIn[3] := WORD_TO_STRING(t.wHour);
+strIn[4] := WORD_TO_STRING(t.wMinute);
+strIn[5] := WORD_TO_STRING(t.wSecond);
+
+sCMD := CONCAT(strIn[0], '-'); //date
+sCMD := CONCAT(sCMD, strIn[1]);
+sCMD := CONCAT(sCMD, '-');
+sCMD := CONCAT(sCMD, strIn[2]);
+sCMD := CONCAT(sCMD, ' ');
+
+sCMD := CONCAT(sCMD, strIn[3]); //time
+sCMD := CONCAT(sCMD, ':');
+sCMD := CONCAT(sCMD, strIn[4]);
+sCMD := CONCAT(sCMD, ':');
+sCMD := CONCAT(sCMD, strIn[5]);]]></ST>
+    </Implementation>
+    <LineIds Name="TimestructToString">
+      <LineId Id="8" Count="17" />
+      <LineId Id="7" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

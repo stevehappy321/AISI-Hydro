@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="MaterialType" Id="{0610b25d-ca32-42ce-b667-1d0a9e8c85cc}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+TYPE MaterialType :
+(
+	PAPER,
+	CARDBOARD,
+	CORNER_GUARD,
+	CHIPBOARD,
+	WOOD_BUNK,
+	size
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

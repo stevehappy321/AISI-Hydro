@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <GVL Name="Conveyors" Id="{310ee96c-4f5e-4afd-b044-15a1d6311f63}">
+    <Declaration><![CDATA[//{attribute 'qualified_only'}
+VAR_GLOBAL CONSTANT
+	
+END_VAR
+VAR_GLOBAL
+	(*
+	A24_LRC_C02 	: Conveyor; //these conveyoors move bundles from A2.7 to A2.4
+	A24_LRC_C04 	: Conveyor;
+	A24_LRC_C06	 	: Conveyor;
+	A24_LRC_C08 	: Conveyor;
+	A24_LRC_C10 	: Conveyor;
+	A24_LRC_C12 	: Conveyor;
+	
+	A24_SC_C01 		: ConveyorSC; //these conveyors move bundles on A2.4 forward down the cell
+	A24_SC_C03 		: ConveyorSC;
+	A24_SC_C05 		: ConveyorSC;
+	A24_SC_C07 		: ConveyorSC;
+	A24_SC_C09 		: ConveyorSC;
+	A24_SC_C11 		: ConveyorSC;
+	A24_SC_C13 		: ConveyorSC;
+	
+	A23_LSC_C14 	: ConveyorLSC;
+	
+	A22_SC_C15 		: ConveyorSC;
+	A22_LSC_C16 	: ConveyorLSC;
+	A22_LSC_C17 	: ConveyorLSC;
+	
+	A21_SC_C18 		: ConveyorSC;
+	A21_LSC_C19 	: ConveyorLSC;
+	A21_LSC_C20 	: ConveyorLSC;
+	A21_LSC_C21 	: ConveyorLSC;
+	
+	A25_SC_C22 		: ConveyorSC;
+	A25_LSC_C23 	: ConveyorLSC;
+	A25_SC_C24 		: ConveyorSC;
+	A25_LSLCC_C25 	: ConveyorLSC;
+	A25_SC_C26 		: ConveyorSC;
+	A25_LSLCC_C27 	: ConveyorLSC;
+	A25_SC_C28 		: ConveyorSC;
+	A25_LSC_C29 	: ConveyorLSC;
+	A25_SC_C30 		: ConveyorSC;
+	
+	A25_SC_C31 		: ConveyorSC; //these conveyors move the bundle sideways onto the output buffers
+	A25_SC_C32 		: ConveyorSC;
+	A25_SC_C33 		: ConveyorSC;
+	A25_SC_C34 		: ConveyorSC;
+	A25_SC_C35 		: ConveyorSC;
+	A25_SC_C36 		: ConveyorSC;
+	A25_SC_C37 		: ConveyorSC;
+	A25_SC_C38 		: ConveyorSC;
+	*)
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

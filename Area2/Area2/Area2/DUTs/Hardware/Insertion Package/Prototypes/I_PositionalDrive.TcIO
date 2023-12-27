@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <Itf Name="I_PositionalDrive" Id="{7ff36782-3a74-44fe-9781-bd1eb4fd6a04}">
+    <Declaration><![CDATA[INTERFACE I_PositionalDrive EXTENDS I_Drive
+]]></Declaration>
+    <Folder Name="Properties" Id="{9fdc7af2-f2cc-46a5-9f69-d70ee615a965}" />
+    <Property Name="AtOuterLimit" Id="{1f4561d8-1649-4c35-95ef-69e99e9cfee1}" FolderPath="Properties\">
+      <Declaration><![CDATA[{attribute 'monitoring':='call'}
+PROPERTY AtOuterLimit : BOOL]]></Declaration>
+      <Get Name="Get" Id="{8f6a493f-f971-4817-9741-bc376f861101}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+    </Property>
+    <Property Name="CurrentPosition" Id="{7bb2ba01-3d78-4401-8f5b-3022e94c3d56}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY CurrentPosition : LREAL]]></Declaration>
+      <Get Name="Get" Id="{1b8d0303-30f3-4b27-838f-974d7c0d43e7}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+      <Set Name="Set" Id="{b10fe029-2d18-40aa-b7f9-2ca2ed5a9a16}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Method Name="moveAbsolute" Id="{981b32ef-beee-4f5d-8a5f-d267261dbe18}">
+      <Declaration><![CDATA[METHOD ABSTRACT moveAbsolute : BOOL
+VAR_INPUT
+	newTarget : LREAL; 
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="moveRelative" Id="{8494ae18-19d0-47fb-9dc9-c2631eaabe77}">
+      <Declaration><![CDATA[METHOD ABSTRACT moveRelative : BOOL
+VAR_INPUT
+	distance : LREAL;
+END_VAR]]></Declaration>
+    </Method>
+    <Property Name="TargetPosition" Id="{b043ed3a-6d53-44a1-a250-c5f98bdd7456}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY TargetPosition : LREAL]]></Declaration>
+      <Get Name="Get" Id="{7a0ab4e3-037c-47ad-b9f8-c95c28950d23}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+      <Set Name="Set" Id="{f0c65083-a9bd-4ce7-b59a-b0122cc24ec7}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+      </Set>
+    </Property>
+  </Itf>
+</TcPlcObject>

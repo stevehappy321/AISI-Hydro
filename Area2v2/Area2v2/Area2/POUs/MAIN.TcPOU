@@ -1,0 +1,1029 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="MAIN" Id="{f8ea2e52-8cdd-4c5a-a5f9-4c8d8a3c6a2c}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAIN
+VAR_OUTPUT //globally readable, but only modifiable by MAIN
+	outputBuffer : ARRAY[Surface.LEFT..Surface.RIGHT] OF Bundle;
+	outputBufferPass, outputBufferFail : Bundle;
+	numOutputBundles : USINT := 0;
+	
+	bundleIn : Bundle;
+	bundleOut : Bundle;
+	
+	start : BOOL;
+	
+	ready : BOOL;
+	busy : BOOL;
+	done : BOOL;
+	error : BOOL;
+	backlog : BOOL;
+	
+	stop : BOOL;
+	execute : BOOL;
+	hold : BOOL;
+	reset : BOOL;
+	
+	localTime : TIMESTRUCT;
+	
+	pmlModeString : STRING;
+	pmlStateString : STRING;
+END_VAR
+VAR
+	clearPassBuffer, clearFailBuffer AT %I* : BOOL;
+	receiverStruct : AdsData;
+	
+	//ETA is not strictly required, area will process bundle even if it is not in ETA arrays
+	expectedBundles : ARRAY[0..Consts.maxQueue] OF STRING; //bundles expected to arrive
+	expectedArrivals : ARRAY[0..Consts.maxQueue] OF TIMESTRUCT; //bundles expected to arrive
+	numEtaBundles : INT;
+	
+	//parallel arrays - bundle, bypass
+	numBundles : INT;
+	bundlesQueue : ARRAY[0..Consts.maxQueue] OF Bundle;
+	bundlesBypass : ARRAY[0..Consts.maxQueue] OF BOOL;
+END_VAR
+VAR //sections
+	spacerRecollector : SpacerRecollectionUnit;
+	//paperSection : PaperEx;
+	//cardboardCornerGuardSection : CardboardCornerGuardEx;
+	chipboardSection : ChipboardEx;
+	woodBunkSection : WoodBunkEx;
+	//outputSection : AreaOutputEx;	
+END_VAR
+VAR
+	fbLocalSystemTime : FB_LocalSystemTime;
+	dbLogger : SqlDatabaseAccessor;
+	//conveyorController : ConveyorControlUnit;
+	
+	pmlState : E_PMLState;
+	pmlCommand : E_PMLCommand;
+	pmlStateMachine : PML_StateMachine;
+	
+	pmlModeRequest : E_PMLCustomUnitMode := ePMLCustomUnitMode_Production;
+	pmlMode : E_PMLCustomUnitMode;
+	pmlModeManager : PML_UnitModeManager;
+END_VAR
+VAR //these variables are only tracked for HMI
+	sectionsBusy : ARRAY[0..SectionEnum.size] OF BOOL;
+	sectionsIterator : ARRAY[0..SectionEnum.size] OF INT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[(*
+ready := paperSection.ready; //if A2 is not ready, dispatch controller must block operator from sending bundles here
+busy := paperSection.busy OR cardboardCornerGuardSection.busy OR chipboardSection.busy OR woodBunkSection.busy OR outputSection.busy;
+done := outputSection.done;
+backlog := numBundlesQueue > 5;
+*)
+
+initSections();
+
+//for random testing only
+//fillBundlesQueue();
+//SizeCheck();
+
+blocks();
+	
+runPML();
+
+(*
+the new program structure specifies the following:
+	declare the section modules in MAIN,
+	declare the hardware modules in the approrpiate subarea module
+		see folder HARDWARE_DISTRIBUTION for all 6 subareas
+	pass the section modules to one of the 6 subarea hardware distrubutors to be called with their required hardware
+
+conveyors are declared as VAR_OUTPUTs to allow an external conveyor ocntrol module to access all conveyors across subareas
+
+this structure should drastically reduce the visibility of hardware modules and eliminate the need for large GVLs
+*)
+
+A26(spacerRecollector := spacerRecollector);
+(*
+A24()
+A23()
+A22()
+*)
+A21(
+	sectionCIP:= chipboardSection, 
+	sectionWB:= woodBunkSection, 
+	bundlesQueue:= bundlesQueue, 
+	bundlesBypass:= bundlesBypass);
+//A25()
+
+IF AdsClient.fetchData(receiverStruct) THEN
+	interpretTransmission(receiverStruct);
+END_IF
+
+IF ready AND BundleIsValid(bundleIn) THEN
+	receive();
+END_IF
+
+IF clearPassBuffer OR clearFailBuffer THEN
+	transfer();
+	shiftBundles();
+END_IF
+
+dbLogger();]]></ST>
+    </Implementation>
+    <Folder Name="PML Conditions" Id="{c04cfa90-34d0-4dce-a54d-25d4cc1b429e}" />
+    <Folder Name="PML States" Id="{6ef5f588-dba8-43b6-aecd-30cae96b064d}" />
+    <Folder Name="Process Modes" Id="{8d1d624d-f207-4b80-ae71-4f41b10197eb}" />
+    <Folder Name="Setup" Id="{766689c6-4b05-4d8b-a8a4-3bf5c2750aa3}" />
+    <Method Name="blocks" Id="{c80f4661-ff18-4213-ae67-df91d268d18e}">
+      <Declaration><![CDATA[METHOD PRIVATE blocks : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fbLocalSystemTime(
+	sNetID:= '', 
+	bEnable:= TRUE, 
+	dwCycle:= , 
+	dwOpt:= , 
+	tTimeout:= , 
+	bValid=> , 
+	systemTime=> localTime, 
+	tzID=> );
+
+ConveyorControlModule(
+	A24_LRC_C02:= A24.A24_LRC_C02, 
+	A24_LRC_C04:= A24.A24_LRC_C04, 
+	A24_LRC_C06:= A24.A24_LRC_C06, 
+	A24_LRC_C08:= A24.A24_LRC_C08, 
+	A24_LRC_C10:= A24.A24_LRC_C10, 
+	A24_LRC_C12:= A24.A24_LRC_C12, 
+	
+	A24_SC_C01:= A24.A24_SC_C01, 
+	A24_SC_C03:= A24.A24_SC_C03, 
+	A24_SC_C05:= A24.A24_SC_C05, 
+	A24_SC_C07:= A24.A24_SC_C07, 
+	A24_SC_C09:= A24.A24_SC_C09, 
+	A24_SC_C11:= A24.A24_SC_C11, 
+	A24_SC_C13:= A24.A24_SC_C13, 
+	
+	A23_LSC_C14:= A23.A23_LSC_C14, 
+	
+	A22_SC_C15:= A22.A22_SC_C15, 
+	A22_LSC_C16:= A22.A22_LSC_C16, 
+	A22_LSC_C17:= A22.A22_LSC_C17, 
+	A21_SC_C18:= A21.A21_SC_C18, 
+	A21_LSC_C19:= A21.A21_LSC_C19, 
+	A21_LSC_C20:= A21.A21_LSC_C20, 
+	A21_LSC_C21:= A21.A21_LSC_C21, 
+	
+	A25_SC_C22:= A25.A25_SC_C22, 
+	A25_LSC_C23:= A25.A25_LSC_C23, 
+	A25_SC_C24:= A25.A25_SC_C24, 
+	A25_LSLCC_C25:= A25.A25_LSLCC_C25, 
+	A25_SC_C26:= A25.A25_SC_C26, 
+	A25_LSLCC_C27:= A25.A25_LSLCC_C27, 
+	A25_SC_C28:= A25.A25_SC_C28, 
+	A25_LSC_C29:= A25.A25_LSC_C29, 
+	A25_SC_C30:= A25.A25_SC_C30, 
+	
+	
+	A25_SC_C31:= A25.A25_SC_C31, 
+	A25_SC_C32:= A25.A25_SC_C32, 
+	A25_SC_C33:= A25.A25_SC_C33, 
+	A25_SC_C34:= A25.A25_SC_C34, 
+	A25_SC_C35:= A25.A25_SC_C35, 
+	A25_SC_C36:= A25.A25_SC_C36, 
+	A25_SC_C37:= A25.A25_SC_C37, 
+	A25_SC_C38:= A25.A25_SC_C38);
+	
+AdsClient( //PLC-PLC comms
+	ServerNetId:= , 
+	ServerPort:= , 
+	bBusy=> , 
+	err=> , 
+	errid=> , 
+	localPrgName=> , 
+	localNetId=> , 
+	localPort=> , 
+	socketReady=> , 
+	remoteAccessPrefix=> );
+	
+TcpServer1Vision( //PLC-Vision comms
+	ServerNetId:= , 
+	ServerAdr:= , 
+	ServerPort:= , 
+	busy=> , 
+	error=> , 
+	errorId=> , 
+	bytesReceived=> , 
+	connected=> , 
+	receiveStruct=> );]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="fillBundlesQueue" Id="{73fc04c3-3b20-4b90-b668-e45a325d9c2c}" FolderPath="Setup\">
+      <Declaration><![CDATA[METHOD fillBundlesQueue : BOOL
+VAR
+	i : INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT start THEN //for HMI testing only, remove for production
+	FOR i:=0 TO Consts.maxQueue BY 1 DO
+		bundlesQueue[i].id := TO_STRING(i);
+	END_FOR
+	
+	start := TRUE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="initSections" Id="{1af4c629-041d-43ca-9e16-2266f17c58c8}" FolderPath="Setup\">
+      <Declaration><![CDATA[METHOD PRIVATE initSections : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//paperSection.connectTo(ADR(cardboardCornerGuardSection));
+//cardboardCornerGuardSection.connectTo(ADR(chipboardSection));
+//chipboardSection.connectTo(ADR(woodBunkSection));
+woodBunkSection.connectTo(0); //(ADR(outputSection));
+//connecting to 0 means no next section
+
+//paperSection.sectionID := SectionEnum.PAPER;
+//cardboardCornerGuardSection.sectionID := SectionEnum.CARDBOARD_CORNERGUARD;
+//chipboardSection.sectionID := SectionEnum.CHIPBOARD;
+woodBunkSection.sectionID := SectionEnum.WOOD_BUNK;
+//outputSection.sectionID := SectionEnum.OUTPUT;
+
+(*
+	paperSection.pNextSection := ADR(cardboardCornerGuardSection);
+	cardboardCornerGuardSection.accessNextSection := ADR(chipboardSection);
+	chipboardSection.accessNextSection := ADR(woodBunkSection);
+	woodBunkSection.accessNextSection := ADR(outputSection);
+	outputSection.accessNextSection := 0;
+*)
+
+initSections := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="interpretTransmission" Id="{04aa253b-ab0d-41b0-b6b2-443fd8efedd5}">
+      <Declaration><![CDATA[METHOD PRIVATE interpretTransmission : BOOL
+VAR_INPUT
+	data : REFERENCE TO AdsData;
+END_VAR
+VAR
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CASE data.description OF
+	EventsEnum.BUNDLE_IN:
+		MEMCPY(ADR(bundleIn), ADR(data.binaryData), SIZEOF(bundleIn));
+			
+	EventsEnum.BUNDLE_ETA:
+		MEMCPY(ADR(expectedBundles[numEtaBundles]), ADR(data.binaryData), SIZEOF(expectedBundles[numEtaBundles]));
+		expectedArrivals[numEtaBundles] := data.timestamp;
+		
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="maintenance" Id="{0fc159f6-b7a4-4008-822a-e6f2dd60b8f1}">
+      <Declaration><![CDATA[METHOD maintenance : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="process" Id="{f9da02b9-c065-4582-840f-d291dad1e576}" FolderPath="Process Modes\">
+      <Declaration><![CDATA[METHOD PRIVATE process : BOOL
+(*
+full parallel processsing
+all sections may operate concurrently on any bundle
+*)]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[(*
+paperSection(
+	enable:= run[SectionEnum.PAPER], 
+	bundlesQueue:= bundlesQueue, 
+	bundlesBypass:= bundlesBypass,
+	bundleOut=> , 
+	bypass=> , 
+	ready=> , 
+	busy=> sectionsBusy[SectionEnum.PAPER], 
+	done=> , 
+	error=> , 
+	backlog=> ,
+	iBundle=> sectionsIterator[SectionEnum.PAPER],
+	iPair=> );
+	
+cardboardCornerGuardSection(
+	enable:= run[SectionEnum.CARDBOARD_CORNERGUARD],
+	bundlesQueue:= bundlesQueue, 
+	bundlesBypass:= bundlesBypass,
+	bundleOut=> ,
+	bypass=> , 
+	ready=> , 
+	busy=> sectionsBusy[SectionEnum.CARDBOARD_CORNERGUARD], 
+	done=> , 
+	error=> , 
+	backlog=> ,
+	iBundle=> sectionsIterator[SectionEnum.CARDBOARD_CORNERGUARD],
+	iPair=> );
+
+chipboardSection(
+	enable:= run[SectionEnum.CHIPBOARD],
+	bundlesQueue:= bundlesQueue, 
+	bundlesBypass:= bundlesBypass, 
+	bundleOut=> ,
+	bypass=> , 
+	ready=> , 
+	busy=> sectionsBusy[SectionEnum.CHIPBOARD], 
+	done=> , 
+	error=> , 
+	backlog=> ,
+	iBundle=> sectionsIterator[SectionEnum.CHIPBOARD],
+	iPair=> );
+*)
+
+(*
+woodBunkSection(
+	enable:= run[SectionEnum.WOOD_BUNK],
+	bundlesQueue:= bundlesQueue, 
+	bundlesBypass:= bundlesBypass, 
+	bundleOut=> ,
+	bypass=> , 
+	ready=> , 
+	busy=> sectionsBusy[SectionEnum.WOOD_BUNK], 
+	done=> , 
+	error=> , 
+	backlog=> ,
+	iBundle=> sectionsIterator[SectionEnum.WOOD_BUNK],
+	iPair=> );
+*)
+(*
+outputSection(
+	enable:= run[SectionEnum.OUTPUT],
+	bundlesQueue:= bundlesQueue, 
+	bundlesBypass:= bundlesBypass,
+	outputBuffer:= outputBuffer,
+	bundleOut=> , 
+	bypass=> , 
+	ready=> , 
+	busy=> sectionsBusy[SectionEnum.OUTPUT],
+	done=> , 
+	error=> , 
+	backlog=> ,
+	iBundle=> sectionsIterator[SectionEnum.OUTPUT],
+	iPair=> );
+*)]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_AbortCondition" Id="{2bb22b37-bb31-4cf8-9360-ad8974e4345a}" FolderPath="PML Conditions\">
+      <Declaration><![CDATA[METHOD PRIVATE ps_AbortCondition : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Aborted" Id="{8b7e8913-d6a1-4d11-8ef4-5de3678c0038}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PRIVATE ps_Aborted : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Aborting" Id="{2cfb75cc-c590-4cea-9c9e-baef234b3390}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PRIVATE ps_Aborting : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Clearing" Id="{2e0869f6-c4a9-4781-8ad2-74da1ae357b5}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PRIVATE ps_Clearing : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Complete" Id="{b669e02a-682b-4740-906b-0def158a3c63}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PRIVATE ps_Complete : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Completing" Id="{d62eb91d-4af1-4f38-ab45-c3b8a61c00fe}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PRIVATE ps_Completing : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Execute" Id="{1599d25a-dab9-4ec4-92fd-68ba4e793876}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PRIVATE ps_Execute : BOOL
+VAR_INPUT
+END_VAR
+VAR_OUTPUT
+	error : BOOL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CASE pmlMode OF
+	0: //invalid mode
+	ePMLCustomUnitMode_Production:		ps_Execute := process();
+	ePMLCustomUnitMode_Maintenance:		maintenance();
+	ePMLCustomUnitMode_Manual:			//
+	ePMLCustomUnitMode_SemiAuto:		ps_Execute := process(); //manually step bundle into area - sections may be auto while area is semi-auto
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Held" Id="{95c54fec-4967-44f4-be8f-1e853d267e68}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PRIVATE ps_Held : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_HoldCondition" Id="{ede1d647-a96e-40da-9b59-0807c117e213}" FolderPath="PML Conditions\">
+      <Declaration><![CDATA[METHOD PRIVATE ps_HoldCondition : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Holding" Id="{c19fae67-2974-4ceb-8f46-951138e6d029}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PRIVATE ps_Holding : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Idle" Id="{d98cd4ab-14fc-4d54-b00b-761967e4ce59}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PRIVATE ps_Idle : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[(*
+IF BundleIsValid(currentBundle) THEN
+	ps_Idle := TRUE;
+	done := FALSE;
+END_IF
+*)
+
+ps_Idle := TRUE; (*start section input*)]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Resetting" Id="{800fa30c-d995-43ee-a200-3b63842e0a79}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PRIVATE ps_Resetting : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Starting" Id="{63620e6e-9309-4b45-8ae4-a18a69032f6f}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PRIVATE ps_Starting : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_StopCondition" Id="{3958b83a-de5c-49c7-92a1-84b37d19df0a}" FolderPath="PML Conditions\">
+      <Declaration><![CDATA[METHOD PRIVATE ps_StopCondition : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Stopped" Id="{842f7be6-f686-4ed8-9cf9-1ceced765cfd}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PRIVATE ps_Stopped : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Stopping" Id="{e0fa46b1-b44a-4e23-a32e-d1b02ace1ef6}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PRIVATE ps_Stopping : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_SuspendCondition" Id="{ac03eab2-8477-4493-9499-38a84b2dca7e}" FolderPath="PML Conditions\">
+      <Declaration><![CDATA[METHOD PRIVATE ps_SuspendCondition : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Suspended" Id="{977bb7ef-1ea7-4419-8df9-c453c72a4fd4}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PRIVATE ps_Suspended : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Suspending" Id="{5beb683b-6fd3-4fc2-9a12-97f55383c8c4}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PRIVATE ps_Suspending : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Unholding" Id="{290593bb-af9d-4c36-8150-3909fafedce7}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PRIVATE ps_Unholding : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Unsuspending" Id="{cb22f287-33db-44c9-9aac-845a4a32160a}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PRIVATE ps_Unsuspending : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="receive" Id="{2de20b6b-9727-4ca1-a75e-22c752a3c085}">
+      <Declaration><![CDATA[{attribute 'TcRpcEnable'}
+METHOD PRIVATE receive : BOOL
+VAR
+	i : INT;
+	shiftIndex : INT := -1;
+	invalidBundle : Bundle;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i:=0 TO Consts.maxQueue BY 1 DO //find the bundle in the ETA queue
+	IF expectedBundles[i] = bundleIn.id THEN
+		shiftIndex := i;
+		EXIT;
+	END_IF
+END_FOR
+
+IF shiftIndex > -1 THEN //if the bundle is found in the ETA queue, shift everything down
+	MEMMOVE(
+		ADR(expectedBundles[shiftIndex]), 
+		ADR(expectedBundles[shiftIndex + 1]), 
+		SIZEOF(STRING) * TO_UINT(Consts.maxQueue - shiftIndex));
+		
+	MEMMOVE(
+		ADR(expectedArrivals[shiftIndex]), 
+		ADR(expectedArrivals[shiftIndex + 1]), 
+		SIZEOF(TIMESTRUCT) * TO_UINT(Consts.maxQueue - shiftIndex) );
+		
+	numEtaBundles := numEtaBundles - 1;
+END_IF
+
+FOR i:=0 TO Consts.maxQueue BY 1 DO
+	IF BundleIsValid(bundlesQueue[i]) AND NOT bundlesBypass[i] THEN
+		bundlesQueue[i] := bundleIn;
+		bundlesBypass[i] := FALSE;
+		
+		receive := TRUE;
+		RETURN;
+	END_IF
+END_FOR
+
+IF NOT receive THEN
+	error := TRUE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="runPML" Id="{70af2742-8e75-45b6-8123-d51f2e8f6038}">
+      <Declaration><![CDATA[METHOD PRIVATE runPML : BOOL
+(*
+PackML
+	state machine for packaging applications - see Tc3_PackML_V2 library on InfoSys
+	
+	final states - wait for an input or condition and command to new state
+	intermediate states - complete a task and call pmlStateMachine.M_StateComplete() to advance to next state
+	
+the following states currently use the same logic (albeit in different methods), implementation may change later
+	ps_Stopping() and ps_Aborting()
+	ps_Resetting() and ps_Clearing()
+	
+STOP - controlled stop **with intent to shutdown or vacate for extended time** induced by operator/HMI - otherwise use HOLD
+ABORT - emergency stop due to machine errors
+
+
+HOLD - minor local issues
+SUSPEND - external issues
+
+EXECUTE - major control logic
+	different modes may require different tasks
+	create methods as required for different modes, then call the correct method in ps_Completing()
+	can be commanded to STOP, ABORT, HOLD, or SUSPEND at any point
+COMPLETING - process complete, move product out of system and finish transition to COMPLETED
+
+the implementation below can be copied to all POUs that use a PackML state machine
+the individual ps_< > methods need to be implemented for the specific application
+*)]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF ps_AbortCondition() THEN //abort condition
+	pmlCommand := ePMLCommand_Abort;
+ELSIF ps_StopCondition() THEN //stop condition
+	pmlCommand := ePMLCommand_Stop;
+END_IF
+
+CASE pmlState OF
+	0 (*ePMLState_Undefined*): //default state on startup
+		pmlCommand := ePMLCommand_Stop;
+		
+	ePMLState_Stopping:
+		IF ps_Stopping() THEN
+			pmlStateMachine.M_StateComplete();
+		END_IF
+		
+	ePMLState_Stopped:
+		IF ps_Stopped() THEN
+			pmlCommand := ePMLCommand_Reset;
+		END_IF
+	
+    ePMLState_Resetting:
+		IF ps_Resetting() THEN
+			pmlStateMachine.M_StateComplete();
+		END_IF
+		
+	ePMLState_Idle:
+		IF ps_Idle() THEN
+			pmlCommand := ePMLCommand_Start;
+		END_IF		
+	
+	ePMLState_Starting:
+		IF ps_Starting() THEN
+			pmlStateMachine.M_StateComplete();
+		END_IF
+	
+	ePMLState_Execute: //check the conditions in order of their priority, currently HOLD has the highest priority
+		IF ps_HoldCondition() THEN
+			pmlCommand := ePMLCommand_Hold;
+			
+		ELSIF ps_SuspendCondition() THEN
+			pmlCommand := ePMLCommand_Suspend;			
+		
+		ELSIF ps_Execute(error => error) THEN //ps_Execute.error => THIS^.error
+			pmlStateMachine.M_StateComplete();
+			pmlCommand := ePMLCommand_Complete;
+		END_IF
+		
+	ePMLState_Completing:
+		IF ps_Completing() THEN
+			pmlStateMachine.M_StateComplete();
+		END_IF
+	
+	ePMLState_Complete:
+		IF ps_Complete() THEN
+			pmlCommand := ePMLCommand_Reset;
+		END_IF
+	
+	ePMLState_Holding:
+		IF ps_Holding() THEN
+			pmlStateMachine.M_StateComplete();
+		END_IF
+	
+	ePMLState_Held:
+		IF NOT hold THEN
+			pmlCommand := ePMLCommand_Unhold;
+		END_IF
+	
+	ePMLState_Unholding:
+		IF ps_Unholding() THEN
+			pmlStateMachine.M_StateComplete(); //release all pause commands and IO
+		END_IF
+		
+	ePMLState_Suspending: //based on next section conditions
+		IF ps_Suspending() THEN
+			pmlStateMachine.M_StateComplete();
+		END_IF
+		
+	ePMLState_Suspended: //based on next section conditions
+		IF ps_Suspended() THEN
+			pmlCommand := ePMLCommand_Unsuspend;
+		END_IF
+	
+	ePMLState_Unsuspending: //based on next section conditions
+		IF ps_Unsuspending() THEN
+			pmlStateMachine.M_StateComplete();
+		END_IF
+	
+	ePMLState_Aborting:
+		IF ps_Aborting() THEN
+			pmlStateMachine.M_StateComplete();
+		END_IF
+	
+	ePMLState_Aborted:
+		IF ps_Aborted() THEN
+			pmlCommand := ePMLCommand_Clear;
+		END_IF
+	
+	ePMLState_Clearing:
+		IF ps_Clearing() THEN
+			pmlStateMachine.M_StateComplete();
+		END_IF
+	
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="shiftBundles" Id="{5473c570-b523-4be9-bf64-c8f58c1af44e}">
+      <Declaration><![CDATA[METHOD shiftBundles : BOOL
+VAR_INPUT
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//shift down parallel arrays
+MEMMOVE(ADR(bundlesQueue[0]), ADR(bundlesQueue[1]), SIZEOF(Bundle) * TO_UINT(Consts.maxQueue));
+MEMMOVE(ADR(bundlesBypass[0]), ADR(bundlesBypass[1]), SIZEOF(BOOL) * TO_UINT(Consts.maxQueue));
+
+//decrement each section's iterator to realign with their correct bundle
+//paperSection.shiftIterator();
+//cardboardCornerGuardSection.shiftIterator();
+//chipboardSection.shiftIterator();
+woodBunkSection.shiftIterator();
+//outputSection.shiftIterator();]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="transfer" Id="{a55e1076-0c29-4969-952a-05c194ea9e2d}">
+      <Declaration><![CDATA[METHOD PRIVATE transfer : BOOL
+VAR
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//send TCP/ADS transmission back to Dispatch once bundle is removed from the plant
+
+IF clearPassBuffer THEN
+	dbLogger.queueEvent(event:= EventsEnum.BUNDLE_OUT); //modify to include bundle ID
+	//outputBufferPass := GVL.nullBundle;
+	MEMSET(ADR(outputBufferPass), 0, SIZEOF(outputBufferPass));
+END_IF
+
+IF clearFailBuffer THEN
+	dbLogger.queueEvent(event:= EventsEnum.BUNDLE_OUT); //modify to include bundle ID
+	//outputBufferFail := GVL.nullBundle;
+	MEMSET(ADR(outputBufferFail), 0, SIZEOF(outputBufferFail));
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="MAIN">
+      <LineId Id="4462" Count="5" />
+      <LineId Id="4471" Count="1" />
+      <LineId Id="4602" Count="0" />
+      <LineId Id="4473" Count="6" />
+      <LineId Id="4579" Count="0" />
+      <LineId Id="4578" Count="0" />
+      <LineId Id="4581" Count="0" />
+      <LineId Id="4596" Count="3" />
+      <LineId Id="4601" Count="0" />
+      <LineId Id="4584" Count="0" />
+      <LineId Id="4595" Count="0" />
+      <LineId Id="4586" Count="0" />
+      <LineId Id="4580" Count="0" />
+      <LineId Id="4482" Count="0" />
+      <LineId Id="4512" Count="0" />
+      <LineId Id="4588" Count="0" />
+      <LineId Id="4507" Count="2" />
+      <LineId Id="4503" Count="0" />
+      <LineId Id="4510" Count="0" />
+      <LineId Id="4589" Count="3" />
+      <LineId Id="4511" Count="0" />
+      <LineId Id="4483" Count="7" />
+      <LineId Id="4492" Count="6" />
+    </LineIds>
+    <LineIds Name="MAIN.blocks">
+      <LineId Id="69" Count="7" />
+      <LineId Id="67" Count="1" />
+      <LineId Id="6" Count="6" />
+      <LineId Id="77" Count="0" />
+      <LineId Id="13" Count="6" />
+      <LineId Id="78" Count="0" />
+      <LineId Id="20" Count="0" />
+      <LineId Id="79" Count="0" />
+      <LineId Id="21" Count="6" />
+      <LineId Id="80" Count="0" />
+      <LineId Id="28" Count="8" />
+      <LineId Id="81" Count="1" />
+      <LineId Id="37" Count="6" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="44" Count="0" />
+      <LineId Id="46" Count="20" />
+      <LineId Id="45" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.fillBundlesQueue">
+      <LineId Id="7" Count="6" />
+    </LineIds>
+    <LineIds Name="MAIN.initSections">
+      <LineId Id="14" Count="2" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="92" Count="0" />
+      <LineId Id="83" Count="0" />
+      <LineId Id="82" Count="0" />
+      <LineId Id="84" Count="3" />
+      <LineId Id="77" Count="0" />
+      <LineId Id="61" Count="0" />
+      <LineId Id="60" Count="0" />
+      <LineId Id="62" Count="4" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="36" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.interpretTransmission">
+      <LineId Id="12" Count="0" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="20" Count="0" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="28" Count="0" />
+      <LineId Id="26" Count="0" />
+      <LineId Id="36" Count="0" />
+      <LineId Id="16" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.maintenance">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.process">
+      <LineId Id="190" Count="0" />
+      <LineId Id="116" Count="10" />
+      <LineId Id="176" Count="1" />
+      <LineId Id="127" Count="10" />
+      <LineId Id="178" Count="1" />
+      <LineId Id="138" Count="11" />
+      <LineId Id="180" Count="1" />
+      <LineId Id="150" Count="1" />
+      <LineId Id="199" Count="0" />
+      <LineId Id="198" Count="0" />
+      <LineId Id="152" Count="9" />
+      <LineId Id="182" Count="1" />
+      <LineId Id="162" Count="0" />
+      <LineId Id="193" Count="0" />
+      <LineId Id="163" Count="11" />
+      <LineId Id="184" Count="1" />
+      <LineId Id="48" Count="0" />
+      <LineId Id="192" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.ps_AbortCondition">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.ps_Aborted">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.ps_Aborting">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.ps_Clearing">
+      <LineId Id="13" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.ps_Complete">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.ps_Completing">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.ps_Execute">
+      <LineId Id="49" Count="5" />
+      <LineId Id="48" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.ps_Held">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.ps_HoldCondition">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.ps_Holding">
+      <LineId Id="17" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.ps_Idle">
+      <LineId Id="13" Count="0" />
+      <LineId Id="6" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="8" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="14" Count="0" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="18" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.ps_Resetting">
+      <LineId Id="6" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.ps_Starting">
+      <LineId Id="15" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.ps_StopCondition">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.ps_Stopped">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.ps_Stopping">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.ps_SuspendCondition">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.ps_Suspended">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.ps_Suspending">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.ps_Unholding">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.ps_Unsuspending">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.receive">
+      <LineId Id="147" Count="19" />
+      <LineId Id="209" Count="0" />
+      <LineId Id="211" Count="3" />
+      <LineId Id="230" Count="0" />
+      <LineId Id="229" Count="0" />
+      <LineId Id="227" Count="0" />
+      <LineId Id="215" Count="0" />
+      <LineId Id="210" Count="0" />
+      <LineId Id="232" Count="0" />
+      <LineId Id="231" Count="0" />
+      <LineId Id="233" Count="1" />
+    </LineIds>
+    <LineIds Name="MAIN.runPML">
+      <LineId Id="31" Count="0" />
+      <LineId Id="38" Count="0" />
+      <LineId Id="40" Count="1" />
+      <LineId Id="45" Count="0" />
+      <LineId Id="47" Count="10" />
+      <LineId Id="150" Count="2" />
+      <LineId Id="59" Count="2" />
+      <LineId Id="63" Count="4" />
+      <LineId Id="69" Count="10" />
+      <LineId Id="185" Count="0" />
+      <LineId Id="168" Count="0" />
+      <LineId Id="171" Count="0" />
+      <LineId Id="184" Count="0" />
+      <LineId Id="82" Count="5" />
+      <LineId Id="154" Count="2" />
+      <LineId Id="89" Count="1" />
+      <LineId Id="157" Count="2" />
+      <LineId Id="92" Count="11" />
+      <LineId Id="160" Count="2" />
+      <LineId Id="166" Count="1" />
+      <LineId Id="172" Count="2" />
+      <LineId Id="104" Count="0" />
+      <LineId Id="106" Count="0" />
+      <LineId Id="163" Count="2" />
+      <LineId Id="107" Count="1" />
+      <LineId Id="175" Count="2" />
+      <LineId Id="109" Count="6" />
+      <LineId Id="178" Count="2" />
+      <LineId Id="117" Count="5" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.shiftBundles">
+      <LineId Id="39" Count="0" />
+      <LineId Id="28" Count="0" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="29" Count="5" />
+      <LineId Id="26" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.transfer">
+      <LineId Id="17" Count="0" />
+      <LineId Id="62" Count="0" />
+      <LineId Id="52" Count="0" />
+      <LineId Id="60" Count="0" />
+      <LineId Id="54" Count="0" />
+      <LineId Id="67" Count="0" />
+      <LineId Id="55" Count="0" />
+      <LineId Id="57" Count="0" />
+      <LineId Id="56" Count="0" />
+      <LineId Id="61" Count="0" />
+      <LineId Id="58" Count="0" />
+      <LineId Id="66" Count="0" />
+      <LineId Id="59" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

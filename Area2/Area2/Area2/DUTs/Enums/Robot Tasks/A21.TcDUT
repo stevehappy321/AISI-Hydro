@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="A21" Id="{68b06152-a770-4c6a-a574-bb01b2829277}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+//{attribute 'strict'}
+{attribute 'to_string'}
+TYPE A21 :
+(
+	IDLE,
+	STAGE_BUNK,
+	REMOVE_BUNK_FROM_STAGE,
+	
+	LOAD_BUNK_TOP := 4,
+	LOAD_BUNK_SIDE,
+	LOAD_BUNK_BOTTOM,
+	REMOVE_BUNK_TOP,
+	REMOVE_BUNK_SIDE,
+	REMOVE_BUNK_BOTTOM,
+	
+	//GET_CHIPBOARD_FROM_SKID := 11,
+	//OFFLOAD_CHIPBOARD,
+	PLACE_CHIPBOARD_TOP := 13,
+	PLACE_CHIPBOARD_BOTTOM,
+	REMOVE_CHIPBOARD_TOP,
+	REMOVE_CHIPBOARD_BOTTOM,
+	
+	FIX_CHIPBOARD_ORIENTATION := 19,
+	
+	//testing only
+	MOVE_HOME := 21,
+	MOVE_POSITION1,
+	MOVE_POSITION2,
+	MOVE_UP,
+	MOVE_DOWN,
+	
+	DIRECT_BUNK_TOP := 27,
+	DIRECT_BUNK_SIDE,
+	DIRECT_BUNK_BOTTOM,
+	
+	INSPECT_BUNK := 31,
+	INSPECT_CHIPBOARD,
+	
+	TOOL_CHANGE_BUNK := 34,
+	TOOL_CHANGE_CHIPBOARD,
+	
+	size
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

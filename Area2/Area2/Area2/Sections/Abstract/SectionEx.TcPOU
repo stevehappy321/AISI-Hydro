@@ -1,0 +1,1403 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="SectionEx" Id="{553a7cf7-8736-4fc0-93d1-2ae972262b14}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK ABSTRACT SectionEx
+VAR_INPUT
+	enable : BOOL;
+	sectionID : SectionEnum;
+	
+	firstConveyor : INT;
+	lastConveyor : INT;
+END_VAR
+VAR_IN_OUT
+	bundlesQueue : ARRAY[*] OF Bundle;
+	bundlesBypass : ARRAY[*] OF BOOL; //if true, then bypass current bundle
+END_VAR
+VAR_OUTPUT
+	bundleOut : Bundle; //assigned if there is a bundle to target
+	bypass : BOOL; //assigned once the bundle head passes the section (status >= ACTIVE)
+END_VAR
+VAR_OUTPUT //PackML states + controls
+	pmlModeString : STRING;
+	pmlStateString : STRING;
+	
+	stop : BOOL;
+	execute : BOOL;
+	hold : BOOL;
+	reset : BOOL;
+	
+	ready : BOOL;
+	busy : BOOL;
+	done : BOOL;
+	error : BOOL;
+	backlog : BOOL;
+	
+	iBundle : INT(0..GVL.maxQueue);
+	iPair : INT(0..GVL.maxPairs);
+END_VAR
+VAR
+	pmlState : E_PMLState;
+	pmlCommand : E_PMLCommand;
+	pmlStateMachine : PML_StateMachine;
+	
+	pmlModeRequest : E_PMLCustomUnitMode := ePMLCustomUnitMode_Production;
+	pmlMode : E_PMLCustomUnitMode;
+	pmlModeManager : PML_UnitModeManager;
+END_VAR
+VAR
+	currentBundle : REFERENCE TO Bundle;
+	currentBypass : REFERENCE TO BOOL;
+	
+	loaded : BOOL;
+	loadedMaterials : ARRAY[Surface.TOP..Surface.BOTTOM_RIGHT] OF STRING;
+	
+	entryRefPos : (*REFERENCE TO*) REAL;
+	exitRefPos : (*REFERENCE TO*) REAL;
+	
+	requestedConveyorMode : ConveyorMode;
+	
+	nextSection : POINTER TO SectionEx;
+	prevSection : POINTER TO SectionEx;
+	
+	occupied : BOOL; //may need to move this to Hardware GVL since this is a sensor
+	
+	status : SectionTask; //section status
+END_VAR
+VAR_STAT CONSTANT
+	INCLUSIVE : INT := 0;
+	EXCLUSIVE : INT := 1;
+	COMPLETE : INT := 1030;
+	
+	suctionReleaseDelay : TIME := T#1000MS;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[currentBundle REF= bundlesQueue[iBundle];
+currentBypass REF= bundlesBypass[iBundle];
+bypass := currentBypass;
+
+ready := status = 0;
+busy := status > 0;
+done := done;
+error := error;
+backlog := iBundle >= GVL.maxQueue;
+
+callLocalModules();
+blocks();
+
+pmlStates();]]></ST>
+    </Implementation>
+    <Folder Name="Abstract" Id="{931032f8-8fbc-437e-9feb-8dfcf4d8fa11}" />
+    <Folder Name="PML Conditions" Id="{8f6247d2-5ca2-410c-b633-82ec4b58b07b}" />
+    <Folder Name="PML States" Id="{06e2f1cf-cccc-459b-a09f-1383a082a445}" />
+    <Folder Name="Properties" Id="{35099ffa-f285-4e22-8f2e-31de1316393c}" />
+    <Method Name="assignConveyors" Id="{c420737b-026c-4c49-b4b8-351dd9b6dc1c}">
+      <Declaration><![CDATA[METHOD assignConveyors : BOOL
+VAR_INPUT
+	conveyorStart : INT;
+	conveyorEnd : INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[firstConveyor := conveyorStart;
+lastConveyor := conveyorEnd;
+
+assignConveyors := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="blocks" Id="{6a76f087-36cd-478a-905b-33ea32ea5c0e}">
+      <Declaration><![CDATA[METHOD PROTECTED blocks : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <NWL>
+          <XmlArchive>
+            <Data>
+              <o xml:space="preserve" t="NWLImplementationObject">
+                <v n="NetworkListComment">""</v>
+                <v n="DefaultViewMode">"Ld"</v>
+                <l2 n="NetworkList" cet="Network">
+                  <o>
+                    <v n="ILActive">false</v>
+                    <v n="FBDValid">false</v>
+                    <v n="ILValid">false</v>
+                    <l2 n="ILLines" />
+                    <v n="Comment">""</v>
+                    <v n="Title">""</v>
+                    <v n="Label">""</v>
+                    <v n="OutCommented">false</v>
+                    <l2 n="NetworkItems" cet="BoxTreeBox">
+                      <o>
+                        <v n="BoxType">"PML_UnitModeManager"</v>
+                        <o n="Instance" t="Operand">
+                          <v n="Operand">"pmlModeManager"</v>
+                          <v n="Type">"PML_UnitModeManager"</v>
+                          <v n="Comment">""</v>
+                          <v n="SymbolComment">""</v>
+                          <v n="Address">""</v>
+                          <o n="Flags" t="Flags">
+                            <v n="Flags">0</v>
+                            <v n="Fixed">false</v>
+                            <v n="Extensible">false</v>
+                          </o>
+                          <v n="LValue">false</v>
+                          <v n="Boolean">false</v>
+                          <v n="IsInstance">true</v>
+                          <v n="Id">7L</v>
+                        </o>
+                        <o n="OutputItems" t="OutputItemList">
+                          <l2 n="OutputItems" cet="Operand">
+                            <n />
+                            <o>
+                              <v n="Operand">"pmlMode"</v>
+                              <v n="Type">"E_PMLProtectedUnitMode"</v>
+                              <v n="Comment">""</v>
+                              <v n="SymbolComment">""</v>
+                              <v n="Address">""</v>
+                              <o n="Flags" t="Flags">
+                                <v n="Flags">0</v>
+                                <v n="Fixed">false</v>
+                                <v n="Extensible">false</v>
+                              </o>
+                              <v n="LValue">true</v>
+                              <v n="Boolean">false</v>
+                              <v n="IsInstance">false</v>
+                              <v n="Id">9L</v>
+                            </o>
+                            <o>
+                              <v n="Operand">"pmlModeString"</v>
+                              <v n="Type">"STRING"</v>
+                              <v n="Comment">""</v>
+                              <v n="SymbolComment">""</v>
+                              <v n="Address">""</v>
+                              <o n="Flags" t="Flags">
+                                <v n="Flags">0</v>
+                                <v n="Fixed">false</v>
+                                <v n="Extensible">false</v>
+                              </o>
+                              <v n="LValue">true</v>
+                              <v n="Boolean">false</v>
+                              <v n="IsInstance">false</v>
+                              <v n="Id">10L</v>
+                            </o>
+                            <o>
+                              <v n="Operand">""</v>
+                              <v n="Type">"BOOL"</v>
+                              <v n="Comment">""</v>
+                              <v n="SymbolComment">""</v>
+                              <v n="Address">""</v>
+                              <o n="Flags" t="Flags">
+                                <v n="Flags">0</v>
+                                <v n="Fixed">false</v>
+                                <v n="Extensible">false</v>
+                              </o>
+                              <v n="LValue">true</v>
+                              <v n="Boolean">false</v>
+                              <v n="IsInstance">false</v>
+                              <v n="Id">11L</v>
+                            </o>
+                            <o>
+                              <v n="Operand">""</v>
+                              <v n="Type">"UDINT"</v>
+                              <v n="Comment">""</v>
+                              <v n="SymbolComment">""</v>
+                              <v n="Address">""</v>
+                              <o n="Flags" t="Flags">
+                                <v n="Flags">0</v>
+                                <v n="Fixed">false</v>
+                                <v n="Extensible">false</v>
+                              </o>
+                              <v n="LValue">true</v>
+                              <v n="Boolean">false</v>
+                              <v n="IsInstance">false</v>
+                              <v n="Id">12L</v>
+                            </o>
+                            <o>
+                              <v n="Operand">""</v>
+                              <v n="Type">"UDINT"</v>
+                              <v n="Comment">""</v>
+                              <v n="SymbolComment">""</v>
+                              <v n="Address">""</v>
+                              <o n="Flags" t="Flags">
+                                <v n="Flags">0</v>
+                                <v n="Fixed">false</v>
+                                <v n="Extensible">false</v>
+                              </o>
+                              <v n="LValue">true</v>
+                              <v n="Boolean">false</v>
+                              <v n="IsInstance">false</v>
+                              <v n="Id">13L</v>
+                            </o>
+                          </l2>
+                        </o>
+                        <o n="Flags" t="Flags">
+                          <v n="Flags">0</v>
+                          <v n="Fixed">true</v>
+                          <v n="Extensible">false</v>
+                        </o>
+                        <n n="InputFlags" />
+                        <l2 n="InputItems" cet="BoxTreeOperand">
+                          <o>
+                            <o n="Operand" t="Operand">
+                              <v n="Operand">"TRUE"</v>
+                              <v n="Type">"BOOL"</v>
+                              <v n="Comment">""</v>
+                              <v n="SymbolComment">""</v>
+                              <v n="Address">""</v>
+                              <o n="Flags" t="Flags">
+                                <v n="Flags">0</v>
+                                <v n="Fixed">false</v>
+                                <v n="Extensible">false</v>
+                              </o>
+                              <v n="LValue">false</v>
+                              <v n="Boolean">false</v>
+                              <v n="IsInstance">false</v>
+                              <v n="Id">15L</v>
+                            </o>
+                            <v n="Id">14L</v>
+                          </o>
+                          <o>
+                            <o n="Operand" t="Operand">
+                              <v n="Operand">"NOT(pmlModeManager.bExecute)"</v>
+                              <v n="Type">"BOOL"</v>
+                              <v n="Comment">""</v>
+                              <v n="SymbolComment">""</v>
+                              <v n="Address">""</v>
+                              <o n="Flags" t="Flags">
+                                <v n="Flags">0</v>
+                                <v n="Fixed">false</v>
+                                <v n="Extensible">false</v>
+                              </o>
+                              <v n="LValue">false</v>
+                              <v n="Boolean">false</v>
+                              <v n="IsInstance">false</v>
+                              <v n="Id">17L</v>
+                            </o>
+                            <v n="Id">16L</v>
+                          </o>
+                          <o>
+                            <o n="Operand" t="Operand">
+                              <v n="Operand">"pmlModeRequest"</v>
+                              <v n="Type">"E_PMLProtectedUnitMode"</v>
+                              <v n="Comment">""</v>
+                              <v n="SymbolComment">""</v>
+                              <v n="Address">""</v>
+                              <o n="Flags" t="Flags">
+                                <v n="Flags">0</v>
+                                <v n="Fixed">false</v>
+                                <v n="Extensible">false</v>
+                              </o>
+                              <v n="LValue">false</v>
+                              <v n="Boolean">false</v>
+                              <v n="IsInstance">false</v>
+                              <v n="Id">19L</v>
+                            </o>
+                            <v n="Id">18L</v>
+                          </o>
+                          <o>
+                            <o n="Operand" t="Operand">
+                              <v n="Operand">"pmlState"</v>
+                              <v n="Type">"E_PMLState"</v>
+                              <v n="Comment">""</v>
+                              <v n="SymbolComment">""</v>
+                              <v n="Address">""</v>
+                              <o n="Flags" t="Flags">
+                                <v n="Flags">0</v>
+                                <v n="Fixed">false</v>
+                                <v n="Extensible">false</v>
+                              </o>
+                              <v n="LValue">false</v>
+                              <v n="Boolean">false</v>
+                              <v n="IsInstance">false</v>
+                              <v n="Id">21L</v>
+                            </o>
+                            <v n="Id">20L</v>
+                          </o>
+                        </l2>
+                        <o n="InputParam" t="ParamList">
+                          <l2 n="Names" cet="String">
+                            <v>EN</v>
+                            <v>bExecute</v>
+                            <v>eModeCommand</v>
+                            <v>eState</v>
+                          </l2>
+                          <l2 n="Types" cet="String">
+                            <v>BOOL</v>
+                            <v>BOOL</v>
+                            <v>DINT</v>
+                            <v>E_PMLState</v>
+                          </l2>
+                        </o>
+                        <o n="OutputParam" t="ParamList">
+                          <l2 n="Names" cet="String">
+                            <v>ENO</v>
+                            <v>eModeStatus</v>
+                            <v>sModeStatus</v>
+                            <v>bDone</v>
+                            <v>bError</v>
+                            <v>nErrorId</v>
+                          </l2>
+                          <l2 n="Types" cet="String">
+                            <v>BOOL</v>
+                            <v>DINT</v>
+                            <v>STRING</v>
+                            <v>BOOL</v>
+                            <v>BOOL</v>
+                            <v>UDINT</v>
+                          </l2>
+                        </o>
+                        <v n="CallType" t="Operator">FunctionBlock</v>
+                        <v n="EN">true</v>
+                        <v n="ENO">true</v>
+                        <n n="STSnippet" />
+                        <v n="ContainsExtensibleInputs">false</v>
+                        <v n="ProvidesSTSnippet">false</v>
+                        <v n="Id">8L</v>
+                      </o>
+                    </l2>
+                    <l2 n="Connectors" />
+                    <v n="Id">6L</v>
+                  </o>
+                  <o>
+                    <v n="ILActive">false</v>
+                    <v n="FBDValid">false</v>
+                    <v n="ILValid">false</v>
+                    <l2 n="ILLines" />
+                    <v n="Comment">""</v>
+                    <v n="Title">""</v>
+                    <v n="Label">""</v>
+                    <v n="OutCommented">false</v>
+                    <l2 n="NetworkItems" cet="BoxTreeBox">
+                      <o>
+                        <v n="BoxType">"PML_StateMachine"</v>
+                        <o n="Instance" t="Operand">
+                          <v n="Operand">"pmlStateMachine"</v>
+                          <v n="Type">"PML_StateMachine"</v>
+                          <v n="Comment">""</v>
+                          <v n="SymbolComment">""</v>
+                          <v n="Address">""</v>
+                          <o n="Flags" t="Flags">
+                            <v n="Flags">0</v>
+                            <v n="Fixed">false</v>
+                            <v n="Extensible">false</v>
+                          </o>
+                          <v n="LValue">false</v>
+                          <v n="Boolean">false</v>
+                          <v n="IsInstance">true</v>
+                          <v n="Id">23L</v>
+                        </o>
+                        <o n="OutputItems" t="OutputItemList">
+                          <l2 n="OutputItems" cet="Operand">
+                            <n />
+                            <o>
+                              <v n="Operand">"pmlState"</v>
+                              <v n="Type">"E_PMLState"</v>
+                              <v n="Comment">""</v>
+                              <v n="SymbolComment">""</v>
+                              <v n="Address">""</v>
+                              <o n="Flags" t="Flags">
+                                <v n="Flags">0</v>
+                                <v n="Fixed">false</v>
+                                <v n="Extensible">false</v>
+                              </o>
+                              <v n="LValue">true</v>
+                              <v n="Boolean">false</v>
+                              <v n="IsInstance">false</v>
+                              <v n="Id">25L</v>
+                            </o>
+                            <o>
+                              <v n="Operand">"pmlStateString"</v>
+                              <v n="Type">"STRING"</v>
+                              <v n="Comment">""</v>
+                              <v n="SymbolComment">""</v>
+                              <v n="Address">""</v>
+                              <o n="Flags" t="Flags">
+                                <v n="Flags">0</v>
+                                <v n="Fixed">false</v>
+                                <v n="Extensible">false</v>
+                              </o>
+                              <v n="LValue">true</v>
+                              <v n="Boolean">false</v>
+                              <v n="IsInstance">false</v>
+                              <v n="Id">26L</v>
+                            </o>
+                            <o>
+                              <v n="Operand">""</v>
+                              <v n="Type">"BOOL"</v>
+                              <v n="Comment">""</v>
+                              <v n="SymbolComment">""</v>
+                              <v n="Address">""</v>
+                              <o n="Flags" t="Flags">
+                                <v n="Flags">0</v>
+                                <v n="Fixed">false</v>
+                                <v n="Extensible">false</v>
+                              </o>
+                              <v n="LValue">true</v>
+                              <v n="Boolean">false</v>
+                              <v n="IsInstance">false</v>
+                              <v n="Id">27L</v>
+                            </o>
+                            <o>
+                              <v n="Operand">""</v>
+                              <v n="Type">"UDINT"</v>
+                              <v n="Comment">""</v>
+                              <v n="SymbolComment">""</v>
+                              <v n="Address">""</v>
+                              <o n="Flags" t="Flags">
+                                <v n="Flags">0</v>
+                                <v n="Fixed">false</v>
+                                <v n="Extensible">false</v>
+                              </o>
+                              <v n="LValue">true</v>
+                              <v n="Boolean">false</v>
+                              <v n="IsInstance">false</v>
+                              <v n="Id">28L</v>
+                            </o>
+                          </l2>
+                        </o>
+                        <o n="Flags" t="Flags">
+                          <v n="Flags">0</v>
+                          <v n="Fixed">true</v>
+                          <v n="Extensible">false</v>
+                        </o>
+                        <n n="InputFlags" />
+                        <l2 n="InputItems" cet="BoxTreeOperand">
+                          <o>
+                            <o n="Operand" t="Operand">
+                              <v n="Operand">"TRUE"</v>
+                              <v n="Type">"BOOL"</v>
+                              <v n="Comment">""</v>
+                              <v n="SymbolComment">""</v>
+                              <v n="Address">""</v>
+                              <o n="Flags" t="Flags">
+                                <v n="Flags">0</v>
+                                <v n="Fixed">false</v>
+                                <v n="Extensible">false</v>
+                              </o>
+                              <v n="LValue">false</v>
+                              <v n="Boolean">false</v>
+                              <v n="IsInstance">false</v>
+                              <v n="Id">30L</v>
+                            </o>
+                            <v n="Id">29L</v>
+                          </o>
+                          <o>
+                            <o n="Operand" t="Operand">
+                              <v n="Operand">"pmlMode"</v>
+                              <v n="Type">"E_PMLProtectedUnitMode"</v>
+                              <v n="Comment">""</v>
+                              <v n="SymbolComment">""</v>
+                              <v n="Address">""</v>
+                              <o n="Flags" t="Flags">
+                                <v n="Flags">0</v>
+                                <v n="Fixed">false</v>
+                                <v n="Extensible">false</v>
+                              </o>
+                              <v n="LValue">false</v>
+                              <v n="Boolean">false</v>
+                              <v n="IsInstance">false</v>
+                              <v n="Id">32L</v>
+                            </o>
+                            <v n="Id">31L</v>
+                          </o>
+                          <o>
+                            <o n="Operand" t="Operand">
+                              <v n="Operand">"pmlCommand"</v>
+                              <v n="Type">"E_PMLCommand"</v>
+                              <v n="Comment">""</v>
+                              <v n="SymbolComment">""</v>
+                              <v n="Address">""</v>
+                              <o n="Flags" t="Flags">
+                                <v n="Flags">0</v>
+                                <v n="Fixed">false</v>
+                                <v n="Extensible">false</v>
+                              </o>
+                              <v n="LValue">false</v>
+                              <v n="Boolean">false</v>
+                              <v n="IsInstance">false</v>
+                              <v n="Id">34L</v>
+                            </o>
+                            <v n="Id">33L</v>
+                          </o>
+                          <o>
+                            <o n="Operand" t="Operand">
+                              <v n="Operand">""</v>
+                              <v n="Type">"ST_PMLSubUnitInfoRef"</v>
+                              <v n="Comment">""</v>
+                              <v n="SymbolComment">""</v>
+                              <v n="Address">""</v>
+                              <o n="Flags" t="Flags">
+                                <v n="Flags">0</v>
+                                <v n="Fixed">false</v>
+                                <v n="Extensible">false</v>
+                              </o>
+                              <v n="LValue">false</v>
+                              <v n="Boolean">false</v>
+                              <v n="IsInstance">false</v>
+                              <v n="Id">36L</v>
+                            </o>
+                            <v n="Id">35L</v>
+                          </o>
+                          <o>
+                            <o n="Operand" t="Operand">
+                              <v n="Operand">""</v>
+                              <v n="Type">"ST_PMLStateMachineOptions"</v>
+                              <v n="Comment">""</v>
+                              <v n="SymbolComment">""</v>
+                              <v n="Address">""</v>
+                              <o n="Flags" t="Flags">
+                                <v n="Flags">0</v>
+                                <v n="Fixed">false</v>
+                                <v n="Extensible">false</v>
+                              </o>
+                              <v n="LValue">false</v>
+                              <v n="Boolean">false</v>
+                              <v n="IsInstance">false</v>
+                              <v n="Id">38L</v>
+                            </o>
+                            <v n="Id">37L</v>
+                          </o>
+                        </l2>
+                        <o n="InputParam" t="ParamList">
+                          <l2 n="Names" cet="String">
+                            <v>EN</v>
+                            <v>eMode</v>
+                            <v>eCommand</v>
+                            <v>stSubUnitInfoRef</v>
+                            <v>stOptions</v>
+                          </l2>
+                          <l2 n="Types" cet="String">
+                            <v>BOOL</v>
+                            <v>DINT</v>
+                            <v>E_PMLCommand</v>
+                            <v>ST_PMLSubUnitInfoRef</v>
+                            <v>ST_PMLStateMachineOptions</v>
+                          </l2>
+                        </o>
+                        <o n="OutputParam" t="ParamList">
+                          <l2 n="Names" cet="String">
+                            <v>ENO</v>
+                            <v>eState</v>
+                            <v>sState</v>
+                            <v>bError</v>
+                            <v>nErrorID</v>
+                          </l2>
+                          <l2 n="Types" cet="String">
+                            <v>BOOL</v>
+                            <v>E_PMLState</v>
+                            <v>STRING</v>
+                            <v>BOOL</v>
+                            <v>UDINT</v>
+                          </l2>
+                        </o>
+                        <v n="CallType" t="Operator">FunctionBlock</v>
+                        <v n="EN">true</v>
+                        <v n="ENO">true</v>
+                        <n n="STSnippet" />
+                        <v n="ContainsExtensibleInputs">false</v>
+                        <v n="ProvidesSTSnippet">false</v>
+                        <v n="Id">24L</v>
+                      </o>
+                    </l2>
+                    <l2 n="Connectors" />
+                    <v n="Id">22L</v>
+                  </o>
+                </l2>
+                <v n="BranchCounter">0</v>
+                <v n="ValidIds">true</v>
+              </o>
+            </Data>
+            <TypeList>
+              <Type n="Boolean">System.Boolean</Type>
+              <Type n="BoxTreeBox">{acfc6f68-8e3a-4af5-bf81-3dd512095a46}</Type>
+              <Type n="BoxTreeOperand">{9de7f100-1b87-424c-a62e-45b0cfc85ed2}</Type>
+              <Type n="Flags">{668066f2-6069-46b3-8962-8db8d13d7db2}</Type>
+              <Type n="Int32">System.Int32</Type>
+              <Type n="Int64">System.Int64</Type>
+              <Type n="Network">{d9a99d73-b633-47db-b876-a752acb25871}</Type>
+              <Type n="NWLImplementationObject">{25e509de-33d4-4447-93f8-c9e4ea381c8b}</Type>
+              <Type n="Operand">{c9b2f165-48a2-4a45-8326-3952d8a3d708}</Type>
+              <Type n="Operator">{bffb3c53-f105-4e85-aba2-e30df579d75f}</Type>
+              <Type n="OutputItemList">{f40d3e09-c02c-4522-a88c-dac23558cfc4}</Type>
+              <Type n="ParamList">{71496971-9e0c-4677-a832-b9583b571130}</Type>
+              <Type n="String">System.String</Type>
+            </TypeList>
+          </XmlArchive>
+        </NWL>
+      </Implementation>
+    </Method>
+    <Method Name="callLocalModules" Id="{01231dfd-d7d7-43f6-abd5-1b692bab6a1f}" FolderPath="Abstract\">
+      <Declaration><![CDATA[METHOD PROTECTED ABSTRACT callLocalModules : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="connectTo" Id="{91d63988-c603-4003-a46a-ea71ce206f50}">
+      <Declaration><![CDATA[METHOD connectTo : BOOL
+VAR_INPUT
+	connectedSection : POINTER TO SectionEx;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[nextSection := connectedSection;
+
+IF connectedSection <> 0 THEN
+	connectedSection^.prevSection := THIS;
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="directionCheckAndSet" Id="{e472cb3d-3b10-43cb-be34-a868e55e86de}">
+      <Declaration><![CDATA[METHOD PROTECTED directionCheckAndSet : BOOL
+VAR_INPUT
+	conveyorRef : REAL;
+	target : REAL;
+END_VAR
+//returns true conveyorRef is in range of target]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF InRange(conveyorRef - GVL.precisionTolerance, conveyorRef + GVL.precisionTolerance, target, EXCLUSIVE) THEN
+	directionCheckAndSet := TRUE;
+	
+ELSIF conveyorRef > target THEN
+	pConveyorMode := ConveyorMode.BACKWARD;
+	
+ELSIF conveyorRef < target THEN
+	pConveyorMode := ConveyorMode.FORWARD;
+	
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="discharge" Id="{264daea0-fc50-4810-8136-0464ba4deabe}" FolderPath="Abstract\">
+      <Declaration><![CDATA[METHOD PROTECTED ABSTRACT discharge : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[(*
+unload, unstage, etc
+*)]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="load" Id="{f29da0bd-18e9-4eca-8ea7-a82a57710347}" FolderPath="Abstract\">
+      <Declaration><![CDATA[METHOD PROTECTED ABSTRACT load : BOOL
+VAR_INPUT
+	pairIndex : INT;
+END_VAR
+VAR_OUTPUT
+	error : BOOL;
+END_VAR
+(*
+loading takes place while the section is NOT active
+materials are loaded for the next incoming bundle, not the current bundle - may differ for each section
+*)]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="maintenance" Id="{82cfe381-4627-47b2-becb-4530cc701c9e}" FolderPath="Abstract\">
+      <Declaration><![CDATA[METHOD PROTECTED ABSTRACT maintenance : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="pConveyorMode" Id="{97786c27-ba47-43a5-9b90-47ff6f5d538e}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY PROTECTED pConveyorMode : ConveyorMode]]></Declaration>
+      <Get Name="Get" Id="{0ba095f3-28cd-449d-a6ee-3c87c3d0580a}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[pConveyorMode := requestedConveyorMode;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{af1867f9-e8bf-4840-a3e8-76c799395c42}">
+        <Declaration><![CDATA[VAR
+	i : DINT;
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[requestedConveyorMode := pConveyorMode;
+
+FOR i:=firstConveyor TO lastConveyor BY 1 DO
+	
+	CASE status OF
+		SectionTask.ALIGNING, -100:
+			//all conveyors requested to same mode
+			conveyorsArr[i]^.setRequest(requestedConveyorMode);
+			
+		SectionTask.ACTIVE, SectionTask.CLEARING:
+			//once previous bundle catches up, the conveyor that bundle sits on must be linked to this section
+			//a conveyor control module will handle linking
+			
+			IF conveyorsArr[i]^.IsOccupied THEN //follow this section's request
+				conveyorsArr[i]^.setRequest(requestedConveyorMode);
+				
+			ELSE //catch up succeeding bundle (FOLLOW PREVIOUS SECTION)
+				IF prevSection <> 0 THEN
+					conveyorsArr[i]^.setRequest( prevSection^.pConveyorMode );
+				END_IF
+			END_IF
+	END_CASE	
+	
+END_FOR]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Method Name="pmlStates" Id="{cc8dcd6f-b841-4037-adba-e94e1c4ef5d7}">
+      <Declaration><![CDATA[METHOD PROTECTED pmlStates : BOOL
+(*
+PackML
+	state machine for packaging applications - see Tc3_PackML_V2 library on InfoSys
+	
+	final states - wait for an input or condition and command to new state
+	intermediate states - complete a task and call pmlStateMachine.M_StateComplete() to advance to next state
+	
+the following states currently use the same logic (albeit in different methods), implementation may change later
+	ps_Stopping() and ps_Aborting()
+	ps_Resetting() and ps_Clearing()
+	
+STOP - controlled stop **with intent to shutdown or vacate for extended time** induced by operator/HMI - otherwise use HOLD
+ABORT - emergency stop due to machine errors
+
+
+HOLD - minor local issues
+SUSPEND - external issues
+
+EXECUTE - major control logic
+	different modes may require different tasks
+	create methods as required for different modes, then call the correct method in ps_Completing()
+	can be commanded to STOP, ABORT, HOLD, or SUSPEND at any point
+COMPLETING - process complete, move product out of system and finish transition to COMPLETED
+
+the implementation below can be copied to all POUs that use a PackML state machine
+the individual ps_< > methods need to be implemented for the specific application
+*)]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF ps_AbortCondition() THEN //abort condition
+	pmlCommand := ePMLCommand_Abort;
+ELSIF ps_StopCondition() THEN //stop condition
+	pmlCommand := ePMLCommand_Stop;
+END_IF
+
+CASE pmlState OF
+	0 (*ePMLState_Undefined*): //default state on startup
+		pmlCommand := ePMLCommand_Stop;
+		
+	ePMLState_Stopping:
+		IF ps_Stopping() THEN
+			pmlStateMachine.M_StateComplete();
+		END_IF
+		
+	ePMLState_Stopped:
+		IF ps_Stopped() THEN
+			pmlCommand := ePMLCommand_Reset;
+		END_IF
+	
+    ePMLState_Resetting:
+		IF ps_Resetting() THEN
+			pmlStateMachine.M_StateComplete();
+		END_IF
+		
+	ePMLState_Idle:
+		IF ps_Idle() THEN
+			pmlCommand := ePMLCommand_Start;
+		END_IF		
+	
+	ePMLState_Starting:
+		IF ps_Starting() THEN
+			pmlStateMachine.M_StateComplete();
+		END_IF
+	
+	ePMLState_Execute: //check the conditions in order of their priority, currently HOLD has the highest priority
+		IF ps_HoldCondition() THEN
+			pmlCommand := ePMLCommand_Hold;
+			
+		ELSIF ps_SuspendCondition() THEN
+			pmlCommand := ePMLCommand_Suspend;			
+		
+		ELSIF ps_Execute(error => error) THEN //ps_Execute.error => THIS^.error
+			pmlStateMachine.M_StateComplete();
+			pmlCommand := ePMLCommand_Complete;
+		END_IF
+		
+	ePMLState_Completing:
+		IF ps_Completing() THEN
+			pmlStateMachine.M_StateComplete();
+		END_IF
+	
+	ePMLState_Complete:
+		IF ps_Complete() THEN
+			pmlCommand := ePMLCommand_Reset;
+		END_IF
+	
+	ePMLState_Holding:
+		IF ps_Holding() THEN
+			pmlStateMachine.M_StateComplete();
+		END_IF
+	
+	ePMLState_Held:
+		IF NOT hold THEN
+			pmlCommand := ePMLCommand_Unhold;
+		END_IF
+	
+	ePMLState_Unholding:
+		IF ps_Unholding() THEN
+			pmlStateMachine.M_StateComplete(); //release all pause commands and IO
+		END_IF
+		
+	ePMLState_Suspending: //based on next section conditions
+		IF ps_Suspending() THEN
+			pmlStateMachine.M_StateComplete();
+		END_IF
+		
+	ePMLState_Suspended: //based on next section conditions
+		IF ps_Suspended() THEN
+			pmlCommand := ePMLCommand_Unsuspend;
+		END_IF
+	
+	ePMLState_Unsuspending: //based on next section conditions
+		IF ps_Unsuspending() THEN
+			pmlStateMachine.M_StateComplete();
+		END_IF
+	
+	ePMLState_Aborting:
+		IF ps_Aborting() THEN
+			pmlStateMachine.M_StateComplete();
+		END_IF
+	
+	ePMLState_Aborted:
+		IF ps_Aborted() THEN
+			pmlCommand := ePMLCommand_Clear;
+		END_IF
+	
+	ePMLState_Clearing:
+		IF ps_Clearing() THEN
+			pmlStateMachine.M_StateComplete();
+		END_IF
+	
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="process" Id="{d318af18-2aae-4a8a-9d12-4aa1944ee865}" FolderPath="Abstract\">
+      <Declaration><![CDATA[METHOD PROTECTED ABSTRACT process : BOOL
+VAR_INPUT
+	auto : BOOL;
+END_VAR
+VAR_OUTPUT
+	error : BOOL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[(*
+this method is implemented by each section according to their material packaging steps
+*)]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_AbortCondition" Id="{ea0e69dc-628b-404a-acfd-eb96c20b5c8b}" FolderPath="PML Conditions\">
+      <Declaration><![CDATA[METHOD PROTECTED ABSTRACT ps_AbortCondition : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Aborted" Id="{fd49a85e-d9c2-4872-999c-4e48c3f35296}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PROTECTED ABSTRACT ps_Aborted : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Aborting" Id="{8970a2ca-c21c-49d9-911e-491db2e7f876}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PROTECTED ABSTRACT ps_Aborting : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Clearing" Id="{3fe44078-6a1b-4682-a996-b699c18aee67}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PROTECTED ABSTRACT ps_Clearing : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Complete" Id="{7833c15a-3310-48e7-8e31-e7e76e3a7760}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PROTECTED ABSTRACT ps_Complete : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Completing" Id="{38fedc81-0bce-4ee0-9445-9aadde8a30b1}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PROTECTED ABSTRACT ps_Completing : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Execute" Id="{73635fe5-de92-40d6-ba2e-8b3bfdfdbb4e}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PROTECTED ps_Execute : BOOL
+VAR_INPUT
+END_VAR
+VAR_OUTPUT
+	error : BOOL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CASE pmlMode OF
+	0: //invalid mode
+	ePMLCustomUnitMode_Production:		ps_Execute := runSectionTasks(auto := TRUE);
+	ePMLCustomUnitMode_Maintenance:		maintenance();
+	ePMLCustomUnitMode_Manual:			//
+	ePMLCustomUnitMode_SemiAuto:		ps_Execute := runSectionTasks(auto := FALSE);
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Held" Id="{97712eef-0a76-4f44-b2a5-7edb9768c1c5}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PROTECTED ABSTRACT ps_Held : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_HoldCondition" Id="{18584675-3920-466d-95ca-bc68955d5f21}" FolderPath="PML Conditions\">
+      <Declaration><![CDATA[METHOD PROTECTED ABSTRACT ps_HoldCondition : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Holding" Id="{ae1a5d1d-c425-41ab-be42-ac322799fb37}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PROTECTED ABSTRACT ps_Holding : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Idle" Id="{ff5dce02-ada7-431d-9ee9-3e17c3a65b4e}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PROTECTED (*ABSTRACT*) ps_Idle : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[(*
+IF BundleIsValid(currentBundle) THEN
+	ps_Idle := TRUE;
+	done := FALSE;
+END_IF
+*)
+
+ps_Idle := TRUE; (*start section input*)]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Resetting" Id="{cb59b9e4-db36-4a6b-b9fd-e8381e0607d8}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PROTECTED ABSTRACT ps_Resetting : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Starting" Id="{e89dce85-4a66-44ea-857c-1f5cdfba177a}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PROTECTED ABSTRACT ps_Starting : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_StopCondition" Id="{a23289dd-9264-41ec-8cf7-f6c6d2f4f445}" FolderPath="PML Conditions\">
+      <Declaration><![CDATA[METHOD PROTECTED ABSTRACT ps_StopCondition : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Stopped" Id="{8e007499-8af0-4da7-be9e-f073186adcc7}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PROTECTED ABSTRACT ps_Stopped : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Stopping" Id="{1dcebf3c-702f-49e3-8dfe-b35094ec6ccc}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PROTECTED ABSTRACT ps_Stopping : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_SuspendCondition" Id="{fc9d4281-9a99-493c-9484-446186deee9d}" FolderPath="PML Conditions\">
+      <Declaration><![CDATA[METHOD PROTECTED ABSTRACT ps_SuspendCondition : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Suspended" Id="{505c98ae-539c-49e2-a739-19c90e70899f}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PROTECTED ABSTRACT ps_Suspended : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Suspending" Id="{cced8904-3605-41d0-8646-a0d5e2e475a7}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PROTECTED ABSTRACT ps_Suspending : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Unholding" Id="{d1211bb0-9bf2-475e-9bc3-fc66e3405f66}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PROTECTED ABSTRACT ps_Unholding : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Unsuspending" Id="{177b454f-a063-4ea7-a664-efbf79a9bb04}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PROTECTED ABSTRACT ps_Unsuspending : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="pStatus" Id="{2fc2840f-258c-4643-bc3e-979cfdbf23f2}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY PROTECTED pStatus : SectionTask]]></Declaration>
+      <Get Name="Get" Id="{b7542eca-dbd5-4cb3-9aab-eccd028bb0c7}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[pStatus := status;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{82f7bd0c-e305-45fe-8dbc-8fb426ee0813}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[status := pStatus;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Method Name="runSectionTasks" Id="{ff600a76-8305-47bd-9f4f-604426e1af1d}">
+      <Declaration><![CDATA[METHOD PROTECTED FINAL runSectionTasks : BOOL
+VAR_INPUT
+	auto : BOOL;
+END_VAR
+VAR
+	error : BOOL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CASE status OF
+	SectionTask.IDLE:
+		IF BundleIsValid(currentBundle) THEN			
+			status := SectionTask.ALIGNING;
+			done := FALSE;
+		END_IF
+	
+	SectionTask.ALIGNING:		
+		pConveyorMode := ConveyorMode.FORWARD;
+		
+		IF 
+			occupied AND
+			nextSection <> 0 AND
+			nextSection^.pConveyorMode = ConveyorMode.BACKWARD
+		THEN //section occupied by next section backing up into this section
+			status := -100;
+			
+		ELSIF occupied THEN //section occupied by correct bundle
+			//stop and zero the conveyors
+			IF NOT auto OR_ELSE execute THEN
+				status := SectionTask.ACTIVE;
+			END_IF
+		END_IF
+		
+	SectionTask.ACTIVE:
+		bundleOut := currentBundle;
+		
+		IF NOT enable THEN
+			iPair := 0;
+			status := SectionTask.CLEARING;
+			
+		ELSIF NOT usesProcess() THEN //bundle does not use this section's processes
+			iPair := 0;
+			status := SectionTask.CLEARING;
+		
+		ELSIF currentBypass (*AND_THEN discharge()*) THEN //bundle failed in previous section, discharge this section's materials
+			IF discharge() THEN
+				iPair := 0;
+				status := SectionTask.CLEARING;
+			END_IF
+			
+		ELSIF process(auto := auto, error => error) THEN //bundle recipe completed normally
+			IF NOT auto OR_ELSE execute THEN
+				iPair := 0;
+				status := SectionTask.CLEARING;
+			END_IF			
+		END_IF
+		
+	SectionTask.CLEARING:
+		bundleOut := currentBundle;
+		pConveyorMode := ConveyorMode.FORWARD;
+		
+		IF exitRefPos >= currentBundle.length AND NOT occupied THEN //rear of bundle has cleared the area
+			status := SectionTask.COMPLETE;
+		END_IF
+		
+	SectionTask.COMPLETE:	
+		iBundle := iBundle + 1;
+		//bundleOut := GVL.nullBundle;
+		MEMSET(ADR(bundleOut), 0, SIZEOF(bundleOut));
+		
+		status := SectionTask.IDLE;
+		
+		runSectionTasks := TRUE;
+		
+	-100: //previously completed bundle reversed into this section		
+		pConveyorMode := ConveyorMode.FORWARD;
+		
+		IF NOT occupied THEN
+			status := SectionTask.ALIGNING;
+		END_IF
+		
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="shiftIterator" Id="{2b1c8dba-7a66-41d7-be54-23459718f73e}">
+      <Declaration><![CDATA[METHOD shiftIterator : BOOL
+VAR
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//2023-10-24 - array of pointers replaced with iterator for MAIN's queue passed by pointer
+iBundle := iBundle - 1;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="usesProcess" Id="{c1b6c909-9917-4b95-9231-7fe23c878d88}" FolderPath="Abstract\">
+      <Declaration><![CDATA[METHOD PROTECTED ABSTRACT usesProcess : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[(*
+this method determines if a bundle uses materials that this section provides
+if a bundle does not use this section's process, then it can be skipped
+*)]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="SectionEx">
+      <LineId Id="3680" Count="12" />
+      <LineId Id="3587" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.assignConveyors">
+      <LineId Id="22" Count="1" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="14" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.callLocalModules">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.connectTo">
+      <LineId Id="5" Count="0" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="14" Count="2" />
+      <LineId Id="10" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.directionCheckAndSet">
+      <LineId Id="7" Count="3" />
+      <LineId Id="21" Count="0" />
+      <LineId Id="12" Count="1" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.discharge">
+      <LineId Id="5" Count="0" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.load">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.maintenance">
+      <LineId Id="20" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.pConveyorMode.Get">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.pConveyorMode.Set">
+      <LineId Id="2" Count="0" />
+      <LineId Id="8" Count="4" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="13" Count="10" />
+      <LineId Id="25" Count="4" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.pmlStates">
+      <LineId Id="31" Count="0" />
+      <LineId Id="38" Count="0" />
+      <LineId Id="40" Count="1" />
+      <LineId Id="45" Count="0" />
+      <LineId Id="47" Count="10" />
+      <LineId Id="150" Count="2" />
+      <LineId Id="59" Count="2" />
+      <LineId Id="63" Count="4" />
+      <LineId Id="69" Count="10" />
+      <LineId Id="185" Count="0" />
+      <LineId Id="168" Count="0" />
+      <LineId Id="171" Count="0" />
+      <LineId Id="184" Count="0" />
+      <LineId Id="82" Count="5" />
+      <LineId Id="154" Count="2" />
+      <LineId Id="89" Count="1" />
+      <LineId Id="157" Count="2" />
+      <LineId Id="92" Count="11" />
+      <LineId Id="160" Count="2" />
+      <LineId Id="166" Count="1" />
+      <LineId Id="172" Count="2" />
+      <LineId Id="104" Count="0" />
+      <LineId Id="106" Count="0" />
+      <LineId Id="163" Count="2" />
+      <LineId Id="107" Count="1" />
+      <LineId Id="175" Count="2" />
+      <LineId Id="109" Count="6" />
+      <LineId Id="178" Count="2" />
+      <LineId Id="117" Count="5" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.process">
+      <LineId Id="28" Count="0" />
+      <LineId Id="89" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.ps_AbortCondition">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.ps_Aborted">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.ps_Aborting">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.ps_Clearing">
+      <LineId Id="13" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.ps_Complete">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.ps_Completing">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.ps_Execute">
+      <LineId Id="67" Count="5" />
+      <LineId Id="10" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.ps_Held">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.ps_HoldCondition">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.ps_Holding">
+      <LineId Id="17" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.ps_Idle">
+      <LineId Id="13" Count="0" />
+      <LineId Id="6" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="8" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="14" Count="0" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="18" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.ps_Resetting">
+      <LineId Id="6" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.ps_Starting">
+      <LineId Id="15" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.ps_StopCondition">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.ps_Stopped">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.ps_Stopping">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.ps_SuspendCondition">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.ps_Suspended">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.ps_Suspending">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.ps_Unholding">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.ps_Unsuspending">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.pStatus.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.pStatus.Set">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.runSectionTasks">
+      <LineId Id="177" Count="58" />
+      <LineId Id="252" Count="0" />
+      <LineId Id="236" Count="5" />
+      <LineId Id="259" Count="1" />
+      <LineId Id="242" Count="3" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.shiftIterator">
+      <LineId Id="17" Count="0" />
+      <LineId Id="19" Count="0" />
+    </LineIds>
+    <LineIds Name="SectionEx.usesProcess">
+      <LineId Id="11" Count="0" />
+      <LineId Id="13" Count="1" />
+      <LineId Id="12" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

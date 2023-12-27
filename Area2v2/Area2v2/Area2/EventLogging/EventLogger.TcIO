@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <Itf Name="EventLogger" Id="{2533d092-9fe0-4b9a-8fe9-ea815fba24a7}">
+    <Declaration><![CDATA[INTERFACE EventLogger]]></Declaration>
+    <Method Name="logEvent" Id="{ee387f80-b4ac-4ea1-bc00-7527cdf4a3ce}">
+      <Declaration><![CDATA[METHOD logEvent : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="queueEvent" Id="{7850d4f0-b066-45f5-a717-807658f58f81}">
+      <Declaration><![CDATA[METHOD queueEvent : BOOL
+VAR_INPUT
+	event : INT;
+END_VAR]]></Declaration>
+    </Method>
+  </Itf>
+</TcPlcObject>

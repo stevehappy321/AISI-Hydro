@@ -1,0 +1,1588 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="CardboardCornerGuardEx" Id="{a8c59fad-2bb5-4d17-87d2-8ffaf74c5994}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK CardboardCornerGuardEx EXTENDS SectionEx_x
+VAR
+	robotLeft, robotRight : REFERENCE TO Robot;
+	
+	insertionLeft, insertionRight : REFERENCE TO Insertion;
+	insertionBottom : REFERENCE TO TeknicHW;
+	
+	wrapper : REFERENCE TO WrapMachine;
+	overhead : REFERENCE TO STRING;
+	
+	skidLeft, skidRight : REFERENCE TO MaterialStorage; //cardboard
+	magazineLeft, magazineRight : REFERENCE TO MaterialStorage; //corner guard
+	
+	benderLeft : REFERENCE TO FoldingMachine;
+END_VAR
+VAR
+	pushConveyorPos: REAL;
+	wrapConveyorPos : REAL;
+	
+	insertionSlots : ARRAY[Surface.TOP_LEFT..Surface.BOTTOM_RIGHT] OF STRING;
+	
+	combinedCardboardCornerGuard : ARRAY[0..2*GVL.maxPairs] OF PositionMaterials;
+	recipesCombined : BOOL;
+	
+	materialsArr : POINTER TO PositionMaterials; //array of PositionMaterials
+	currentPair : REFERENCE TO PositionMaterials;
+	
+	frontCoverPlaced : BOOL;
+	backCoverPlaced : BOOL;
+	
+	cornerSetLeft, cornerSetRight : INT;
+	
+	iWrap : INT;
+	
+	step : (PLACE_FRONT_COVER := -10, PLACE_BACK_COVER := -20, RUN_TO_POSITION, LOAD_FLATS, PUSH, RUN_TO_WRAP_POSITION, WRAP_AND_RELEASE, RESET);
+	robotLeftOutputs, robotRightOutputs : ARRAY[1..50] OF INT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[entryRefPos := pushConveyorPos;
+exitRefPos := wrapConveyorPos;
+
+SUPER^();
+
+CASE status OF
+	SectionStatus.IDLE:
+		RETURN;
+	
+	SectionStatus.ALIGNING:
+		IF NOT recipesCombined THEN
+			combine(
+				currentBundle.cardboard, 
+				currentBundle.cornerGuard, 
+				combinedCardboardCornerGuard, 
+				currentBundle.cardboard_over_cornerGuard);
+				
+			recipesCombined := TRUE;
+		END_IF
+		
+	SectionStatus.ACTIVE:
+		recipesCombined := FALSE;
+		
+	SectionStatus.CLEARING:
+		//
+		
+	SectionStatus.COMPLETE:	
+		//
+		
+	-100:
+		RETURN;
+		
+END_CASE]]></ST>
+    </Implementation>
+    <Folder Name="Covers" Id="{7c3844f1-0007-4c8a-b6ea-281eb812ff3f}" />
+    <Folder Name="Loading" Id="{21d5f6d1-557c-44cc-9d02-c168d792f248}">
+      <Folder Name="Cardboard (Corner)" Id="{8f34b24f-0f93-4965-8f66-af279f368ca3}" />
+      <Folder Name="Cardboard (Flat)" Id="{c27b3a4c-1195-4283-a5df-d05ab3293d66}" />
+      <Folder Name="Corner Guard" Id="{6556ca3f-09cb-4649-92bd-22bd27f604cb}" />
+    </Folder>
+    <Folder Name="Recipe Combination" Id="{e84711e1-12c7-48bc-a0fc-ee5336e88119}" />
+    <Folder Name="z_Obsolete" Id="{7b969d6a-6d5e-4d8d-a765-9d3f6701131b}">
+      <Folder Name="Special" Id="{af4676bc-89a7-4b8c-af36-e757826d91f3}" />
+    </Folder>
+    <Method Name="changeRobotsEOAT" Id="{ad257d74-55b5-4856-b29b-eabb6aa02516}">
+      <Declaration><![CDATA[METHOD changeRobotsEOAT : BOOL
+VAR_INPUT
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[(*
+IF robotLeft.tool <> sectionID THEN
+	MEMSET(ADR(robotLeftOutputs), 0, SIZEOF(robotLeftOutputs));
+	//robotLeftOutputs[1] := A21.TOOL_CHANGE_CHIPBOARD;
+	robotLeft.setParamsAndWait(robotLeftOutputs);
+END_IF
+
+IF robotRight.tool <> sectionID THEN
+	MEMSET(ADR(robotRightOutputs), 0, SIZEOF(robotRightOutputs));
+	//robotRightOutputs[1] := A21.TOOL_CHANGE_CHIPBOARD;
+	robotRight.setParamsAndWait(robotRightOutputs);
+END_IF
+
+changeRobotsEOAT := robotLeft.tool = sectionID AND robotRight.tool = sectionID;
+*)]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="combine" Id="{68c0a6ae-b842-4781-b6e7-e5f46d476b9d}" FolderPath="Recipe Combination\">
+      <Declaration><![CDATA[METHOD PROTECTED combine : BOOL
+VAR_IN_OUT
+	cardboard : ARRAY[*] OF PositionMaterials;
+	cornerGuard : ARRAY[*] OF PositionMaterials;
+	
+	combined : ARRAY[*] OF PositionMaterials;
+END_VAR
+VAR_INPUT
+	cardboard_over_cornerGuard : BOOL;
+END_VAR
+VAR_INST
+	topLength : REAL;
+	leftLength : REAL;
+	rightLength : REAL;
+	bottomLength : REAL;
+	
+	topLeftLength : REAL;
+	topRightLength : REAL;
+	bottomLeftLength : REAL;
+	bottomRightLength : REAL;
+	
+	outerMaterialLength : REAL;
+	innerMaterialLength : REAL;
+	
+	i : INT;
+	iCardboard : INT;
+	iCornerGuard : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i:=0 TO GVL.maxPairs*2 BY 1 DO
+	IF //no more cardboard (reached end of array or unused entries), 
+		(iCardboard >= GVL.maxPairs OR_ELSE NOT PositionIsValid(cardboard[iCardboard])) AND_THEN //no more valid cardboard entries
+		iCornerGuard < GVL.maxPairs AND_THEN //still has remaining corner guard
+		PositionIsValid(cornerGuard[iCornerGuard]) //remaining corner guard is valid		
+	THEN //finish with cornerguard
+		combined[i] := cornerGuard[iCornerGuard];
+		iCornerGuard := iCornerGuard + 1;
+		CONTINUE;
+	END_IF
+	
+	IF //no more cornerguard (reached end of array or unused entries)
+		(iCornerGuard >= GVL.maxPairs OR_ELSE NOT PositionIsValid(cornerGuard[iCornerGuard])) AND_THEN
+		iCardboard < GVL.maxPairs AND_THEN
+		PositionIsValid(cardboard[iCardboard])
+	THEN //finish with cardboard
+		combined[i] := cardboard[iCardboard];
+		iCardboard := iCardboard + 1;
+		CONTINUE;
+	END_IF
+	
+	(*
+	IF NOT cardboard_over_cornerGuard THEN //cardboard on inside
+		setOrder(cardboard, cornerGuard, combined, iCardboard, iCornerGuard, i);
+		
+	ELSE //cardboard on outside
+		setOrder(cornerGuard, cardboard, combined, iCornerGuard, iCardboard, i);
+		
+	END_IF
+	*)
+END_FOR
+
+combine := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="leftBendingSequence" Id="{a327e208-1928-4adc-9c68-993330ffc2d3}" FolderPath="z_Obsolete\Special\">
+      <Declaration><![CDATA[METHOD PROTECTED leftBendingSequence : BOOL
+VAR_IN_OUT
+	actingRobot : Robot;
+	actingSkid : MaterialStorage;
+	
+	actingLoadStep : INT;
+	actingRobotStep : INT;
+END_VAR
+VAR_INPUT
+	materialID : STRING;
+	foldPosition1 : INT;
+	foldPosition2 : INT;
+END_VAR
+VAR_OUTPUT
+	fail : BOOL;
+END_VAR
+VAR
+	slot : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="leftOverheadSequence" Id="{d4f60085-e53a-48fb-8343-4cf41c518967}" FolderPath="z_Obsolete\Special\">
+      <Declaration><![CDATA[METHOD PROTECTED leftOverheadSequence : BOOL
+VAR_IN_OUT
+	actingRobot : Robot;
+	actingSkid : MaterialStorage;
+	
+	actingLoadStep : INT;
+	actingRobotStep : INT;
+END_VAR
+VAR_INPUT
+	materialID : STRING;
+	foldPosition1 : INT;
+	foldPosition2 : INT;
+END_VAR
+VAR_OUTPUT
+	fail : BOOL;
+END_VAR
+VAR
+	slot : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[(*
+CASE actingLoadStep OF
+	0: //skid to bender
+		IF NOT actingSkid.findSlot(materialID, position=> slot) THEN
+			fail := TRUE;
+			RETURN;
+		END_IF
+		
+		IF
+			actingRobot.reserve() AND_THEN
+			actingRobot.setCommandAndWait(
+				task:= A22.TRANSFER_TO_BENDER, 
+				param0:= slot, 
+				param1:= foldPosition1, 
+				param2:= foldPosition2)
+		THEN
+			actingRobotStep := 10;
+		END_IF
+		
+	10: //bend
+		(*
+		IF bendingMachine.done THEN
+			cardboardCornersLoadStep := 20;
+		END_IF
+		*)
+		
+	20: //bender to overhead
+		IF overhead <> '' THEN
+			RETURN;
+		END_IF
+		
+		IF
+			actingRobot.reserve() AND_THEN
+			actingRobot.setCommandAndWait(
+				task:= A22.TRANSFER_TO_OVERHEAD, 
+				param0:= 0, 
+				param1:= 0, 
+				param2:= 0)
+		THEN
+			actingRobotStep := 10;
+		END_IF
+		
+		CASE actingRobotStep OF
+			COMMAND: //send command
+				IF NOT actingRobot.reserve() THEN
+					RETURN;
+				END_IF
+				
+				IF actingSkid.findSlot(currentPair.topRight, position=> slot) THEN
+					actingRobot.command(
+						task:= A22.TRANSFER_TO_OVERHEAD, 
+						param0:= 0, 
+						param1:= 0, 
+						param2:= 0);
+						
+				ELSE
+					fail := TRUE;
+					RETURN;
+					
+				END_IF
+				
+			WAIT:
+				IF actingRobot.done THEN
+					overhead := materialID;
+					
+					actingRobot.release();
+					actingRobotStep := 30;
+					actingLoadStep := Surface.BOTTOM_RIGHT;
+				END_IF
+		END_CASE
+END_CASE
+*)]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="leftRobotCornersSequence" Id="{08bffef9-e349-4b7d-9ae3-92f5a7d8876a}" FolderPath="Loading\Cardboard (Corner)\">
+      <Declaration><![CDATA[METHOD PROTECTED leftRobotCornersSequence : BOOL
+VAR_IN_OUT
+	actingRobot : Robot;
+	skid : MaterialStorage;
+	loadStep : INT;
+END_VAR
+VAR_INPUT
+	surfaceID : Surface;
+	materialID : STRING;
+	foldPos0 : INT;
+	foldPos1 : INT;
+END_VAR
+VAR_OUTPUT
+	fail : BOOL;
+END_VAR
+VAR
+	slot : INT;
+	
+	task : INT;
+	param0, param1, param2 : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF materialID = '' THEN
+	leftRobotCornersSequence := TRUE;
+	RETURN;
+END_IF
+
+IF NOT benderLeft.busy THEN
+	benderLeft.foldPos0 := foldPos0;
+	benderLeft.foldPos1 := foldPos1;
+END_IF
+
+CASE loadStep OF
+	0: //skid to bender
+		IF NOT skid.findSlot(materialID, atSlot=> slot) THEN
+			fail := TRUE;
+			RETURN;
+		END_IF
+		
+		IF
+			actingRobot.setCommandAndWait(
+				task:= A22.TRANSFER_TO_BENDER, 
+				param1:= slot, 
+				param2:= foldPos0, 
+				param3:= foldPos1)
+		THEN
+			loadStep := 10;
+		END_IF
+		
+	10: //bend
+		//IF benderLeft.done THEN
+			loadStep := 20;
+		//END_IF
+		
+		
+	20: //bender to overhead or left insertion
+		CASE surfaceID OF
+			Surface.TOP_RIGHT, Surface.BOTTOM_RIGHT: //transfer to overhead
+				IF overhead <> '' THEN
+					RETURN;
+				END_IF
+				task := A22.TRANSFER_TO_OVERHEAD;
+				
+			Surface.TOP_LEFT: //load to insertion
+				task:= A22.LOAD_BENDER_TO_UPPER_CORNER;
+					
+			Surface.BOTTOM_LEFT: //load to insertion
+				task := A22.LOAD_BENDER_TO_LOWER_CORNER;
+				
+		END_CASE
+		
+		IF
+			actingRobot.setCommandAndWait(
+				task:= task, 
+				param1:= param0, 
+				param2:= param1, 
+				param3:= param1)
+		THEN
+			 loadStep := COMPLETE;
+		END_IF
+	
+	COMPLETE:
+		//turn on suction
+		leftRobotCornersSequence := TRUE;
+	
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="load" Id="{a681c93d-e590-4020-9185-d7ae010cf638}">
+      <Declaration><![CDATA[METHOD PROTECTED load : BOOL
+VAR_INPUT
+	pair : REFERENCE TO PositionMaterials;
+END_VAR
+VAR
+	nextPair : REFERENCE TO PositionMaterials REF= materialsArr[iPair + 1];
+	finished : BOOL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[(*
+this method only loads corner materials (L-cardboards and corner guards)
+to load flat cardboards, use loadFlats()
+*)
+
+IF NOT (robotLeft.operational AND robotRight.operational) THEN
+	error := TRUE;
+	currentBypass := TRUE;
+	RETURN;
+END_IF
+
+IF NOT (robotLeft.reserve(sectionID) AND robotRight.reserve(sectionID)) THEN //both robots must be reserved first
+	RETURN;
+END_IF
+
+
+IF //if next material has same position as this material, only happens if this material is cardboard and next is corner guard
+	nextPair.position = pair.position AND_THEN
+	NOT loadCornerGuards(nextPair, fail=> ) //load next pair (corner guards) first
+THEN
+	RETURN;
+END_IF
+
+
+IF MatchesMaterialType(pair:= pair, materialType:= 'CAR') THEN //is cardboard
+	load := loadCornerCardboards(pair:= pair);
+
+ELSIF MatchesMaterialType(pair:= pair, materialType:= 'COR') THEN //is corner guard
+	load := loadCornerGuards(pair:= pair);
+
+END_IF
+
+
+IF load THEN
+	robotLeft.release(sectionID);
+	robotRight.release(sectionID);
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="loadBottom" Id="{96fe8dec-7975-47d9-bf27-7665a4b63d8b}" FolderPath="z_Obsolete\">
+      <Declaration><![CDATA[METHOD PROTECTED loadBottom : BOOL
+VAR_IN_OUT
+	actingRobot : Robot;
+	actingStorage : MaterialStorage;
+	actingLoadStep : INT;
+END_VAR
+VAR_INPUT
+	material : STRING;
+END_VAR
+VAR_OUTPUT
+	fail : BOOL;
+END_VAR
+VAR
+	slot : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF material = '' THEN
+	loadBottom := TRUE;
+	RETURN;
+END_IF
+
+CASE actingLoadStep OF
+	0:
+		IF NOT actingStorage.findSlot(materialID := material, atSlot => slot) THEN
+			fail := TRUE;
+			RETURN;
+		END_IF
+		
+		IF
+			actingRobot.setCommandAndWait( //perform the task
+				task:= A22.LOAD_CARDBOARD_BOTTOM,
+				param1:= slot,
+				param2:= 0,
+				param3:= 0)
+		THEN
+			actingLoadStep := COMPLETE;
+		END_IF
+		
+	COMPLETE:
+		//turn on suction
+		loadBottom := TRUE;
+	
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="loadBottomLeft" Id="{ab1e7458-9ffe-4f54-b3b2-5672f3fb4d32}" FolderPath="z_Obsolete\">
+      <Declaration><![CDATA[METHOD PROTECTED loadBottomLeft : BOOL
+VAR_IN_OUT
+	actingRobot : Robot;
+	actingStorage : MaterialStorage;
+	actingLoadStep : INT;
+END_VAR
+VAR_INPUT
+	material : STRING;
+END_VAR
+VAR_OUTPUT
+	fail : BOOL;
+END_VAR
+VAR
+	slot : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF material = '' THEN
+	loadBottomLeft := TRUE;
+	RETURN;
+END_IF
+
+CASE actingLoadStep OF
+	0:
+		IF NOT actingStorage.findSlot(materialID := material, atSlot => slot) THEN //load from staging table
+			fail := TRUE;
+			RETURN;
+		END_IF
+		
+		IF
+			actingRobot.setCommandAndWait( //perform the task
+				task:= A22.LOAD_CORNER_GUARD_LOWER,
+				param1:= slot,
+				param2:= 0,
+				param3:= 0)
+		THEN
+			actingLoadStep := COMPLETE;
+		END_IF
+		
+	COMPLETE:
+		loadBottomLeft := TRUE;
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="loadBottomRight" Id="{2f89862d-4e9e-4b8f-9d60-93e8bfb6d8cd}" FolderPath="z_Obsolete\">
+      <Declaration><![CDATA[METHOD PROTECTED loadBottomRight : BOOL
+VAR_IN_OUT
+	actingRobot : Robot;
+	actingStorage : MaterialStorage;
+	actingLoadStep : INT;
+END_VAR
+VAR_INPUT
+	material : STRING;
+END_VAR
+VAR_OUTPUT
+	fail : BOOL;
+END_VAR
+VAR
+	slot : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF material = '' THEN
+	loadBottomRight := TRUE;
+	RETURN;
+END_IF
+
+CASE actingLoadStep OF
+	0:
+		IF NOT actingStorage.findSlot(materialID := material, atSlot => slot) THEN //load from staging table
+			fail := TRUE;
+			RETURN;
+		END_IF
+		
+		IF
+			actingRobot.setCommandAndWait( //perform the task
+				task:= A22.LOAD_CORNER_GUARD_LOWER,
+				param1:= slot,
+				param2:= 0,
+				param3:= 0)
+		THEN
+			actingLoadStep := COMPLETE;
+		END_IF
+		
+	COMPLETE:
+		loadBottomRight := TRUE;
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="loadCornerCardboards" Id="{fc6e26f1-7233-42c4-a94a-66d2e256266a}" FolderPath="Loading\Cardboard (Corner)\">
+      <Declaration><![CDATA[METHOD PROTECTED loadCornerCardboards : BOOL
+VAR_INPUT
+	pair : REFERENCE TO PositionMaterials;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF cornerSetLeft = 0 THEN //LEFT SIDE
+	cornerSetLeft := Surface.TOP_RIGHT;
+END_IF
+
+IF
+	leftRobotCornersSequence(
+		actingRobot:= robotLeft, 
+		skid:= skidLeft, 
+		surfaceID:= cornerSetLeft,
+		loadStep:= loadStepLeft, 
+		materialID:= pair.topRight, 
+		foldPos0:= currentBundle.cardboardFolds[cornerSetLeft][iPair],
+		foldPos1:= 0,
+		fail=> )
+THEN
+	CASE cornerSetLeft OF
+		Surface.TOP_RIGHT: 
+			cornerSetLeft := Surface.TOP_LEFT;
+			loadStepLeft := 0;
+			
+		Surface.TOP_LEFT: 
+			cornerSetLeft := Surface.BOTTOM_RIGHT;
+			loadStepLeft := 0;
+			
+		Surface.BOTTOM_RIGHT: 
+			cornerSetLeft := Surface.BOTTOM_LEFT;
+			loadStepLeft := 0;
+			
+		Surface.BOTTOM_LEFT: 
+			cornerSetLeft := COMPLETE;
+			loadStepLeft := COMPLETE;
+			
+		COMPLETE:
+			//
+			
+	END_CASE
+END_IF
+
+
+
+IF cornerSetRight = 0 THEN //RIGHT SIDE
+	cornerSetRight := Surface.TOP_RIGHT;
+END_IF
+
+IF
+	rightRobotCornersSequence(
+		actingRobot:= robotRight, 
+		skid:= skidRight, 
+		loadStep:= loadStepRight, 
+		materialID:= pair.topRight, 
+		surfaceID:= cornerSetRight,
+		foldPos1:= currentBundle.cardboardFolds[cornerSetRight][iPair], 
+		foldPos2:= 0, 
+		fail=> )
+THEN
+	CASE cornerSetRight OF
+		Surface.TOP_RIGHT: 
+			cornerSetRight := Surface.BOTTOM_RIGHT;
+			loadStepRight := 0;
+			
+		Surface.BOTTOM_RIGHT: 
+			cornerSetRight := COMPLETE;			
+			loadStepRight := COMPLETE;
+			
+		COMPLETE:
+			//
+			
+	END_CASE
+END_IF
+
+
+IF cornerSetLeft = COMPLETE AND cornerSetRight = COMPLETE THEN
+	loadCornerCardboards := TRUE;
+	
+	loadStepLeft := loadStepRight := 0;
+	cornerSetLeft := cornerSetRight := 0;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="loadCornerGuards" Id="{73216583-3bb4-409e-896a-e96f29db7009}" FolderPath="Loading\Corner Guard\">
+      <Declaration><![CDATA[METHOD PROTECTED loadCornerGuards : BOOL
+VAR_INPUT
+	pair : REFERENCE TO PositionMaterials;
+END_VAR
+VAR_OUTPUT
+	fail : BOOL;
+END_VAR
+VAR
+	leftFail : BOOL;
+	rightFail : BOOL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CASE loadSet OF
+	0: //upper corners
+		IF 
+			loadCornerGuardSequence(
+				actingRobot:= robotLeft, 
+				robotOutputs:= robotLeftOutputs, 
+				actingStorage:= skidLeft, 
+				actingLoadStep:= loadStepLeft, 
+				surfaceID:= Surface.TOP_LEFT, 
+				material:= pair.topLeft, 
+				fail=> leftFail)
+			AND
+			loadCornerGuardSequence(
+				actingRobot:= robotRight, 
+				robotOutputs:= robotRightOutputs, 
+				actingStorage:= skidRight,
+				actingLoadStep:= loadStepRight, 
+				surfaceID:= Surface.TOP_RIGHT, 
+				material:= pair.topRight, 
+				fail=> rightFail)
+		THEN
+			loadStepLeft := loadStepRight := 0;
+			loadSet := 10;
+		END_IF
+		
+	10: //lower corners
+		IF 
+			loadCornerGuardSequence(
+				actingRobot:= robotLeft, 
+				robotOutputs:= robotLeftOutputs, 
+				actingStorage:= skidLeft, 
+				actingLoadStep:= loadStepLeft, 
+				surfaceID:= Surface.BOTTOM_LEFT, 
+				material:= pair.bottomLeft, 
+				fail=> leftFail)
+			AND
+			loadCornerGuardSequence(
+				actingRobot:= robotRight, 
+				robotOutputs:= robotRightOutputs, 
+				actingStorage:= skidRight,
+				actingLoadStep:= loadStepRight, 
+				surfaceID:= Surface.BOTTOM_RIGHT, 
+				material:= pair.bottomRight, 
+				fail=> rightFail)
+		THEN
+			loadStepLeft := loadStepRight := 0;
+			loadSet := COMPLETE;
+		END_IF
+	
+	COMPLETE:
+		loadStepLeft := loadStepRight := 0;
+		loadSet := 0;
+		
+		loadCornerGuards := TRUE;
+END_CASE
+
+fail := MAX(leftFail, rightFail);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="loadCornerGuardSequence" Id="{6d84fe42-26e5-4a1f-b580-8cefdfabe586}" FolderPath="Loading\Corner Guard\">
+      <Declaration><![CDATA[METHOD loadCornerGuardSequence : BOOL
+VAR_IN_OUT
+	actingRobot : Robot;
+	robotOutputs : ARRAY[1..50] OF INT;
+	actingStorage : MaterialStorage;
+	actingLoadStep : INT;
+END_VAR
+VAR_INPUT
+	surfaceID : Surface;
+	material : STRING;
+END_VAR
+VAR_OUTPUT
+	fail : BOOL;
+END_VAR
+VAR
+	slot : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF material = '' THEN
+	loadCornerGuardSequence := TRUE;
+	RETURN;
+END_IF
+
+CASE actingLoadStep OF
+	0:
+		IF NOT actingStorage.findSlot(materialID := material, atSlot => slot) THEN //load from staging table
+			fail := TRUE;
+			RETURN;
+		END_IF
+		
+		MEMSET(ADR(robotOutputs), 0, SIZEOF(robotOutputs));
+		CASE surfaceID OF
+			Surface.TOP_LEFT, Surface.TOP_RIGHT: 		robotOutputs[1] := A22.LOAD_CORNER_GUARD_UPPER;
+			Surface.BOTTOM_LEFT, Surface.BOTTOM_RIGHT:	robotOutputs[1] := A22.LOAD_CORNER_GUARD_LOWER;
+		END_CASE
+		robotOutputs[2] := slot;
+		
+		IF actingRobot.setParamsAndWait(robotOutputs) THEN
+			actingLoadStep := COMPLETE;
+		END_IF
+		
+	COMPLETE:
+		//outerSuctions[surfaceID].enable := TRUE;
+		loadCornerGuardSequence := TRUE;
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="loadFlats" Id="{b9a93d4c-938b-4af6-a5a3-5141d50c48d4}" FolderPath="Loading\Cardboard (Flat)\">
+      <Declaration><![CDATA[METHOD PROTECTED loadFlats : BOOL
+VAR_INPUT
+	pair : REFERENCE TO PositionMaterials;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CASE loadSet OF
+	0: //top and bottom
+		IF 
+			loadTop(robotLeft, skidLeft, loadStepLeft, pair.top, fail=> ) AND
+			loadBottom(robotRight, skidRight, loadStepRight, pair.bottom, fail=> )
+		THEN
+			loadStepLeft := loadStepRight := 0;
+			loadSet := 10;
+		END_IF
+		
+	10: //sides
+		IF 
+			loadSides(robotLeft, skidLeft, loadStepLeft, pair.top, fail=> ) AND
+			loadSides(robotRight, skidRight, loadStepRight, pair.bottom, fail=> )
+		THEN
+			loadStepLeft := loadStepRight := 0;
+			loadSet := COMPLETE;
+		END_IF
+	
+	COMPLETE:
+		loadStepLeft := loadStepRight := 0;
+		loadSet := 0;
+		
+		loadFlats := TRUE;
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="loadFlatSequence" Id="{e9b25173-0158-437d-9616-4153dd5d3500}" FolderPath="Loading\Cardboard (Flat)\">
+      <Declaration><![CDATA[METHOD loadFlatSequence : BOOL
+VAR_IN_OUT
+	actingRobot : Robot;
+	robotOutputs : ARRAY[1..50] OF INT;
+	actingStorage : MaterialStorage;
+	actingLoadStep : INT;
+END_VAR
+VAR_INPUT
+	surfaceID : Surface;
+	material : STRING;
+END_VAR
+VAR_OUTPUT
+	fail : BOOL;
+END_VAR
+VAR
+	slot : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF material = '' THEN
+	loadFlatSequence := TRUE;
+	RETURN;
+END_IF
+
+CASE actingLoadStep OF
+	0:
+		IF NOT actingStorage.findSlot(materialID := material, atSlot => slot) THEN
+			fail := TRUE;
+			RETURN;
+		END_IF
+		
+		MEMSET(ADR(robotOutputs), 0, SIZEOF(robotOutputs));
+		CASE surfaceID OF
+			Surface.TOP: 					robotOutputs[1] := A22.LOAD_CARDBOARD_TOP;
+			Surface.LEFT, Surface.RIGHT: 	robotOutputs[1] := A22.LOAD_CARDBOARD_SIDE;
+			Surface.BOTTOM: 				robotOutputs[1] := A22.LOAD_CARDBOARD_BOTTOM;
+		END_CASE
+		robotOutputs[2] := slot;
+		
+		IF actingRobot.setParamsAndWait(robotOutputs) THEN
+			actingLoadStep := COMPLETE;
+		END_IF
+		
+	COMPLETE:
+		loadFlatSequence := TRUE;
+	
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="loadSides" Id="{bce6adc5-bd14-4a01-8baf-9e8ced2a7029}" FolderPath="z_Obsolete\">
+      <Declaration><![CDATA[METHOD PROTECTED loadSides : BOOL
+VAR_IN_OUT
+	actingRobot : Robot;
+	actingStorage : MaterialStorage;
+	actingLoadStep : INT;
+END_VAR
+VAR_INPUT
+	material : STRING;
+END_VAR
+VAR_OUTPUT
+	fail : BOOL;
+END_VAR
+VAR
+	slot : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF material = '' THEN
+	loadSides := TRUE;
+	RETURN;
+END_IF
+
+CASE actingLoadStep OF
+	0:
+		IF NOT actingStorage.findSlot(materialID := material, atSlot => slot) THEN
+			fail := TRUE;
+			RETURN;
+		END_IF
+		
+		IF
+			actingRobot.setCommandAndWait( //perform the task
+				task:= A22.LOAD_CARDBOARD_SIDE,
+				param1:= slot,
+				param2:= 0,
+				param3:= 0)
+		THEN
+			actingLoadStep := COMPLETE;
+		END_IF
+		
+	COMPLETE:
+		//turn suction on
+		loadSides := TRUE;
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="loadTop" Id="{d3181a38-c048-40f0-a727-904bc3296946}" FolderPath="z_Obsolete\">
+      <Declaration><![CDATA[METHOD PROTECTED loadTop : BOOL
+VAR_IN_OUT
+	actingRobot : Robot;
+	actingStorage : MaterialStorage;
+	actingLoadStep : INT;
+END_VAR
+VAR_INPUT
+	material : STRING;
+END_VAR
+VAR_OUTPUT
+	fail : BOOL;
+END_VAR
+VAR
+	slot : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF material = '' THEN
+	loadTop := TRUE;
+	RETURN;
+END_IF
+
+CASE actingLoadStep OF
+	0:
+		IF NOT actingStorage.findSlot(materialID := material, atSlot => slot) THEN //load from staging table
+			fail := TRUE;
+			RETURN;
+		END_IF
+		
+		IF
+			actingRobot.setCommandAndWait( //perform the task
+				task:= A22.LOAD_CARDBOARD_TOP,
+				param1:= slot,
+				param2:= 0,
+				param3:= 0)
+		THEN
+			actingLoadStep := COMPLETE;
+		END_IF
+		
+	COMPLETE:
+		loadTop := TRUE;
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="loadTopLeft" Id="{da9b7d7b-fe35-4a3e-b66b-564cfda3ebe6}" FolderPath="z_Obsolete\">
+      <Declaration><![CDATA[METHOD PROTECTED loadTopLeft : BOOL
+VAR_IN_OUT
+	actingRobot : Robot;
+	actingStorage : MaterialStorage;
+	actingLoadStep : INT;
+END_VAR
+VAR_INPUT
+	material : STRING;
+END_VAR
+VAR_OUTPUT
+	fail : BOOL;
+END_VAR
+VAR
+	slot : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF material = '' THEN
+	loadTopLeft := TRUE;
+	RETURN;
+END_IF
+
+CASE actingLoadStep OF
+	0:
+		IF NOT actingStorage.findSlot(materialID := material, atSlot => slot) THEN //load from staging table
+			fail := TRUE;
+			RETURN;
+		END_IF
+		
+		IF
+			actingRobot.setCommandAndWait( //perform the task
+				task:= A22.LOAD_CORNER_GUARD_UPPER,
+				param1:= slot,
+				param2:= 0,
+				param3:= 0)
+		THEN
+			actingLoadStep := COMPLETE;
+		END_IF
+		
+	COMPLETE:
+		loadTopLeft := TRUE;
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="loadTopRight" Id="{0864a9ae-8557-457e-92f9-25a9eda0d9aa}" FolderPath="z_Obsolete\">
+      <Declaration><![CDATA[METHOD PROTECTED loadTopRight : BOOL
+VAR_IN_OUT
+	actingRobot : Robot;
+	actingStorage : MaterialStorage;
+	actingLoadStep : INT;
+END_VAR
+VAR_INPUT
+	material : STRING;
+END_VAR
+VAR_OUTPUT
+	fail : BOOL;
+END_VAR
+VAR
+	slot : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF material = '' THEN
+	loadTopRight := TRUE;
+	RETURN;
+END_IF
+
+CASE actingLoadStep OF
+	0:
+		IF NOT actingStorage.findSlot(materialID := material, atSlot => slot) THEN //load from staging table
+			fail := TRUE;
+			RETURN;
+		END_IF
+		
+		IF
+			actingRobot.setCommandAndWait( //perform the task
+				task:= A22.LOAD_CORNER_GUARD_UPPER,
+				param1:= slot,
+				param2:= 0,
+				param3:= 0)
+		THEN
+			actingLoadStep := COMPLETE;
+		END_IF
+		
+	COMPLETE:
+		loadTopRight := TRUE;
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="placeFrontCover" Id="{25c41d77-9114-4bb4-b025-8fd9cd529867}" FolderPath="Covers\">
+      <Declaration><![CDATA[METHOD placeFrontCover : BOOL
+VAR_INPUT
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="process" Id="{10741552-30dc-43f4-b22b-a667441db858}">
+      <Declaration><![CDATA[METHOD PROTECTED process : BOOL
+VAR
+	masterLength : REAL;
+	targetPos : REAL;
+	targetStep : INT;
+END_VAR
+VAR
+	maxHeight : REAL := 1000; //1000mm, 100cm, 1m tall at home pos
+END_VAR
+(*
+VAR_INST
+	resumePosition : REAL;
+END_VAR
+VAR CONSTANT
+	wrapDelta : REAL := 5;
+END_VAR
+*)]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//TODO: write instructions for wrapping front and back covers
+
+IF NOT frontCoverPlaced THEN
+	targetPos := 0;
+	
+ELSIF iPair < GVL.maxPairs THEN
+	targetPos := currentPair.position;
+	
+ELSIF NOT backCoverPlaced AND iPair >= GVL.maxPairs THEN
+	targetPos := currentBundle.length;
+	
+ELSIF iPair >= GVL.maxPairs THEN
+	process := TRUE;
+	RETURN;
+	
+END_IF
+
+CASE step OF
+	PLACE_FRONT_COVER:
+		IF placeFrontCover() THEN
+			step := RUN_TO_POSITION;
+		END_IF
+	
+	RUN_TO_POSITION:
+		IF //only load corners, flats will be PUSHed when bundle arrives at position
+			directionCheckAndSet(pushConveyorPos, currentPair.position) AND 
+			load(pair:= currentPair)
+		THEN
+			step := 10;
+		END_IF
+		
+	LOAD_FLATS:
+		IF loadFlats(pair:= currentPair) THEN
+			step := PUSH;
+		END_IF
+		
+	PUSH:
+		setConveyorMode(ConveyorMode.STOP);
+		(*
+		IF
+			NOT insertionLeft.align(targetPos:= maxHeight - currentBundle.height) OR
+			NOT insertionRight.align(targetPos:= maxHeight - currentBundle.height)
+		THEN
+			RETURN;
+		END_IF
+		
+		insertionLeft.press();
+		insertionRight.press();
+		*)
+		
+		IF NOT insertionLeft.contact THEN
+			//insertionRight.slideOut();
+			insertionLeft.traverse(direction:= MC_Negative_Direction);
+			insertionLeft.press();
+		END_IF
+		
+		IF NOT insertionRight.contact THEN
+			//insertionRight.slideOut();
+			insertionRight.traverse(direction:= MC_Negative_Direction);
+			insertionRight.press();
+		END_IF
+		
+		(*
+		IF NOT insertionBottom.contact THEN
+			insertionBottom.traverse(direction := FALSE);
+		END_IF
+		*)
+		
+		IF insertionLeft.contact AND insertionRight.contact (*AND insertionBottom.contact*) THEN		
+			step := RUN_TO_WRAP_POSITION;
+		END_IF
+		
+	RUN_TO_WRAP_POSITION:
+		masterLength := GetPositionMasterLength(currentPair);
+		IF iWrap >= currentPair.wrapPoints THEN
+			step := COMPLETE;
+			RETURN;
+		END_IF
+		
+		IF //compare current position with wrap position
+			directionCheckAndSet(
+				wrapConveyorPos,
+				(currentPair.position - masterLength/2) + (masterLength/(currentPair.wrapPoints + 1) * (iWrap + 1)))
+		THEN
+			step := WRAP_AND_RELEASE;
+		END_IF
+		
+	WRAP_AND_RELEASE: //wrap
+		setConveyorMode(ConveyorMode.STOP);
+		IF wrapper.ready OR (NOT wrapper.busy AND NOT wrapper.error) THEN
+			wrapper.wrap(currentPair.wrapRotations);
+		END_IF
+		
+		IF NOT insertionLeft.home THEN
+			insertionLeft.align(0);
+			insertionLeft.release();
+		END_IF
+		
+		IF NOT insertionRight.home THEN
+			insertionRight.align(0);
+			insertionRight.release();
+		END_IF
+		
+		IF wrapper.done AND insertionLeft.home AND insertionRight.home (*AND insertionBottom.home*) THEN
+			step := WRAP_AND_RELEASE;
+		END_IF
+		
+	COMPLETE: //reset
+		setConveyorMode(ConveyorMode.FORWARD);
+		
+		iPair := iPair + 1;
+		IF iPair >= GVL.maxPairs THEN
+			iPair := 0;
+			process := TRUE;
+		END_IF
+		iWrap := 0;
+		
+		step := 0;
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="rightRobotCornersSequence" Id="{879cd7f3-c4e8-4979-a4c5-8a1bacb14790}" FolderPath="Loading\Cardboard (Corner)\">
+      <Declaration><![CDATA[METHOD PROTECTED rightRobotCornersSequence : BOOL
+VAR_IN_OUT
+	actingRobot : Robot;
+	skid : MaterialStorage;
+	loadStep : INT;
+END_VAR
+VAR_INPUT
+	surfaceID : Surface;
+	materialID : STRING;
+	foldPos1 : INT;
+	foldPos2 : INT;
+END_VAR
+VAR_OUTPUT
+	fail : BOOL;
+END_VAR
+VAR
+	slot : INT;
+	
+	task : INT;
+	param0, param1, param2 : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF materialID = '' THEN
+	rightRobotCornersSequence := TRUE;
+	RETURN;
+END_IF
+
+CASE loadStep OF
+	0: //overhead to insertion
+		IF overhead = '' THEN
+			RETURN;
+		END_IF
+		
+		CASE surfaceID OF
+			Surface.TOP_RIGHT:
+				task := A22.LOAD_OVERHEAD_TO_UPPER_CORNER;
+				
+			Surface.BOTTOM_RIGHT:
+				task := A22.LOAD_OVERHEAD_TO_LOWER_CORNER;
+				
+		END_CASE
+		
+		IF
+			actingRobot.setCommandAndWait(
+				task:= task, 
+				param1:= slot, 
+				param2:= foldPos1, 
+				param3:= foldPos2)
+		THEN
+			loadStep := COMPLETE;
+		END_IF
+	
+	COMPLETE:
+		//turn on suction
+		rightRobotCornersSequence := TRUE;
+	
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="robotsFailed" Id="{0924391b-eda8-40a3-92e3-ade088e653b4}">
+      <Declaration><![CDATA[METHOD PROTECTED robotsFailed : BOOL
+VAR_INPUT
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT robotLeft.operational OR NOT robotLeft.operational THEN
+	error := TRUE;
+	currentBypass := TRUE;
+	robotsFailed := TRUE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="setOrder" Id="{e2776e5b-59eb-47e7-a6d5-4049b002d6f5}" FolderPath="Recipe Combination\">
+      <Declaration><![CDATA[METHOD PROTECTED setOrder : BOOL
+VAR_IN_OUT
+	innerArray : ARRAY[*] OF PositionMaterials;
+	outerArray : ARRAY[*] OF PositionMaterials;
+	
+	combined : ARRAY[*] OF PositionMaterials;
+	
+	i_inner : INT;
+	i_outer : INT;
+	i_combined : INT;
+END_VAR
+VAR
+	topLength : REAL;
+	leftLength : REAL;
+	rightLength : REAL;
+	bottomLength : REAL;
+	
+	topLeftLength : REAL;
+	topRightLength : REAL;
+	bottomLeftLength : REAL;
+	bottomRightLength : REAL;
+	
+	outerMaterialLength : REAL;
+	innerMaterialLength : REAL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//if inner material is in front of outer material, inner material goes first
+IF innerArray[i_inner].position <= outerArray[i_outer].position THEN
+
+	combined[i_combined] := innerArray[i_inner];
+	i_inner := i_inner + 1; //check next cardboard during next iteration
+	
+	setOrder := TRUE;
+	RETURN;
+END_IF
+	
+outerMaterialLength := GetPositionMasterLength(outerArray[i_outer]);
+innerMaterialLength := GetPositionMasterLength(innerArray[i_inner]);
+
+//if current inner material is too close to current outer material, place inner material first
+//compare inner materials' front with outer material's back
+IF (innerArray[i_inner].position - innerMaterialLength/2) < (outerArray[i_outer].position + outerMaterialLength/2) THEN
+	combined[i_combined] := innerArray[i_inner];
+	i_inner := i_inner + 1;
+ELSE //otherwise, outer material can go
+	combined[i_combined] := outerArray[i_outer];
+	i_outer := i_outer + 1;
+END_IF
+
+setOrder := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="usesProcess" Id="{197330ac-793e-4729-9655-d4ff2caf3be4}">
+      <Declaration><![CDATA[METHOD PROTECTED usesProcess : BOOL
+VAR
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF materialsArr = 0 THEN
+	RETURN;
+END_IF
+
+FOR i:=0 TO GVL.maxPairs BY 1 DO
+	IF PositionIsValid(materialsArr[i]) THEN
+		usesProcess := TRUE;
+		RETURN;		
+	END_IF
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="CardboardCornerGuardEx">
+      <LineId Id="304" Count="0" />
+      <LineId Id="274" Count="0" />
+      <LineId Id="321" Count="0" />
+      <LineId Id="275" Count="0" />
+      <LineId Id="436" Count="0" />
+      <LineId Id="460" Count="4" />
+      <LineId Id="486" Count="5" />
+      <LineId Id="494" Count="0" />
+      <LineId Id="493" Count="0" />
+      <LineId Id="484" Count="0" />
+      <LineId Id="466" Count="4" />
+      <LineId Id="496" Count="1" />
+      <LineId Id="473" Count="5" />
+      <LineId Id="438" Count="0" />
+    </LineIds>
+    <LineIds Name="CardboardCornerGuardEx.changeRobotsEOAT">
+      <LineId Id="26" Count="0" />
+      <LineId Id="10" Count="1" />
+      <LineId Id="14" Count="1" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="17" Count="4" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="27" Count="0" />
+    </LineIds>
+    <LineIds Name="CardboardCornerGuardEx.combine">
+      <LineId Id="167" Count="2" />
+      <LineId Id="203" Count="0" />
+      <LineId Id="202" Count="0" />
+      <LineId Id="171" Count="0" />
+      <LineId Id="195" Count="0" />
+      <LineId Id="197" Count="1" />
+      <LineId Id="175" Count="3" />
+      <LineId Id="201" Count="0" />
+      <LineId Id="204" Count="0" />
+      <LineId Id="180" Count="13" />
+      <LineId Id="205" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="207" Count="1" />
+    </LineIds>
+    <LineIds Name="CardboardCornerGuardEx.leftBendingSequence">
+      <LineId Id="24" Count="0" />
+    </LineIds>
+    <LineIds Name="CardboardCornerGuardEx.leftOverheadSequence">
+      <LineId Id="127" Count="0" />
+      <LineId Id="9" Count="1" />
+      <LineId Id="95" Count="1" />
+      <LineId Id="98" Count="0" />
+      <LineId Id="97" Count="0" />
+      <LineId Id="99" Count="1" />
+      <LineId Id="105" Count="0" />
+      <LineId Id="111" Count="3" />
+      <LineId Id="106" Count="0" />
+      <LineId Id="104" Count="0" />
+      <LineId Id="115" Count="0" />
+      <LineId Id="103" Count="0" />
+      <LineId Id="37" Count="12" />
+      <LineId Id="118" Count="8" />
+      <LineId Id="116" Count="1" />
+      <LineId Id="50" Count="27" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="128" Count="0" />
+    </LineIds>
+    <LineIds Name="CardboardCornerGuardEx.leftRobotCornersSequence">
+      <LineId Id="1581" Count="3" />
+      <LineId Id="1662" Count="0" />
+      <LineId Id="1661" Count="0" />
+      <LineId Id="1669" Count="1" />
+      <LineId Id="1664" Count="0" />
+      <LineId Id="1587" Count="53" />
+      <LineId Id="946" Count="0" />
+    </LineIds>
+    <LineIds Name="CardboardCornerGuardEx.load">
+      <LineId Id="451" Count="0" />
+      <LineId Id="454" Count="1" />
+      <LineId Id="453" Count="0" />
+      <LineId Id="452" Count="0" />
+      <LineId Id="327" Count="0" />
+      <LineId Id="456" Count="1" />
+      <LineId Id="328" Count="1" />
+      <LineId Id="441" Count="0" />
+      <LineId Id="440" Count="0" />
+      <LineId Id="442" Count="1" />
+      <LineId Id="433" Count="0" />
+      <LineId Id="330" Count="6" />
+      <LineId Id="431" Count="0" />
+      <LineId Id="412" Count="0" />
+      <LineId Id="415" Count="0" />
+      <LineId Id="419" Count="1" />
+      <LineId Id="417" Count="0" />
+      <LineId Id="421" Count="0" />
+      <LineId Id="423" Count="0" />
+      <LineId Id="422" Count="0" />
+      <LineId Id="435" Count="1" />
+      <LineId Id="434" Count="0" />
+      <LineId Id="437" Count="0" />
+      <LineId Id="439" Count="0" />
+      <LineId Id="438" Count="0" />
+    </LineIds>
+    <LineIds Name="CardboardCornerGuardEx.loadBottom">
+      <LineId Id="347" Count="1" />
+      <LineId Id="353" Count="0" />
+      <LineId Id="349" Count="0" />
+      <LineId Id="329" Count="0" />
+      <LineId Id="293" Count="7" />
+      <LineId Id="302" Count="9" />
+      <LineId Id="354" Count="0" />
+      <LineId Id="312" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="CardboardCornerGuardEx.loadBottomLeft">
+      <LineId Id="105" Count="2" />
+      <LineId Id="88" Count="0" />
+      <LineId Id="108" Count="0" />
+      <LineId Id="53" Count="7" />
+      <LineId Id="62" Count="10" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="CardboardCornerGuardEx.loadBottomRight">
+      <LineId Id="105" Count="2" />
+      <LineId Id="87" Count="1" />
+      <LineId Id="53" Count="7" />
+      <LineId Id="62" Count="10" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="CardboardCornerGuardEx.loadCornerCardboards">
+      <LineId Id="108" Count="37" />
+      <LineId Id="187" Count="0" />
+      <LineId Id="146" Count="36" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="CardboardCornerGuardEx.loadCornerGuards">
+      <LineId Id="87" Count="1" />
+      <LineId Id="124" Count="20" />
+      <LineId Id="95" Count="2" />
+      <LineId Id="145" Count="20" />
+      <LineId Id="104" Count="8" />
+      <LineId Id="39" Count="0" />
+    </LineIds>
+    <LineIds Name="CardboardCornerGuardEx.loadCornerGuardSequence">
+      <LineId Id="71" Count="25" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="CardboardCornerGuardEx.loadFlats">
+      <LineId Id="68" Count="23" />
+      <LineId Id="7" Count="0" />
+    </LineIds>
+    <LineIds Name="CardboardCornerGuardEx.loadFlatSequence">
+      <LineId Id="22" Count="12" />
+      <LineId Id="48" Count="3" />
+      <LineId Id="47" Count="0" />
+      <LineId Id="36" Count="6" />
+      <LineId Id="44" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="CardboardCornerGuardEx.loadSides">
+      <LineId Id="234" Count="2" />
+      <LineId Id="233" Count="0" />
+      <LineId Id="237" Count="0" />
+      <LineId Id="193" Count="7" />
+      <LineId Id="202" Count="11" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="CardboardCornerGuardEx.loadTop">
+      <LineId Id="382" Count="2" />
+      <LineId Id="377" Count="0" />
+      <LineId Id="381" Count="0" />
+      <LineId Id="323" Count="7" />
+      <LineId Id="332" Count="10" />
+      <LineId Id="90" Count="0" />
+    </LineIds>
+    <LineIds Name="CardboardCornerGuardEx.loadTopLeft">
+      <LineId Id="110" Count="2" />
+      <LineId Id="90" Count="1" />
+      <LineId Id="56" Count="7" />
+      <LineId Id="65" Count="10" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="CardboardCornerGuardEx.loadTopRight">
+      <LineId Id="108" Count="2" />
+      <LineId Id="90" Count="1" />
+      <LineId Id="56" Count="7" />
+      <LineId Id="65" Count="10" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="CardboardCornerGuardEx.placeFrontCover">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="CardboardCornerGuardEx.process">
+      <LineId Id="3961" Count="0" />
+      <LineId Id="4178" Count="0" />
+      <LineId Id="3965" Count="12" />
+      <LineId Id="4203" Count="0" />
+      <LineId Id="3985" Count="1" />
+      <LineId Id="4116" Count="1" />
+      <LineId Id="4119" Count="1" />
+      <LineId Id="4118" Count="0" />
+      <LineId Id="3987" Count="0" />
+      <LineId Id="3992" Count="0" />
+      <LineId Id="4282" Count="2" />
+      <LineId Id="4122" Count="0" />
+      <LineId Id="3994" Count="0" />
+      <LineId Id="4277" Count="4" />
+      <LineId Id="4121" Count="0" />
+      <LineId Id="4010" Count="1" />
+      <LineId Id="4266" Count="1" />
+      <LineId Id="4271" Count="4" />
+      <LineId Id="4285" Count="2" />
+      <LineId Id="4138" Count="0" />
+      <LineId Id="4276" Count="0" />
+      <LineId Id="4126" Count="0" />
+      <LineId Id="4292" Count="0" />
+      <LineId Id="4327" Count="0" />
+      <LineId Id="4128" Count="3" />
+      <LineId Id="4140" Count="0" />
+      <LineId Id="4328" Count="0" />
+      <LineId Id="4133" Count="1" />
+      <LineId Id="4288" Count="0" />
+      <LineId Id="4309" Count="0" />
+      <LineId Id="4289" Count="0" />
+      <LineId Id="4291" Count="0" />
+      <LineId Id="4290" Count="0" />
+      <LineId Id="4310" Count="0" />
+      <LineId Id="4143" Count="0" />
+      <LineId Id="4185" Count="0" />
+      <LineId Id="4137" Count="0" />
+      <LineId Id="4228" Count="1" />
+      <LineId Id="4035" Count="1" />
+      <LineId Id="4232" Count="0" />
+      <LineId Id="4234" Count="0" />
+      <LineId Id="4236" Count="0" />
+      <LineId Id="4235" Count="0" />
+      <LineId Id="4233" Count="0" />
+      <LineId Id="4237" Count="5" />
+      <LineId Id="4047" Count="3" />
+      <LineId Id="4245" Count="2" />
+      <LineId Id="4156" Count="0" />
+      <LineId Id="4158" Count="7" />
+      <LineId Id="4157" Count="0" />
+      <LineId Id="4248" Count="0" />
+      <LineId Id="4250" Count="1" />
+      <LineId Id="4249" Count="0" />
+      <LineId Id="4083" Count="11" />
+      <LineId Id="3065" Count="0" />
+    </LineIds>
+    <LineIds Name="CardboardCornerGuardEx.rightRobotCornersSequence">
+      <LineId Id="315" Count="33" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="CardboardCornerGuardEx.robotsFailed">
+      <LineId Id="12" Count="3" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="CardboardCornerGuardEx.setOrder">
+      <LineId Id="30" Count="13" />
+      <LineId Id="78" Count="0" />
+      <LineId Id="44" Count="7" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="CardboardCornerGuardEx.usesProcess">
+      <LineId Id="11" Count="0" />
+      <LineId Id="13" Count="1" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="3" Count="4" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

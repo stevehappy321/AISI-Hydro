@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="A24" Id="{9825abd9-77b4-48ca-9d54-54afdff6fff9}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM A24
+VAR_OUTPUT //conveyors only
+	A24_LRC_C02 	: Conveyor; //these conveyoors move bundles from A2.7 to A2.4
+	A24_LRC_C04 	: Conveyor;
+	A24_LRC_C06	 	: Conveyor;
+	A24_LRC_C08 	: Conveyor;
+	A24_LRC_C10 	: Conveyor;
+	A24_LRC_C12 	: Conveyor;
+	
+	A24_SC_C01 		: ConveyorSC; //these conveyors move bundles on A2.4 forward down the cell
+	A24_SC_C03 		: ConveyorSC;
+	A24_SC_C05 		: ConveyorSC;
+	A24_SC_C07 		: ConveyorSC;
+	A24_SC_C09 		: ConveyorSC;
+	A24_SC_C11 		: ConveyorSC;
+	A24_SC_C13 		: ConveyorSC;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <LineIds Name="A24">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

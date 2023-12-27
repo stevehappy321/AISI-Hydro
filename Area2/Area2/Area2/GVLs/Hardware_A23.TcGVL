@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <GVL Name="Hardware_A23" Id="{5c8ed203-4ccf-4b7b-b18b-d1ed1a3eea93}">
+    <Declaration><![CDATA[//{attribute 'qualified_only'}
+VAR_GLOBAL
+	//robot5 : RobotA23;
+	//robot6 : RobotA23;
+	
+	//6 ClearLinkMC
+	//3 or 4 ServoNC
+	
+	wrapperA23 : WrapMachine;
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

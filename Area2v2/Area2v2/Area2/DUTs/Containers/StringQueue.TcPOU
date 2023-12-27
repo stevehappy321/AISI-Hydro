@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="StringQueue" Id="{d0805259-a10e-466f-82e5-5e0980abf977}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK StringQueue EXTENDS Queue
+VAR
+	elements : FB_BA_DynamicArray := (uiEntrySize := SIZEOF(STRING), uiMinExpCount := Consts.initArraySize);
+	//length : USINT := 0;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="get" Id="{f6e1b64e-ef1a-40af-815a-e4f7b939695e}">
+      <Declaration><![CDATA[METHOD get : STRING
+VAR_INPUT
+	i : UINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[elements.GetEntry(diIndex := i, pResultEntry := ADR(get));]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="isEmpty" Id="{f02a231f-f5b4-4a0a-86be-fb8c5cd7be57}">
+      <Declaration><![CDATA[METHOD isEmpty : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[isEmpty := (elements.diCount = 0);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="poll" Id="{9f031a82-eb77-4afe-8554-88232cc2f2e6}">
+      <Declaration><![CDATA[METHOD poll : STRING
+VAR_INST
+	temp : STRING;
+	i : UINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[temp := get(i := 0);
+elements.RemoveEntry(diIndex := 0);
+//length := length - 1;
+poll := temp;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="push" Id="{33102ce9-4361-45fb-9c60-c63261e6725b}">
+      <Declaration><![CDATA[METHOD push : BOOL
+VAR_INPUT
+	value : STRING;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[elements.AddEntry(pEntry := ADR(value));
+//length := length + 1;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="size" Id="{9a118a6a-ea85-40be-b672-dfdf0f839afb}">
+      <Declaration><![CDATA[METHOD size : DINT
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[size := elements.diCount;]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="StringQueue">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="StringQueue.get">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="StringQueue.isEmpty">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="StringQueue.poll">
+      <LineId Id="50" Count="2" />
+      <LineId Id="23" Count="0" />
+    </LineIds>
+    <LineIds Name="StringQueue.push">
+      <LineId Id="25" Count="0" />
+      <LineId Id="17" Count="0" />
+    </LineIds>
+    <LineIds Name="StringQueue.size">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="E_PMLCustomUnitMode" Id="{e43eb556-2056-4077-9b16-be2d65284cc9}">
+    <Declaration><![CDATA[//{attribute 'qualified_only'}
+//{attribute 'strict'}
+TYPE E_PMLCustomUnitMode :
+(
+	ePMLCustomUnitMode_Invalid := 0, //no mode
+	ePMLCustomUnitMode_Production := 1, //normal automatic production
+	ePMLCustomUnitMode_Maintenance := 2, //testing operational improvements
+	ePMLCustomUnitMode_Manual := 3, //commissioning
+	
+	ePMLCustomUnitMode_SemiAuto := 4, //same state machine as production, but uses an execute signal to advance to next step
+	
+	size
+)DINT;
+END_TYPE
+(*
+this enum adds on to E_PMLProtectedUnitMode with additional modes
+can be used by a combobox on the HMI to select a mode
+
+all modes used in the program need to be configured using PML_UnitModeConfig
+*)]]></Declaration>
+  </DUT>
+</TcPlcObject>

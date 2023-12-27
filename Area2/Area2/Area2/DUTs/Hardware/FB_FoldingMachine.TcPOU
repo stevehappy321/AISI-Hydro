@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="FB_FoldingMachine" Id="{d6ca17f9-19c5-43ef-9652-b5b02a8cedeb}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_FoldingMachine
+VAR_IN_OUT CONSTANT
+	enable AT %Q* : BOOL;
+END_VAR
+VAR_OUTPUT
+	activeMaterial : STRING;
+	
+	ready AT %I* : BOOL;
+	busy AT %I* : BOOL;
+	done AT %I* : BOOL;
+	
+	//execute AT %Q* : BOOL;
+	reset AT %Q* : BOOL;
+	foldingPositions AT %Q* : ARRAY[0..1] OF INT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="setFoldingPositions" Id="{0c92faf8-7c73-471c-9944-f27c4a400706}">
+      <Declaration><![CDATA[METHOD setFoldingPositions : BOOL
+VAR_INPUT
+	foldPos0, foldPos1 : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[foldingPositions[0] := foldPos0;
+foldingPositions[1] := foldPos1;]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_FoldingMachine">
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FoldingMachine.setFoldingPositions">
+      <LineId Id="5" Count="0" />
+      <LineId Id="7" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

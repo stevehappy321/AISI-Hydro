@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="POU" Id="{8b206f4b-01bb-4bf9-a81f-4c6ae99f8f28}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK POU
+VAR_IN_OUT
+	out : ARRAY[*] OF BOOL;
+END_VAR
+VAR
+	timer : TON;
+	i : DINT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF i > UPPER_BOUND(out, 1) THEN
+	RETURN;
+END_IF
+
+IF i = LOWER_BOUND(out, 1) THEN //if first ouptut does not need delay
+	out[i] := TRUE;
+	i := i + 1;
+	RETURN;
+END_IF
+
+
+timer(IN:= , PT:= T#1S, Q=> out[i], ET=> );
+timer.IN := TRUE;
+IF timer.Q THEN
+	//out[i-1] := FALSE; //turn off previous output, optional
+	i := i + 1;
+	timer.IN := FALSE;
+END_IF]]></ST>
+    </Implementation>
+    <LineIds Name="POU">
+      <LineId Id="52" Count="5" />
+      <LineId Id="65" Count="1" />
+      <LineId Id="58" Count="0" />
+      <LineId Id="64" Count="0" />
+      <LineId Id="59" Count="0" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="61" Count="0" />
+      <LineId Id="60" Count="0" />
+      <LineId Id="69" Count="0" />
+      <LineId Id="62" Count="0" />
+      <LineId Id="68" Count="0" />
+      <LineId Id="63" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
