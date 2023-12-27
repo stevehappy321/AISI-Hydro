@@ -11,4 +11,4 @@ Area2v2
 -each subarea module is responsible for cyclically calling its own hardware and section modules
 -master logic is retained in MAIN
 
-the section modules between both versions should be identical and transferrable as is
+the section modules between both versions should be identical and transferable as is
