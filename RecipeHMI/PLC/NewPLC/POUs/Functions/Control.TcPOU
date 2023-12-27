@@ -1,0 +1,130 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="Control" Id="{56519b4d-259d-47bc-8034-56f8420ebdd7}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK Control
+VAR
+	j : INT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="removeBottomMaterial" Id="{7581ae81-42cc-4374-afa1-d6c7237031d0}">
+      <Declaration><![CDATA[{attribute 'TcRpcEnable'}
+METHOD removeBottomMaterial : BOOL
+VAR_INPUT
+	i : INT; //index to be removed
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR j:=i TO GVL.maxMaterials-1 BY 1 DO
+	MEMCPY(ADR(StrapWrapRecipe.bottomMaterials[j]), ADR(StrapWrapRecipe.bottomMaterials[j+1]), SIZEOF(MaterialPosition));
+END_FOR
+
+StrapWrapRecipe.bottomMaterials[GVL.maxMaterials].material := '';
+StrapWrapRecipe.bottomMaterials[GVL.maxMaterials].position := 0;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="removeLCMaterial" Id="{88f622bd-8f6b-43b3-a751-ff57b15f3ed7}">
+      <Declaration><![CDATA[{attribute 'TcRpcEnable'}
+METHOD removeLCMaterial : BOOL
+VAR_INPUT
+	i : INT; //index to be removed
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR j:=i TO GVL.maxMaterials-1 BY 1 DO
+	MEMCPY(ADR(StrapWrapRecipe.lcMaterials[j]), ADR(StrapWrapRecipe.lcMaterials[j+1]), SIZEOF(MaterialPosition));
+END_FOR
+
+StrapWrapRecipe.lcMaterials[GVL.maxMaterials].material := '';
+StrapWrapRecipe.lcMaterials[GVL.maxMaterials].position := 0;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="removeSidesMaterial" Id="{bb785eb5-e9d4-43df-a25c-271c45d338a1}">
+      <Declaration><![CDATA[{attribute 'TcRpcEnable'}
+METHOD removeSidesMaterial : BOOL
+VAR_INPUT
+	i : INT; //index to be removed
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR j:=i TO GVL.maxMaterials-1 BY 1 DO
+	MEMCPY(ADR(StrapWrapRecipe.sidesMaterials[j]), ADR(StrapWrapRecipe.sidesMaterials[j+1]), SIZEOF(MaterialPosition));
+END_FOR
+
+StrapWrapRecipe.sidesMaterials[GVL.maxMaterials].material := '';
+StrapWrapRecipe.sidesMaterials[GVL.maxMaterials].position := 0;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="removeTopMaterial" Id="{455a7b00-99cb-480d-b6f1-c18ce40fa6ab}">
+      <Declaration><![CDATA[{attribute 'TcRpcEnable'}
+METHOD removeTopMaterial : BOOL
+VAR_INPUT
+	i : INT; //index to be removed
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR j:=i TO GVL.maxMaterials-1 BY 1 DO
+	MEMCPY(ADR(StrapWrapRecipe.topMaterials[j]), ADR(StrapWrapRecipe.topMaterials[j+1]), SIZEOF(MaterialPosition));
+END_FOR
+
+StrapWrapRecipe.topMaterials[GVL.maxMaterials].material := '';
+StrapWrapRecipe.topMaterials[GVL.maxMaterials].position := 0;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="removeUCMaterial" Id="{0721f843-e022-4f24-ac09-229c542ad4f8}">
+      <Declaration><![CDATA[{attribute 'TcRpcEnable'}
+METHOD removeUCMaterial : BOOL
+VAR_INPUT
+	i : INT; //index to be removed
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR j:=i TO GVL.maxMaterials-1 BY 1 DO
+	MEMCPY(ADR(StrapWrapRecipe.ucMaterials[j]), ADR(StrapWrapRecipe.ucMaterials[j+1]), SIZEOF(MaterialPosition));
+END_FOR
+
+StrapWrapRecipe.ucMaterials[GVL.maxMaterials].material := '';
+StrapWrapRecipe.ucMaterials[GVL.maxMaterials].position := 0;]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="Control">
+      <LineId Id="104" Count="0" />
+    </LineIds>
+    <LineIds Name="Control.removeBottomMaterial">
+      <LineId Id="5" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="14" Count="1" />
+    </LineIds>
+    <LineIds Name="Control.removeLCMaterial">
+      <LineId Id="5" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="14" Count="1" />
+    </LineIds>
+    <LineIds Name="Control.removeSidesMaterial">
+      <LineId Id="5" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="14" Count="1" />
+    </LineIds>
+    <LineIds Name="Control.removeTopMaterial">
+      <LineId Id="5" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="14" Count="1" />
+    </LineIds>
+    <LineIds Name="Control.removeUCMaterial">
+      <LineId Id="5" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="14" Count="1" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

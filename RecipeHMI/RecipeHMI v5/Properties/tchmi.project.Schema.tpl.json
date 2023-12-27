@@ -1,0 +1,85 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "definitions": {
+    "Cardboard": {
+      "frameworkControlNamespace": "TcHmi.Controls.Beckhoff",
+      "frameworkControlType": "TcHmi.Controls.System.TcHmiUserControl",
+      "frameworkInstanceOf": "TcHmi.Controls.System.TcHmiControl",
+      "frameworkUserControlConfig": "UserControls\\Cardboard.usercontrol.json",
+      "type": "object",
+      "id": "tchmi:project#/definitions/Cardboard"
+    },
+    "CornerGuard": {
+      "frameworkControlNamespace": "TcHmi.Controls.Beckhoff",
+      "frameworkControlType": "TcHmi.Controls.System.TcHmiUserControl",
+      "frameworkInstanceOf": "TcHmi.Controls.System.TcHmiControl",
+      "frameworkUserControlConfig": "UserControls\\CornerGuard.usercontrol.json",
+      "type": "object",
+      "id": "tchmi:project#/definitions/CornerGuard"
+    },
+    "Chipboard": {
+      "frameworkControlNamespace": "TcHmi.Controls.Beckhoff",
+      "frameworkControlType": "TcHmi.Controls.System.TcHmiUserControl",
+      "frameworkInstanceOf": "TcHmi.Controls.System.TcHmiControl",
+      "frameworkUserControlConfig": "UserControls\\Chipboard.usercontrol.json",
+      "type": "object",
+      "id": "tchmi:project#/definitions/Chipboard"
+    },
+    "AllMaterials": {
+      "frameworkControlNamespace": "TcHmi.Controls.Beckhoff",
+      "frameworkControlType": "TcHmi.Controls.System.TcHmiUserControl",
+      "frameworkInstanceOf": "TcHmi.Controls.System.TcHmiControl",
+      "frameworkUserControlConfig": "UserControls\\AllMaterials.usercontrol.json",
+      "type": "object",
+      "id": "tchmi:project#/definitions/AllMaterials"
+    },
+    "CIP54": {
+      "frameworkControlNamespace": "TcHmi.Controls.Beckhoff",
+      "frameworkControlType": "TcHmi.Controls.System.TcHmiUserControl",
+      "frameworkInstanceOf": "TcHmi.Controls.System.TcHmiControl",
+      "frameworkUserControlConfig": "UserControls\\CIP54.usercontrol.json",
+      "type": "object",
+      "id": "tchmi:project#/definitions/CIP54"
+    },
+    "CIP54_0": {
+      "frameworkControlNamespace": "TcHmi.Controls.Beckhoff",
+      "frameworkControlType": "TcHmi.Controls.System.TcHmiUserControl",
+      "frameworkInstanceOf": "TcHmi.Controls.System.TcHmiControl",
+      "frameworkUserControlConfig": "UserControls\\MaterialCodes\\CIP54.usercontrol.json",
+      "type": "object",
+      "id": "tchmi:project#/definitions/CIP54_0"
+    },
+    "CIP18": {
+      "frameworkControlNamespace": "TcHmi.Controls.Beckhoff",
+      "frameworkControlType": "TcHmi.Controls.System.TcHmiUserControl",
+      "frameworkInstanceOf": "TcHmi.Controls.System.TcHmiControl",
+      "frameworkUserControlConfig": "UserControls\\MaterialCodes\\CIP18.usercontrol.json",
+      "type": "object",
+      "id": "tchmi:project#/definitions/CIP18"
+    },
+    "COR48": {
+      "frameworkControlNamespace": "TcHmi.Controls.Beckhoff",
+      "frameworkControlType": "TcHmi.Controls.System.TcHmiUserControl",
+      "frameworkInstanceOf": "TcHmi.Controls.System.TcHmiControl",
+      "frameworkUserControlConfig": "UserControls\\MaterialCodes\\COR48.usercontrol.json",
+      "type": "object",
+      "id": "tchmi:project#/definitions/COR48"
+    },
+    "CAR20S": {
+      "frameworkControlNamespace": "TcHmi.Controls.Beckhoff",
+      "frameworkControlType": "TcHmi.Controls.System.TcHmiUserControl",
+      "frameworkInstanceOf": "TcHmi.Controls.System.TcHmiControl",
+      "frameworkUserControlConfig": "UserControls\\MaterialCodes\\CAR20S.usercontrol.json",
+      "type": "object",
+      "id": "tchmi:project#/definitions/CAR20S"
+    },
+    "Wrap": {
+      "frameworkControlNamespace": "TcHmi.Controls.Beckhoff",
+      "frameworkControlType": "TcHmi.Controls.System.TcHmiUserControl",
+      "frameworkInstanceOf": "TcHmi.Controls.System.TcHmiControl",
+      "frameworkUserControlConfig": "UserControls\\Wrap.usercontrol.json",
+      "type": "object",
+      "id": "tchmi:project#/definitions/Wrap"
+    }
+  }
+}

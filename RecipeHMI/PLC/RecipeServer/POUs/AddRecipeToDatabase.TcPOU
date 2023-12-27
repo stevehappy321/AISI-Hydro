@@ -1,0 +1,250 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="AddRecipeToDatabase" Id="{784785e6-bba2-492c-80ba-4be4ddc26e23}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK AddRecipeToDatabase //IMPLEMENTS I_TcEventBase
+VAR
+	cmd : ARRAY[0..18] OF STRING_5K;
+	query : STRING_5K;
+	
+	fbSQLCommand : FB_SQLCommandEvt(sNetID := '', tTimeout := T#5S);
+	fbSQLDatabase : FB_SQLDatabaseEvt (sNetID := '', tTimeout := T#5S);
+	fbSQLResult: FB_SQLResultEvt(sNetID:='', tTimeout:=T#5S);
+	
+	eventString : STRING_5K;
+	
+	step : (CONNECT, READY, EXECUTE, FINISH);
+END_VAR
+VAR_OUTPUT
+	finished : BOOL;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[CASE step OF
+	CONNECT:
+		IF fbSQLDatabase.Connect(1) THEN
+			IF NOT fbSqlDatabase.bError THEN
+				step := READY;
+			END_IF
+		END_IF
+		
+	READY:
+		IF fbSQLDatabase.CreateCmd(ADR(fbSQLCommand)) THEN
+			step := EXECUTE;
+		END_IF
+	
+	EXECUTE:
+		query := completeQuery();
+		IF fbSQLCommand.Execute(ADR(query), SIZEOF(query)) THEN
+			step := FINISH;
+		END_IF
+		
+	FINISH:
+		IF fbSQLDatabase.Disconnect() THEN
+			finished := TRUE;
+		END_IF
+END_CASE]]></ST>
+    </Implementation>
+    <Folder Name="Helpers" Id="{ebec1bbc-7249-4939-9c4f-f7fe871fa2ec}" />
+    <Method Name="completeQuery" Id="{0039f0e5-789e-4b15-9602-4e440c517131}">
+      <Declaration><![CDATA[METHOD completeQuery : STRING_5K
+VAR_INST
+	reqProcess : ARRAY[0..3] OF STRING_5K;
+	
+	queryOpening : STRING_5K := 'INSERT INTO "Bundle Data - Prototype" (BundleID, Weight, Length, Height, Width, Pieces, PiecesHeight, PiecesWidth, ExtrusionWeight, ExtrusionHeight, ExtrusionWidth, RequiredProcesses, Paper_top, Paper_sides, Paper_bottom, Cardboard, CornerGuard, Chipboard, WoodBunk) VALUES (';;
+	queryClosing : STRING_5K := ')';
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[reqProcess[0] := TO_STRING(BundleData.requiredProcessing[0]);
+reqProcess[1] := TO_STRING(BundleData.requiredProcessing[1]);
+reqProcess[2] := TO_STRING(BundleData.requiredProcessing[2]);
+reqProcess[3] := TO_STRING(BundleData.requiredProcessing[3]);
+
+
+cmd[0] := TO_STRING(BundleData.id);
+CONCAT2(ADR('$''), ADR(cmd[0]), ADR(cmd[0]), SIZEOF(cmd[0]));
+CONCAT2(ADR(cmd[0]), ADR('$''), ADR(cmd[0]), SIZEOF(cmd[0]));
+
+cmd[1] := TO_STRING(BundleData.weight);
+cmd[2] := TO_STRING(BundleData.length);
+cmd[3] := TO_STRING(BundleData.height);
+cmd[4] := TO_STRING(BundleData.width);
+cmd[5] := TO_STRING(BundleData.pieces);
+cmd[6] := TO_STRING(BundleData.piecesHeight);
+cmd[7] := TO_STRING(BundleData.piecesWidth);
+
+cmd[8] := TO_STRING(ExtrusionData.extrusionWeight);
+cmd[9] := TO_STRING(ExtrusionData.extrusionHeight);
+cmd[10] := TO_STRING(ExtrusionData.extrusionWidth);
+
+cmd[11] := ConcatStrings(reqProcess, 'ARRAY[', ']', ',');
+//strap wrap recipe
+cmd[12] := paperQuery(StrapWrapRecipe.TopPaper); //Paper_top
+cmd[13] := paperQuery(StrapWrapRecipe.SidesPaper); //Paper_sides
+cmd[14] := paperQuery(StrapWrapRecipe.BottomPaper); //Paper_sides
+
+cmd[15] := materialQuery(StrapWrapRecipe.Cardboard);
+cmd[16] := materialQuery(StrapWrapRecipe.CornerGuard);
+cmd[17] := materialQuery(StrapWrapRecipe.Chipboard);
+cmd[18] := materialQuery(StrapWrapRecipe.WoodBunk);
+
+completeQuery := ConcatStrings(cmd, queryOpening, queryClosing, ',');]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="materialQuery" Id="{8d50a269-e9da-4146-a51d-4ca7d57a8a8c}" FolderPath="Helpers\">
+      <Declaration><![CDATA[METHOD materialQuery : STRING_5K
+VAR_IN_OUT
+	materialArr : ARRAY[*] OF PositionMaterials;
+END_VAR
+VAR_INST
+	tempQuery : STRING_5K;
+	
+	position : STRING;
+	top : STRING;
+	sides : STRING;
+	bottom : STRING;
+	upperCorner : STRING;
+	lowerCorner : STRING;
+	
+	wrap : STRING;
+	
+	i : DINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[tempQuery := 'ARRAY[';
+
+FOR i:=LOWER_BOUND(materialArr, 1) TO UPPER_BOUND(materialArr, 1) BY 1 DO
+	position := TO_STRING(materialArr[i].position);
+	top := TO_STRING(materialArr[i].top);
+	sides := TO_STRING(materialArr[i].sides);
+	bottom := TO_STRING(materialArr[i].bottom);
+	upperCorner := TO_STRING(materialArr[i].upperCorner);
+	lowerCorner := TO_STRING(materialArr[i].lowerCorner);
+	wrap := TO_STRING(materialArr[i].wrap);
+	
+	IF top = '' AND sides = '' AND bottom = '' AND upperCorner = '' AND lowerCorner = '' AND wrap = 'FALSE' THEN
+		CONTINUE;
+	END_IF
+	
+	IF i > LOWER_BOUND(materialArr, 1) THEN
+		CONCAT2(ADR(tempQuery), ADR(', '), ADR(tempQuery), SIZEOF(tempQuery));
+	END_IF
+
+	CONCAT2(ADR(tempQuery), ADR('('), ADR(tempQuery), SIZEOF(tempQuery));
+	CONCAT2(ADR(tempQuery), ADR(position), ADR(tempQuery), SIZEOF(tempQuery));
+	CONCAT2(ADR(tempQuery), ADR(',$''), ADR(tempQuery), SIZEOF(tempQuery));
+	
+	CONCAT2(ADR(tempQuery), ADR(top), ADR(tempQuery), SIZEOF(tempQuery));
+	CONCAT2(ADR(tempQuery), ADR('$',$''), ADR(tempQuery), SIZEOF(tempQuery));
+	CONCAT2(ADR(tempQuery), ADR(sides), ADR(tempQuery), SIZEOF(tempQuery));
+	CONCAT2(ADR(tempQuery), ADR('$',$''), ADR(tempQuery), SIZEOF(tempQuery));
+	CONCAT2(ADR(tempQuery), ADR(bottom), ADR(tempQuery), SIZEOF(tempQuery));
+	CONCAT2(ADR(tempQuery), ADR('$',$''), ADR(tempQuery), SIZEOF(tempQuery));
+	CONCAT2(ADR(tempQuery), ADR(upperCorner), ADR(tempQuery), SIZEOF(tempQuery));
+	CONCAT2(ADR(tempQuery), ADR('$',$''), ADR(tempQuery), SIZEOF(tempQuery));
+	CONCAT2(ADR(tempQuery), ADR(lowerCorner), ADR(tempQuery), SIZEOF(tempQuery));
+	CONCAT2(ADR(tempQuery), ADR('$','), ADR(tempQuery), SIZEOF(tempQuery));
+	CONCAT2(ADR(tempQuery), ADR(wrap), ADR(tempQuery), SIZEOF(tempQuery));
+	CONCAT2(ADR(tempQuery), ADR(')'), ADR(tempQuery), SIZEOF(tempQuery));
+END_FOR
+CONCAT2(ADR(tempQuery), ADR(']::"PositionMaterials"[]'), ADR(tempQuery), SIZEOF(tempQuery));
+
+materialQuery := tempQuery;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="paperQuery" Id="{95afdda2-849d-4c64-9b88-f361952b9630}" FolderPath="Helpers\">
+      <Declaration><![CDATA[METHOD paperQuery : STRING_5K
+VAR_IN_OUT
+	paperArr : ARRAY[*] OF PaperInterval;
+END_VAR
+VAR_INST
+	tempQuery : STRING_5K;
+	i : DINT;
+	start : STRING;
+	end : STRING;
+	wrap : STRING;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[tempQuery := 'ARRAY[';
+
+FOR i:=LOWER_BOUND(paperArr, 1) TO UPPER_BOUND(paperArr, 1) BY 1 DO
+	start := TO_STRING(paperArr[i].start);
+	end := TO_STRING(paperArr[i].end);
+	wrap := TO_STRING(paperArr[i].wrap);
+	
+	IF start = '0' AND end = '0' AND wrap = 'FALSE' THEN
+		CONTINUE;
+	END_IF
+	
+	IF i > LOWER_BOUND(paperArr, 1) THEN
+		CONCAT2(ADR(tempQuery), ADR(','), ADR(tempQuery), SIZEOF(tempQuery));
+	END_IF
+
+	CONCAT2(ADR(tempQuery), ADR('('), ADR(tempQuery), SIZEOF(tempQuery));
+	CONCAT2(ADR(tempQuery), ADR(start), ADR(tempQuery), SIZEOF(tempQuery));
+	CONCAT2(ADR(tempQuery), ADR(','), ADR(tempQuery), SIZEOF(tempQuery));
+	CONCAT2(ADR(tempQuery), ADR(end), ADR(tempQuery), SIZEOF(tempQuery));
+	CONCAT2(ADR(tempQuery), ADR(','), ADR(tempQuery), SIZEOF(tempQuery));
+	CONCAT2(ADR(tempQuery), ADR(wrap), ADR(tempQuery), SIZEOF(tempQuery));
+	CONCAT2(ADR(tempQuery), ADR(')'), ADR(tempQuery), SIZEOF(tempQuery));
+END_FOR
+CONCAT2(ADR(tempQuery), ADR(']::"PaperInterval"[]'), ADR(tempQuery), SIZEOF(tempQuery));
+
+paperQuery := tempQuery;]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="AddRecipeToDatabase">
+      <LineId Id="220" Count="5" />
+      <LineId Id="227" Count="0" />
+      <LineId Id="269" Count="0" />
+      <LineId Id="229" Count="14" />
+      <LineId Id="79" Count="0" />
+    </LineIds>
+    <LineIds Name="AddRecipeToDatabase.completeQuery">
+      <LineId Id="113" Count="2" />
+      <LineId Id="110" Count="2" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="98" Count="1" />
+      <LineId Id="96" Count="0" />
+      <LineId Id="27" Count="4" />
+      <LineId Id="81" Count="1" />
+      <LineId Id="43" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="35" Count="1" />
+      <LineId Id="54" Count="0" />
+      <LineId Id="52" Count="0" />
+      <LineId Id="38" Count="0" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="55" Count="1" />
+      <LineId Id="58" Count="0" />
+      <LineId Id="57" Count="0" />
+      <LineId Id="59" Count="2" />
+      <LineId Id="66" Count="0" />
+      <LineId Id="65" Count="0" />
+    </LineIds>
+    <LineIds Name="AddRecipeToDatabase.materialQuery">
+      <LineId Id="111" Count="13" />
+      <LineId Id="185" Count="0" />
+      <LineId Id="187" Count="1" />
+      <LineId Id="186" Count="0" />
+      <LineId Id="125" Count="16" />
+      <LineId Id="147" Count="0" />
+      <LineId Id="166" Count="0" />
+      <LineId Id="148" Count="0" />
+      <LineId Id="10" Count="0" />
+    </LineIds>
+    <LineIds Name="AddRecipeToDatabase.paperQuery">
+      <LineId Id="47" Count="5" />
+      <LineId Id="80" Count="0" />
+      <LineId Id="82" Count="1" />
+      <LineId Id="81" Count="0" />
+      <LineId Id="94" Count="0" />
+      <LineId Id="96" Count="1" />
+      <LineId Id="95" Count="0" />
+      <LineId Id="53" Count="7" />
+      <LineId Id="66" Count="0" />
+      <LineId Id="68" Count="0" />
+      <LineId Id="67" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="MaterialPosition" Id="{4c4a8b85-a5e0-4215-b81a-7c5db40bbfe7}">
+    <Declaration><![CDATA[TYPE MaterialPosition :
+STRUCT
+	material : STRING;
+	position : INT;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

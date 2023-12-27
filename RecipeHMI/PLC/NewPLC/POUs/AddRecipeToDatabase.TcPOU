@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="AddRecipeToDatabase" Id="{f5939d54-6046-44b2-85b0-95325bce4818}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK AddRecipeToDatabase
+VAR_INPUT
+	//BundleData
+	//ExtrusionData
+	//StrapWrapRecipe
+END_VAR
+VAR
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <LineIds Name="AddRecipeToDatabase">
+      <LineId Id="7" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

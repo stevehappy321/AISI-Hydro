@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="PositionRotations" Id="{0867df64-b761-4321-a4de-cb69d48dd9cf}">
+    <Declaration><![CDATA[TYPE PositionRotations : 
+STRUCT
+	position : INT;
+	rotations : INT;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

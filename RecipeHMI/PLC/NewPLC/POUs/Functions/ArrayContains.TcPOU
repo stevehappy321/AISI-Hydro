@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="ArrayContains" Id="{0aa87cf0-ef8b-408f-ace1-ccf703741a9c}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION ArrayContains : BOOL
+VAR_IN_OUT
+	arr : ARRAY[*] OF INT;
+END_VAR
+VAR_INPUT
+	value : INT;
+END_VAR
+VAR
+	i : DINT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[FOR i:=0 TO UPPER_BOUND(arr, 1) BY 1 DO
+	IF arr[i] = value THEN
+		ArrayContains := TRUE;
+		RETURN;
+	END_IF
+END_FOR
+
+ArrayContains := FALSE;]]></ST>
+    </Implementation>
+    <LineIds Name="ArrayContains">
+      <LineId Id="7" Count="0" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="20" Count="0" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="18" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

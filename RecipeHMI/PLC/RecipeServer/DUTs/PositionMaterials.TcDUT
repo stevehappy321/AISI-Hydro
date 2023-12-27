@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="PositionMaterials" Id="{e4f01456-1811-4e5a-8910-419002e1a24a}">
+    <Declaration><![CDATA[TYPE PositionMaterials :
+STRUCT
+	position : INT := 0; //default value is set to predefined constant if bundle needs less than 32 position material pairs
+	
+	//each position will only store 1 material per face
+	top : STRING;
+	sides : STRING;
+	bottom : STRING;
+	upperCorner : STRING;
+	lowerCorner : STRING;
+	
+	wrap : BOOL;
+END_STRUCT
+END_TYPE]]></Declaration>
+  </DUT>
+</TcPlcObject>

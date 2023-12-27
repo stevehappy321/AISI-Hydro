@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="MAIN" Id="{bd7019dd-558f-4b28-a886-bdcf89182ad6}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAIN
+VAR	
+	generateRecipe : BOOL;
+	
+	prepareData : PrepareData;
+	addRecipeToDB : AddRecipeToDatabase;
+	
+	launch : Control;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF generateRecipe THEN
+	prepareData();
+	//addRecipeToDB();
+END_IF]]></ST>
+    </Implementation>
+    <LineIds Name="MAIN">
+      <LineId Id="154" Count="0" />
+      <LineId Id="158" Count="0" />
+      <LineId Id="157" Count="0" />
+      <LineId Id="153" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

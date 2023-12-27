@@ -1,0 +1,169 @@
+<div id="Cardboard" data-tchmi-type="TcHmi.Controls.System.TcHmiUserControl" data-tchmi-top="0" data-tchmi-left="0" data-tchmi-width="1600" data-tchmi-height="25" data-tchmi-width-unit="px" data-tchmi-height-unit="px" data-tchmi-creator-viewport-width="500" data-tchmi-creator-viewport-height="500" data-tchmi-creator-locked="True">
+<div id="CardboardBottom" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiCombobox" data-tchmi-combobox-text="Bottom" data-tchmi-height="25" data-tchmi-height-unit="px" data-tchmi-left="480" data-tchmi-left-unit="px" data-tchmi-top="0" data-tchmi-top-unit="px" data-tchmi-width="100" data-tchmi-width-unit="px" data-tchmi-drop-down-vertical-alignment="Center" data-tchmi-drop-down-category-vertical-alignment="Center" data-tchmi-src-data="%s%PLC1.GVL.CardboardSurfaces%/s%" data-tchmi-grid-column-index="0" data-tchmi-grid-row-index="0">
+<script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">
+{
+  "top": 3,
+  "right": 3,
+  "bottom": 3,
+  "left": 3
+}
+</script>
+
+</div>
+<div id="CardboardLeft" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiCombobox" data-tchmi-combobox-text="Left" data-tchmi-height="25" data-tchmi-height-unit="px" data-tchmi-left="260" data-tchmi-left-unit="px" data-tchmi-top="0" data-tchmi-top-unit="px" data-tchmi-width="100" data-tchmi-width-unit="px" data-tchmi-drop-down-vertical-alignment="Center" data-tchmi-drop-down-category-vertical-alignment="Center" data-tchmi-grid-column-index="0" data-tchmi-grid-row-index="0" data-tchmi-src-data="%s%PLC1.GVL.CardboardSurfaces%/s%">
+<script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">
+{
+  "top": 3,
+  "right": 3,
+  "bottom": 3,
+  "left": 3
+}
+</script>
+
+</div>
+<div id="CardboardTop" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiCombobox" data-tchmi-combobox-text="Top" data-tchmi-height="25" data-tchmi-height-unit="px" data-tchmi-left="150" data-tchmi-left-unit="px" data-tchmi-top="0" data-tchmi-top-unit="px" data-tchmi-width="100" data-tchmi-width-unit="px" data-tchmi-drop-down-vertical-alignment="Center" data-tchmi-drop-down-category-vertical-alignment="Center" data-tchmi-drop-down-style="Classic" data-tchmi-grid-column-index="0" data-tchmi-grid-row-index="0" data-tchmi-src-data="%s%PLC1.GVL.CardboardSurfaces%/s%">
+<script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">
+{
+  "top": 3,
+  "right": 3,
+  "bottom": 3,
+  "left": 3
+}
+</script>
+
+</div>
+<div id="CardboardPosition" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiSpinboxInput" data-tchmi-auto-focus-out="true" data-tchmi-decimal-digits="0" data-tchmi-height="25" data-tchmi-height-unit="px" data-tchmi-left="50" data-tchmi-left-unit="px" data-tchmi-max-value="%s%PLC1.BundleData.length%/s%" data-tchmi-min-value="0" data-tchmi-reset-to-last-valid-value="true" data-tchmi-top="0" data-tchmi-top-unit="px" data-tchmi-value="0" data-tchmi-value-horizontal-alignment="Center" data-tchmi-width="90" data-tchmi-width-unit="px" data-tchmi-button-position="BothRight" data-tchmi-grid-row-index="0">
+<script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">
+{
+  "top": 3,
+  "right": 3,
+  "bottom": 3,
+  "left": 3
+}
+</script>
+
+</div>
+<div id="CardboardTopLeft" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiCombobox" data-tchmi-combobox-text="Top Left" data-tchmi-height="25" data-tchmi-height-unit="px" data-tchmi-left="590" data-tchmi-left-unit="px" data-tchmi-top="0" data-tchmi-top-unit="px" data-tchmi-width="100" data-tchmi-width-unit="px" data-tchmi-drop-down-vertical-alignment="Center" data-tchmi-drop-down-category-vertical-alignment="Center" data-tchmi-src-data="%s%PLC1.GVL.CardboardCorners%/s%" data-tchmi-grid-column-index="0" data-tchmi-grid-row-index="0">
+<script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">
+{
+  "top": 3,
+  "right": 3,
+  "bottom": 3,
+  "left": 3
+}
+</script>
+
+</div>
+<div id="CardboardRight" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiCombobox" data-tchmi-combobox-text="Right" data-tchmi-height="25" data-tchmi-height-unit="px" data-tchmi-left="370" data-tchmi-left-unit="px" data-tchmi-top="0" data-tchmi-top-unit="px" data-tchmi-width="100" data-tchmi-width-unit="px" data-tchmi-drop-down-vertical-alignment="Center" data-tchmi-drop-down-category-vertical-alignment="Center" data-tchmi-grid-column-index="0" data-tchmi-grid-row-index="0" data-tchmi-src-data="%s%PLC1.GVL.CardboardSurfaces%/s%">
+<script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">
+{
+  "top": 3,
+  "right": 3,
+  "bottom": 3,
+  "left": 3
+}
+</script>
+
+</div>
+<div id="CardboardTopRight" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiCombobox" data-tchmi-combobox-text="Top Right" data-tchmi-height="25" data-tchmi-height-unit="px" data-tchmi-left="800" data-tchmi-left-unit="px" data-tchmi-top="0" data-tchmi-top-unit="px" data-tchmi-width="100" data-tchmi-width-unit="px" data-tchmi-drop-down-vertical-alignment="Center" data-tchmi-drop-down-category-vertical-alignment="Center" data-tchmi-src-data="%s%PLC1.GVL.CardboardCorners%/s%" data-tchmi-grid-column-index="0" data-tchmi-grid-row-index="0">
+<script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">
+{
+  "top": 3,
+  "right": 3,
+  "bottom": 3,
+  "left": 3
+}
+</script>
+
+</div>
+<div id="CardboardBottomLeft" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiCombobox" data-tchmi-combobox-text="Bottom Left" data-tchmi-height="25" data-tchmi-height-unit="px" data-tchmi-left="1010" data-tchmi-left-unit="px" data-tchmi-top="0" data-tchmi-top-unit="px" data-tchmi-width="100" data-tchmi-width-unit="px" data-tchmi-drop-down-vertical-alignment="Center" data-tchmi-drop-down-category-vertical-alignment="Center" data-tchmi-src-data="%s%PLC1.GVL.CardboardCorners%/s%" data-tchmi-grid-column-index="0" data-tchmi-grid-row-index="0">
+<script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">
+{
+  "top": 3,
+  "right": 3,
+  "bottom": 3,
+  "left": 3
+}
+</script>
+
+</div>
+<div id="CardboardBottomRight" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiCombobox" data-tchmi-combobox-text="Bottom Right" data-tchmi-height="25" data-tchmi-height-unit="px" data-tchmi-left="1220" data-tchmi-left-unit="px" data-tchmi-top="0" data-tchmi-top-unit="px" data-tchmi-width="100" data-tchmi-width-unit="px" data-tchmi-drop-down-vertical-alignment="Center" data-tchmi-drop-down-category-vertical-alignment="Center" data-tchmi-src-data="%s%PLC1.GVL.CardboardCorners%/s%" data-tchmi-grid-column-index="0" data-tchmi-grid-row-index="0">
+<script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">
+{
+  "top": 3,
+  "right": 3,
+  "bottom": 3,
+  "left": 3
+}
+</script>
+
+</div>
+<div id="CardboardBottomRightFold" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiSpinboxInput" data-tchmi-auto-focus-out="true" data-tchmi-decimal-digits="0" data-tchmi-height="25" data-tchmi-height-unit="px" data-tchmi-left="1330" data-tchmi-left-unit="px" data-tchmi-max-value="%s%PLC1.BundleData.length%/s%" data-tchmi-min-value="0" data-tchmi-reset-to-last-valid-value="true" data-tchmi-top="0" data-tchmi-top-unit="px" data-tchmi-value="0" data-tchmi-value-horizontal-alignment="Center" data-tchmi-width="80" data-tchmi-width-unit="px" data-tchmi-button-position="BothRight" data-tchmi-grid-row-index="0">
+<script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">
+{
+  "top": 3,
+  "right": 3,
+  "bottom": 3,
+  "left": 3
+}
+</script>
+
+</div>
+<div id="CardboardTopLeftFold" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiSpinboxInput" data-tchmi-auto-focus-out="true" data-tchmi-decimal-digits="0" data-tchmi-height="25" data-tchmi-height-unit="px" data-tchmi-left="700" data-tchmi-left-unit="px" data-tchmi-max-value="%s%PLC1.BundleData.length%/s%" data-tchmi-min-value="0" data-tchmi-reset-to-last-valid-value="true" data-tchmi-top="0" data-tchmi-top-unit="px" data-tchmi-value="0" data-tchmi-value-horizontal-alignment="Center" data-tchmi-width="80" data-tchmi-width-unit="px" data-tchmi-button-position="BothRight" data-tchmi-grid-row-index="0">
+<script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">
+{
+  "top": 3,
+  "right": 3,
+  "bottom": 3,
+  "left": 3
+}
+</script>
+
+</div>
+<div id="CardboardTopRightFold" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiSpinboxInput" data-tchmi-auto-focus-out="true" data-tchmi-decimal-digits="0" data-tchmi-height="25" data-tchmi-height-unit="px" data-tchmi-left="910" data-tchmi-left-unit="px" data-tchmi-max-value="%s%PLC1.BundleData.length%/s%" data-tchmi-min-value="0" data-tchmi-reset-to-last-valid-value="true" data-tchmi-top="0" data-tchmi-top-unit="px" data-tchmi-value="0" data-tchmi-value-horizontal-alignment="Center" data-tchmi-width="80" data-tchmi-width-unit="px" data-tchmi-button-position="BothRight" data-tchmi-grid-row-index="0">
+<script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">
+{
+  "top": 3,
+  "right": 3,
+  "bottom": 3,
+  "left": 3
+}
+</script>
+
+</div>
+<div id="CardboardBottomLeftFold" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiSpinboxInput" data-tchmi-auto-focus-out="true" data-tchmi-decimal-digits="0" data-tchmi-height="25" data-tchmi-height-unit="px" data-tchmi-left="1120" data-tchmi-left-unit="px" data-tchmi-max-value="%s%PLC1.BundleData.length%/s%" data-tchmi-min-value="0" data-tchmi-reset-to-last-valid-value="true" data-tchmi-top="0" data-tchmi-top-unit="px" data-tchmi-value="0" data-tchmi-value-horizontal-alignment="Center" data-tchmi-width="80" data-tchmi-width-unit="px" data-tchmi-button-position="BothRight" data-tchmi-grid-row-index="0">
+<script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">
+{
+  "top": 3,
+  "right": 3,
+  "bottom": 3,
+  "left": 3
+}
+</script>
+
+</div>
+<div id="CardboardDelete" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiButton" data-tchmi-height="25" data-tchmi-height-unit="px" data-tchmi-left="0" data-tchmi-left-unit="px" data-tchmi-text="-" data-tchmi-top="0" data-tchmi-top-unit="px" data-tchmi-width="40" data-tchmi-width-unit="px" data-tchmi-word-wrap="true">
+</div>
+<div id="CardboardNumWrapPoints" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiSpinboxInput" data-tchmi-auto-focus-out="true" data-tchmi-decimal-digits="0" data-tchmi-height="25" data-tchmi-height-unit="px" data-tchmi-left="1430" data-tchmi-left-unit="px" data-tchmi-max-value="%s%PLC1.BundleData.length%/s%" data-tchmi-min-value="0" data-tchmi-reset-to-last-valid-value="true" data-tchmi-top="0" data-tchmi-top-unit="px" data-tchmi-value="0" data-tchmi-value-horizontal-alignment="Center" data-tchmi-width="80" data-tchmi-width-unit="px" data-tchmi-button-position="BothRight" data-tchmi-grid-row-index="0">
+<script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">
+{
+  "top": 3,
+  "right": 3,
+  "bottom": 3,
+  "left": 3
+}
+</script>
+
+</div>
+<div id="CardboardNumWrapRotations" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiSpinboxInput" data-tchmi-auto-focus-out="true" data-tchmi-decimal-digits="0" data-tchmi-height="25" data-tchmi-height-unit="px" data-tchmi-left="1520" data-tchmi-left-unit="px" data-tchmi-max-value="%s%PLC1.BundleData.length%/s%" data-tchmi-min-value="0" data-tchmi-reset-to-last-valid-value="true" data-tchmi-top="0" data-tchmi-top-unit="px" data-tchmi-value="0" data-tchmi-value-horizontal-alignment="Center" data-tchmi-width="80" data-tchmi-width-unit="px" data-tchmi-button-position="BothRight" data-tchmi-grid-row-index="0">
+<script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">
+{
+  "top": 3,
+  "right": 3,
+  "bottom": 3,
+  "left": 3
+}
+</script>
+
+</div>
+</div>

@@ -1,0 +1,57 @@
+﻿<div id="CornerGuardRecipe" data-tchmi-type="TcHmi.Controls.System.TcHmiContent" data-tchmi-top="0" data-tchmi-left="0" data-tchmi-width="100" data-tchmi-height="100" data-tchmi-creator-viewport-width="1920" data-tchmi-width-unit="%" data-tchmi-height-unit="%" data-tchmi-creator-locked="True">
+
+<div id="CornerGuardTop" data-tchmi-type="TcHmi.Controls.System.TcHmiContainer" data-tchmi-height="600" data-tchmi-height-unit="px" data-tchmi-left="10" data-tchmi-left-unit="px" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="325" data-tchmi-width-unit="px" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+<div id="TcHmiTextblock_32" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="10" data-tchmi-left-unit="px" data-tchmi-text="Top" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+    </div>
+    <div id="AddCornerGuardTop" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiButton" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="170" data-tchmi-left-unit="px" data-tchmi-text="+" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="41" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center" data-tchmi-icon-horizontal-alignment="Center" data-tchmi-icon-vertical-alignment="Center">
+
+        <script data-tchmi-target-attribute="data-tchmi-trigger" type="application/json">
+[
+  {
+    "event": "TcHmiButton_8.onMouseClick",
+    "actions": [
+      {
+        "objectType": "Comment",
+        "comment": "add new TopMaterial usercontrol"
+      },
+      {
+        "objectType": "JavaScript",
+        "active": true,
+        "sourceLines": [
+          "addTopMaterial(this);"
+        ],
+        "injectContextObject": false,
+        "asyncWait": true,
+        "waitMode": "Synchronous"
+      }
+    ]
+  }
+]
+</script>
+    </div>
+</div>
+<div id="CornerGuardSides" data-tchmi-type="TcHmi.Controls.System.TcHmiContainer" data-tchmi-height="600" data-tchmi-height-unit="px" data-tchmi-left="345" data-tchmi-left-unit="px" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="325" data-tchmi-width-unit="px" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+<div id="TcHmiTextblock_33" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="10" data-tchmi-left-unit="px" data-tchmi-text="Sides" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+</div>
+<div id="AddCornerGuardSides" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiButton" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="170" data-tchmi-left-unit="px" data-tchmi-text="+" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="41" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+</div>
+</div>
+<div id="CornerGuardBottom" data-tchmi-type="TcHmi.Controls.System.TcHmiContainer" data-tchmi-height="600" data-tchmi-height-unit="px" data-tchmi-left="680" data-tchmi-left-unit="px" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="325" data-tchmi-width-unit="px" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+<div id="TcHmiTextblock_34" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="10" data-tchmi-left-unit="px" data-tchmi-text="Bottom" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+</div>
+<div id="AddCornerGuardBottom" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiButton" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="170" data-tchmi-left-unit="px" data-tchmi-text="+" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="41" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+</div>
+</div>
+<div id="CornerGuardUC" data-tchmi-type="TcHmi.Controls.System.TcHmiContainer" data-tchmi-height="600" data-tchmi-height-unit="px" data-tchmi-left="1015" data-tchmi-left-unit="px" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="325" data-tchmi-width-unit="px" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+<div id="TcHmiTextblock_35" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="10" data-tchmi-left-unit="px" data-tchmi-text="Sides" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+</div>
+<div id="AddCornerGuardUC" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiButton" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="170" data-tchmi-left-unit="px" data-tchmi-text="+" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="41" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+</div>
+</div>
+<div data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" id="CornerGuardLC" data-tchmi-type="TcHmi.Controls.System.TcHmiContainer" data-tchmi-height="600" data-tchmi-height-unit="px" data-tchmi-left="1350" data-tchmi-left-unit="px" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="325" data-tchmi-width-unit="px" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+<div data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" id="TcHmiTextblock_36" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="10" data-tchmi-left-unit="px" data-tchmi-text="Sides" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+</div>
+<div data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" id="AddCornerGuardLC" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiButton" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="170" data-tchmi-left-unit="px" data-tchmi-text="+" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="41" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+</div>
+</div>
+</div>

@@ -1,0 +1,157 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <EnumerationTextList Name="EventsEnum" Id="{7116f09d-954e-4b54-827f-4a9cf285982d}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+//{attribute 'to_string'}
+TYPE EventsEnum :
+(
+	//standard operation
+	//BUNDLE_SENT, // = 0
+	BUNDLE_RECEIVED,
+	BUNDLE_COMPLETE,
+	
+	//area complete
+	//AREA_1_COMPLETE,
+	AREA_2_COMPLETE, //for this area
+	//AREA_3_COMPLETE,
+	//AREA_4_COMPLETE,
+	//AREA_5_COMPLETE,
+	//AREA_6_COMPLETE,
+	
+	//area specific operations
+	SECTION_4_COMPLETE,
+	SECTION_3_2_1_COMPLETE,
+	SECTION_5_COMPLETE,
+	SECTION_6_COMPLETE,
+
+	//standard errors
+	BACKLOG,
+	MACHINE_FAILURE,
+	DELAY,
+	BUNDLE_EARLY_RECEIVED,
+	BUNDLE_LATE_RECEIVED,
+	
+	//area specific errors
+	SECTION_1_FAIL,
+	SECTION_2_3_4_FAIL,
+	SECTION_5_FAIL,
+	SECTION_6_FAIL,
+	
+	//robots, motors, database, connections, etc
+	
+	size
+);
+END_TYPE
+]]></Declaration>
+    <XmlArchive>
+      <Data>
+        <o xml:space="preserve" t="TextListEnumerationTextListObject">
+          <l n="TextList" t="ArrayList" cet="TextListRow">
+            <o>
+              <v n="TextID">"BUNDLE_RECEIVED"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"BUNDLE_COMPLETE"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"AREA_2_COMPLETE"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"SECTION_4_COMPLETE"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"SECTION_3_2_1_COMPLETE"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"SECTION_5_COMPLETE"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"SECTION_6_COMPLETE"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"BACKLOG"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"MACHINE_FAILURE"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"DELAY"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"BUNDLE_EARLY_RECEIVED"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"BUNDLE_LATE_RECEIVED"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"SECTION_1_FAIL"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"SECTION_2_3_4_FAIL"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"SECTION_5_FAIL"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"SECTION_6_FAIL"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"size"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">""</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+          </l>
+          <l n="Languages" t="ArrayList" />
+          <v n="GuidInit">{8ad4f867-b2d5-4a11-b39d-cb78f5e0db35}</v>
+          <v n="GuidReInit">{181a9833-83f2-4a5b-8414-0b1b393f5e4c}</v>
+          <v n="GuidExitX">{75b4c899-cc8f-4461-b6f1-f0049e1d50a8}</v>
+        </o>
+      </Data>
+      <TypeList>
+        <Type n="ArrayList">System.Collections.ArrayList</Type>
+        <Type n="Guid">System.Guid</Type>
+        <Type n="String">System.String</Type>
+        <Type n="TextListEnumerationTextListObject">{4b60233c-f940-4beb-b331-82133b520151}</Type>
+        <Type n="TextListRow">{53da1be7-ad25-47c3-b0e8-e26286dad2e0}</Type>
+      </TypeList>
+    </XmlArchive>
+  </EnumerationTextList>
+</TcPlcObject>

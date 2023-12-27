@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="SwapMaterialPosition" Id="{09cad6e5-2ebd-4693-aa6b-66b06de74880}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION SwapMaterialPosition : BOOL
+VAR_INPUT
+	elem1 : POINTER TO MaterialPosition;
+	elem2 : POINTER TO MaterialPosition;
+END_VAR
+VAR
+	temp : MaterialPosition;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[MEMCPY(ADR(temp), elem1, SIZEOF(MaterialPosition)); //temp = arr[j]
+MEMCPY(elem1, elem2, SIZEOF(MaterialPosition)); //arr[j] = arr[j+1]
+MEMCPY(elem2, ADR(temp), SIZEOF(MaterialPosition)); //arr[j+1] = temp]]></ST>
+    </Implementation>
+    <LineIds Name="SwapMaterialPosition">
+      <LineId Id="8" Count="1" />
+      <LineId Id="7" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

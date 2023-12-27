@@ -1,0 +1,98 @@
+﻿<div id="CardboardRecipe" data-tchmi-type="TcHmi.Controls.System.TcHmiContent" data-tchmi-top="0" data-tchmi-left="0" data-tchmi-width="100" data-tchmi-height="100" data-tchmi-width-unit="%" data-tchmi-height-unit="%" data-tchmi-creator-viewport-width="1680" data-tchmi-creator-viewport-height="800" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+<div id="FaceCardboardContainer_3" data-tchmi-type="TcHmi.Controls.System.TcHmiContainer" data-tchmi-height="80" data-tchmi-height-unit="px" data-tchmi-left="10" data-tchmi-left-unit="px" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="190" data-tchmi-width-unit="px" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+<div id="TcHmiTextblock_59" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="25" data-tchmi-height-unit="px" data-tchmi-left="10" data-tchmi-left-unit="px" data-tchmi-text="CAR20LD (double folded, vertical)" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="170" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+</div>
+<div id="TcHmiCheckbox_22" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiCheckbox" data-tchmi-grid-column-index="0" data-tchmi-grid-row-index="0" data-tchmi-height="25" data-tchmi-height-unit="px" data-tchmi-left="10" data-tchmi-left-unit="px" data-tchmi-text="Front" data-tchmi-top="45" data-tchmi-top-unit="px" data-tchmi-width="80" data-tchmi-width-unit="px" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center" data-tchmi-text-vertical-alignment="Center" data-tchmi-state-symbol="%s%PLC1.StrapWrapRecipe.faceCardboard[0]%/s%">
+</div>
+<div id="TcHmiCheckbox_23" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiCheckbox" data-tchmi-grid-column-index="0" data-tchmi-grid-row-index="0" data-tchmi-height="25" data-tchmi-height-unit="px" data-tchmi-left="100" data-tchmi-left-unit="px" data-tchmi-text="Back" data-tchmi-top="45" data-tchmi-top-unit="px" data-tchmi-width="80" data-tchmi-width-unit="px" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center" data-tchmi-text-vertical-alignment="Center" data-tchmi-state-symbol="%s%PLC1.StrapWrapRecipe.faceCardboard[1]%/s%">
+</div>
+</div>
+<div id="TcHmiRectangle" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiRectangle" data-tchmi-height="45" data-tchmi-height-unit="px" data-tchmi-left="630" data-tchmi-left-unit="px" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="230" data-tchmi-width-unit="px">
+</div>
+<div id="TcHmiRectangle_1" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiRectangle" data-tchmi-height="35" data-tchmi-height-unit="px" data-tchmi-left="630" data-tchmi-left-unit="px" data-tchmi-top="55" data-tchmi-top-unit="px" data-tchmi-width="230" data-tchmi-width-unit="px">
+</div>
+<div id="TcHmiTextblock_150" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="870" data-tchmi-left-unit="px" data-tchmi-text="Top/Bottom Section" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="100" data-tchmi-width-unit="px" data-tchmi-word-wrap="true">
+</div>
+<div id="TcHmiTextblock_151" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="870" data-tchmi-left-unit="px" data-tchmi-text="Side Section" data-tchmi-top="55" data-tchmi-top-unit="px" data-tchmi-width="100" data-tchmi-width-unit="px" data-tchmi-word-wrap="true">
+</div>
+<div id="TcHmiTextblock_152" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="565" data-tchmi-left-unit="px" data-tchmi-text="Fold Point" data-tchmi-top="45" data-tchmi-top-unit="px" data-tchmi-width="60" data-tchmi-width-unit="px" data-tchmi-word-wrap="true">
+</div>
+<div id="CardboardGrid" data-tchmi-type="TcHmi.Controls.System.TcHmiGrid" data-tchmi-height="650" data-tchmi-height-unit="px" data-tchmi-left="10" data-tchmi-left-unit="px" data-tchmi-top="100" data-tchmi-top-unit="px" data-tchmi-width="1660" data-tchmi-width-unit="px" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+    <div id="TcHmiTextblock_188" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="1230" data-tchmi-left-unit="px" data-tchmi-text="Material Code" data-tchmi-top="36" data-tchmi-top-unit="px" data-tchmi-width="110" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+    </div>
+    <div id="TcHmiTextblock_186" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="1130" data-tchmi-left-unit="px" data-tchmi-text="Fold Point" data-tchmi-top="36" data-tchmi-top-unit="px" data-tchmi-width="100" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+    </div>
+    <div id="TcHmiTextblock_185" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="1020" data-tchmi-left-unit="px" data-tchmi-text="Material Code" data-tchmi-top="36" data-tchmi-top-unit="px" data-tchmi-width="110" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+    </div>
+    <div id="TcHmiTextblock_180" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="710" data-tchmi-left-unit="px" data-tchmi-text="Fold Point" data-tchmi-top="36" data-tchmi-top-unit="px" data-tchmi-width="100" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+    </div>
+    <div id="TcHmiTextblock_179" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="600" data-tchmi-left-unit="px" data-tchmi-text="Material Code" data-tchmi-top="36" data-tchmi-top-unit="px" data-tchmi-width="110" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+    </div>
+    <div id="TcHmiTextblock_177" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="490" data-tchmi-left-unit="px" data-tchmi-text="Material Code" data-tchmi-top="36" data-tchmi-top-unit="px" data-tchmi-width="110" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+    </div>
+    <div id="TcHmiTextblock_175" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="270" data-tchmi-left-unit="px" data-tchmi-text="Material Code" data-tchmi-top="36" data-tchmi-top-unit="px" data-tchmi-width="110" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+    </div>
+
+    <div id="TcHmiTextblock_171" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="160" data-tchmi-left-unit="px" data-tchmi-text="Top" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="110" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+    </div>
+    <div id="TcHmiTextblock_172" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="160" data-tchmi-left-unit="px" data-tchmi-text="Material Code" data-tchmi-top="36" data-tchmi-top-unit="px" data-tchmi-width="110" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+    </div>
+    <div id="TcHmiTextblock_173" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="60" data-tchmi-left-unit="px" data-tchmi-text="Position" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="100" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+    </div>
+    <div id="TcHmiTextblock_174" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="270" data-tchmi-left-unit="px" data-tchmi-text="Left" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="110" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+    </div>
+    <div id="TcHmiTextblock_176" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="490" data-tchmi-left-unit="px" data-tchmi-text="Bottom" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="110" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+    </div>
+    <div id="TcHmiTextblock_178" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="810" data-tchmi-left-unit="px" data-tchmi-text="Top Right Corner" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="110" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+    </div>
+    <div id="TcHmiTextblock_182" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="810" data-tchmi-left-unit="px" data-tchmi-text="Material Code" data-tchmi-top="36" data-tchmi-top-unit="px" data-tchmi-width="110" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+    </div>
+    <div id="TcHmiTextblock_183" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="920" data-tchmi-left-unit="px" data-tchmi-text="Fold Point" data-tchmi-top="36" data-tchmi-top-unit="px" data-tchmi-width="100" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+    </div>
+    <div id="TcHmiTextblock_184" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="1230" data-tchmi-left-unit="px" data-tchmi-text="Bottom Right Corner" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="110" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+    </div>
+    <div id="TcHmiTextblock_187" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="1020" data-tchmi-left-unit="px" data-tchmi-text="Bottom Left Corner" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="110" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+    </div>
+    <div id="TcHmiTextblock_190" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="380" data-tchmi-left-unit="px" data-tchmi-text="Right" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="110" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+    </div>
+    <div id="TcHmiTextblock_191" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="380" data-tchmi-left-unit="px" data-tchmi-text="Material Code" data-tchmi-top="36" data-tchmi-top-unit="px" data-tchmi-width="110" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+    </div>
+
+
+
+
+
+<script data-tchmi-target-attribute="data-tchmi-row-options" type="application/json">
+[
+  {
+    "height": 1.0,
+    "heightUnit": "factor",
+    "heightMode": "Content",
+    "maxHeightUnit": "px",
+    "minHeightUnit": "px",
+    "overflow": false
+  },
+  {
+    "height": 1.0,
+    "heightUnit": "factor",
+    "heightMode": "Value",
+    "maxHeightUnit": "px",
+    "minHeightUnit": "px",
+    "overflow": false
+  }
+]
+</script>
+<div id="TcHmiTextblock_181" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="600" data-tchmi-left-unit="px" data-tchmi-text="Top Left Corner" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="110" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+</div>
+<div data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" id="AddCardboard" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiButton" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="10" data-tchmi-left-unit="px" data-tchmi-text="+" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="40" data-tchmi-width-unit="px" data-tchmi-word-wrap="true">
+</div>
+<div id="TcHmiTextblock_250" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="1340" data-tchmi-left-unit="px" data-tchmi-text="Fold Point" data-tchmi-top="36" data-tchmi-top-unit="px" data-tchmi-width="100" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+</div>
+<div id="TcHmiTextblock_251" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="1440" data-tchmi-left-unit="px" data-tchmi-text="# Wrap Points" data-tchmi-top="36" data-tchmi-top-unit="px" data-tchmi-width="90" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+</div>
+<div id="TcHmiTextblock_252" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="1530" data-tchmi-left-unit="px" data-tchmi-text="Wrap Rotations" data-tchmi-top="36" data-tchmi-top-unit="px" data-tchmi-width="90" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+</div>
+</div>
+<div id="TcHmiTextblock_253" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="610" data-tchmi-left-unit="px" data-tchmi-text="0" data-tchmi-top="0" data-tchmi-top-unit="px" data-tchmi-width="15" data-tchmi-width-unit="px" data-tchmi-word-wrap="true">
+</div>
+</div>

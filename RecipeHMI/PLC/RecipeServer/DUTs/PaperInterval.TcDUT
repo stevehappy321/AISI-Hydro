@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="PaperInterval" Id="{ffd80629-05e6-48c4-8b5f-2af1da6cc63d}">
+    <Declaration><![CDATA[TYPE PaperInterval :
+STRUCT
+	start : INT;
+	end : INT;
+	
+	wrap : BOOL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

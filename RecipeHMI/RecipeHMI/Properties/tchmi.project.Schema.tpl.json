@@ -1,0 +1,29 @@
+﻿{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "definitions": {
+    "UserControl1": {
+      "frameworkControlNamespace": "TcHmi.Controls.Beckhoff",
+      "frameworkControlType": "TcHmi.Controls.System.TcHmiUserControl",
+      "frameworkInstanceOf": "TcHmi.Controls.System.TcHmiControl",
+      "frameworkUserControlConfig": "UserControls\\UserControl1.usercontrol.json",
+      "type": "object",
+      "id": "tchmi:project#/definitions/UserControl1"
+    },
+    "WoodBunk": {
+      "frameworkControlNamespace": "TcHmi.Controls.Beckhoff",
+      "frameworkControlType": "TcHmi.Controls.System.TcHmiUserControl",
+      "frameworkInstanceOf": "TcHmi.Controls.System.TcHmiControl",
+      "frameworkUserControlConfig": "UserControls\\WoodBunk.usercontrol.json",
+      "type": "object",
+      "id": "tchmi:project#/definitions/WoodBunk"
+    },
+    "GenericMaterial": {
+      "frameworkControlNamespace": "TcHmi.Controls.Beckhoff",
+      "frameworkControlType": "TcHmi.Controls.System.TcHmiUserControl",
+      "frameworkInstanceOf": "TcHmi.Controls.System.TcHmiControl",
+      "frameworkUserControlConfig": "UserControls\\GenericMaterial.usercontrol.json",
+      "type": "object",
+      "id": "tchmi:project#/definitions/GenericMaterial"
+    }
+  }
+}

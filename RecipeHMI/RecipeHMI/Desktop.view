@@ -1,0 +1,330 @@
+﻿<div id="Desktop" data-tchmi-type="TcHmi.Controls.System.TcHmiView" data-tchmi-top="0" data-tchmi-left="0" data-tchmi-width-unit="%" data-tchmi-width="100" data-tchmi-height-unit="%" data-tchmi-height="100" data-tchmi-background-image-width-unit="%" data-tchmi-background-image-height-unit="%" data-tchmi-background-image-width="100" data-tchmi-background-image-height="100" data-tchmi-creator-viewport-width="1600" data-tchmi-creator-viewport-height="720" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center" data-tchmi-creator-locked="True">
+  
+<div id="Header_Top" data-tchmi-type="TcHmi.Controls.BaseTemplate.TcHmiHeader" data-tchmi-height="80" data-tchmi-left="0" data-tchmi-top="0" data-tchmi-right="0" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+<script data-tchmi-target-attribute="data-tchmi-class-names" type="application/json">[
+"divider",
+"divider-top"
+]
+</script><script data-tchmi-target-attribute="data-tchmi-header-items" type="application/json">[
+                {
+                    "itemType": "Image",
+                    "priority": "2",
+                    "itemAlign": "Left",
+                    "prefWidth": 288.0,
+                    "prefWidthUnit": "px",
+                    "prefHeight": 95.0,
+                    "prefHeightUnit": "px",
+                    "minWidth": 128.0,
+                    "minWidthUnit": "px",
+                    "classList": [],
+                    "accessRights": [],
+                    "image": "Images/Beckhoff_Logo.svg",
+                    "altText": "Beckhoff",
+                    "targetRegion": "%ctrl%Region_Center%/ctrl%",
+                    "targetContent": "Pages/GeneralRecipe.content"
+                },
+                {
+                    "itemType": "Text",
+                    "priority": "1",
+                    "itemAlign": "Left",
+                    "prefWidth": 288.0,
+                    "prefWidthUnit": "px",
+                    "prefHeight": 95.0,
+                    "prefHeightUnit": "px",
+                    "minWidth": 128.0,
+                    "minWidthUnit": "px",
+                    "classList": [],
+                    "accessRights": [],
+                    "text": "TcHmiProject3"
+                },
+                {
+                    "itemType": "EventLine",
+                    "priority": "5",
+                    "itemAlign": "Right",
+                    "prefWidth": 800.0,
+                    "prefWidthUnit": "px",
+                    "prefHeight": 48.0,
+                    "prefHeightUnit": "px",
+                    "minWidth": 288.0,
+                    "minWidthUnit": "px",
+                    "classList": [],
+                    "accessRights": [],
+                    "messageFormat": [
+                        {
+                            "name": "timeRaised"
+                        },
+                        {
+                            "text": " | "
+                        },
+                        {
+                            "name": "domain"
+                        },
+                        {
+                            "text": " | "
+                        },
+                        {
+                            "name": "text"
+                        }
+                    ],
+                    "filter": [
+                        {
+                            "path": "domain",
+                            "comparator": "==",
+                            "value": "TcHmiEventLogger"
+                        },
+                        {
+                            "logic": "OR"
+                        },
+                        {
+                            "path": "domain",
+                            "comparator": "==",
+                            "value": "TcHmiAlarm"
+                        }
+                    ],
+                    "targetRegion": "",
+                    "targetContent": "content path"
+                },
+                {
+                    "itemType": "AdsState",
+                    "priority": "3",
+                    "itemAlign": "Right",
+                    "prefWidth": 160.0,
+                    "prefWidthUnit": "px",
+                    "prefHeight": 48.0,
+                    "prefHeightUnit": "px",
+                    "minWidth": 48.0,
+                    "minWidthUnit": "px",
+                    "classList": [],
+                    "accessRights": [],
+                    "adsRuntime": "TcSysService",
+                    "iconWidth": 48,
+                    "iconWidthUnit": "px",
+                    "text": "TwinCAT",
+                    "textPosition": "Left",
+                    "serverInterval": 1000,
+                    "serverDomain": "ADS",
+                    "stateImages": {
+                        "Fallback": "Images/TwinCAT/twincat-fallback.svg",
+                        "Run": "Images/TwinCAT/twincat-run.svg",
+                        "Stop": "Images/TwinCAT/twincat-stop.svg",
+                        "Config": "Images/TwinCAT/twincat-config.svg",
+                        "Exception": "Images/TwinCAT/twincat-exeption.svg"
+                    }
+                },
+                {
+                    "itemType": "AdsState",
+                    "priority": "3",
+                    "itemAlign": "Right",
+                    "prefWidth": 160.0,
+                    "prefWidthUnit": "px",
+                    "prefHeight": 48.0,
+                    "prefHeightUnit": "px",
+                    "minWidth": 48.0,
+                    "minWidthUnit": "px",
+                    "classList": [],
+                    "accessRights": [],
+                    "adsRuntime": "PLC1",
+                    "iconWidth": 48,
+                    "iconWidthUnit": "px",
+                    "text": "PLC",
+                    "textPosition": "Left",
+                    "serverInterval": 1000,
+                    "serverDomain": "ADS",
+                    "stateImages": {
+                        "Fallback": "Images/PLC/plc-fallback.svg",
+                        "Run": "Images/PLC/plc-run.svg",
+                        "Stop": "Images/PLC/plc-stop.svg",
+                        "Config": "Images/PLC/plc-config.svg",
+                        "Exception": "Images/PLC/plc-exeption.svg"
+                    }
+                },
+                {
+                    "itemType": "UserManagement",
+                    "priority": "3",
+                    "itemAlign": "Right",
+                    "prefWidth": 288.0,
+                    "prefWidthUnit": "px",
+                    "prefHeight": 48.0,
+                    "prefHeightUnit": "px",
+                    "minWidth": 176.0,
+                    "minWidthUnit": "px",
+                    "classList": [],
+                    "accessRights": [],
+                    "allowLogout": true,
+                    "allowSwitchUser": false
+                },
+                {
+                    "itemType": "Time",
+                    "priority": "4",
+                    "itemAlign": "Right",
+                    "prefWidth": 128.0,
+                    "prefWidthUnit": "px",
+                    "prefHeight": 48.0,
+                    "prefHeightUnit": "px",
+                    "minWidth": 96.0,
+                    "minWidthUnit": "px",
+                    "classList": [],
+                    "accessRights": []
+                }
+            ]</script></div><div id="Navigation_Left" data-tchmi-type="TcHmi.Controls.BaseTemplate.TcHmiNavigation" data-tchmi-width="225" data-tchmi-left="0" data-tchmi-top="%ctrl%Header_Top::Height%/ctrl%" data-tchmi-bottom="0" data-tchmi-target-region="%ctrl%Region_Center%/ctrl%" data-tchmi-navigation-orientation="Vertical" data-tchmi-keep-lowest-level="true" data-tchmi-breadcrumb="%ctrl%Breadcrumb%/ctrl%" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+
+<script data-tchmi-target-attribute="data-tchmi-class-names" type="application/json">[
+"divider",
+"divider-left"
+]
+</script><script data-tchmi-target-attribute="data-tchmi-navigation-structure" type="application/json">
+[
+  {
+    "name": "General Info",
+    "content": "Pages/GeneralRecipe.content",
+    "icon_a": "%tr%TR_Icon_GeneralRecipe_active%/tr%",
+    "icon_n": "%tr%TR_Icon_GeneralRecipe_normal%/tr%",
+    "icon_p": "%tr%TR_Icon_GeneralRecipe_pressed%/tr%"
+  },
+  {
+    "name": "Strap and Wrap Recipe",
+    "content": "Pages/StrapWrapRecipe.content",
+    "icon_a": "%tr%TR_Icon_StrapWrapRecipe_active%/tr%",
+    "icon_n": "%tr%TR_Icon_StrapWrapRecipe_normal%/tr%",
+    "icon_p": "%tr%TR_Icon_StrapWrapRecipe_pressed%/tr%",
+    "subItem": [
+      {
+        "name": "Paper",
+        "content": "Pages/ByMaterial/PaperRecipe.content"
+      },
+      {
+        "name": "Cardboard",
+        "content": "Pages/ByMaterial/CardboardRecipe.content"
+      },
+      {
+        "name": "Corner Guard",
+        "content": "Pages/ByMaterial/CornerGuardRecipe.content"
+      },
+      {
+        "name": "Chipboard",
+        "content": "Pages/ByMaterial/ChipboardRecipe.content"
+      },
+      {
+        "name": "Wood Bunk",
+        "content": "Pages/ByMaterial/WoodBunkRecipe.content"
+      }
+    ]
+  },
+  {
+    "name": "Render Bundle",
+    "content": "Pages/Render.content",
+    "icon_a": "%tr%TR_Icon_Page_active%/tr%",
+    "icon_n": "%tr%TR_Icon_Page_normal%/tr%",
+    "icon_p": "%tr%TR_Icon_Page_pressed%/tr%"
+  }
+]
+</script></div>><div id="Region_Center" data-tchmi-type="TcHmi.Controls.System.TcHmiRegion" data-tchmi-left="%ctrl%Navigation_Left::Width%/ctrl%" data-tchmi-top="%f%%ctrl%Header_Top::Height%/ctrl%+ 64%/f%" data-tchmi-bottom="-0" data-tchmi-right="0" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center" data-tchmi-is-enabled="true" data-tchmi-grid-column-index="0" data-tchmi-grid-row-index="0" data-tchmi-scrolling="Auto">
+
+<script data-tchmi-target-attribute="data-tchmi-class-names" type="application/json"></script></div><div id="Breadcrumb" data-tchmi-type="TcHmi.Controls.BaseTemplate.TcHmiBreadcrumb" data-tchmi-height="32" data-tchmi-left="%f%%ctrl%Region_Center::Left%/ctrl%+ 16%/f%" data-tchmi-top="%f%%ctrl%Header_Top::Height%/ctrl%+ 16%/f%" data-tchmi-right="%f%%ctrl%Region_Center::Right%/ctrl%+ 16%/f%" data-tchmi-navigationcontrol="%ctrl%Navigation_Left%/ctrl%" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+
+</div><script data-tchmi-target-attribute="data-tchmi-trigger" type="application/json">
+[
+  {
+    "event": "%ctrl%Desktop::RenderedWidth%/ctrl%",
+    "actions": [
+      {
+        "objectType": "Function",
+        "active": true,
+        "fn": "TcHmi.Functions.BaseTemplate.TcHmiResponsiveBehaviour",
+        "fnParams": [
+          {
+            "objectType": "Symbol",
+            "valueType": "tchmi:general#/definitions/String",
+            "symbolExpression": "%i%MediaQueryList%/i%"
+          },
+          {
+            "objectType": "Symbol",
+            "valueType": "tchmi:general#/definitions/String",
+            "symbolExpression": "%i%AffectedControls%/i%"
+          }
+        ],
+        "asyncWait": true
+      }
+    ]
+  },
+  {
+    "event": "Desktop.onAttached",
+    "actions": [
+      {
+        "objectType": "JavaScript",
+        "active": false,
+        "sourceLines": [
+          "TcHmi.Symbol.readEx2('%s%PLC1.GVL.top%/s%', function (data) {",
+          "    if (data.error === TcHmi.Errors.NONE) {",
+          "        // Handle result value... ",
+          "        topSrcData = data.value;",
+          "        console.log(topSrcData);",
+          "    } else {",
+          "        // Handle error... ",
+          "        console.log(data.error);",
+          "        console.log(TcHmi.Errors);",
+          "        console.log('top read failed');",
+          "    }",
+          "});",
+          "",
+          "TcHmi.Symbol.readEx2('%s%PLC1.GVL.sides%/s%', function (data) {",
+          "    if (data.error === TcHmi.Errors.NONE) {",
+          "        // Handle result value... ",
+          "        sidesSrcData = data.value;",
+          "        console.log(sidesSrcData);",
+          "    } else {",
+          "        // Handle error... ",
+          "        console.log(data.error);",
+          "        console.log(TcHmi.Errors);",
+          "        console.log('sides read failed');",
+          "    }",
+          "});",
+          "",
+          "TcHmi.Symbol.readEx2('%s%PLC1.GVL.bottom%/s%', function (data) {",
+          "    if (data.error === TcHmi.Errors.NONE) {",
+          "        // Handle result value... ",
+          "        bottomSrcData = data.value;",
+          "        console.log(bottomSrcData);",
+          "    } else {",
+          "        // Handle error... ",
+          "        console.log(data.error);",
+          "        console.log(TcHmi.Errors);",
+          "        console.log('bottom read failed');",
+          "    }",
+          "});",
+          "",
+          "TcHmi.Symbol.readEx2('%s%PLC1.GVL.upperCorner%/s%', function (data) {",
+          "    if (data.error === TcHmi.Errors.NONE) {",
+          "        // Handle result value... ",
+          "        upperCornerSrcData = data.value;",
+          "        console.log(upperCornerSrcData);",
+          "    } else {",
+          "        // Handle error... ",
+          "        console.log(data.error);",
+          "        console.log(TcHmi.Errors);",
+          "        console.log('upper corner read failed');",
+          "    }",
+          "});",
+          "",
+          "TcHmi.Symbol.readEx2('%s%PLC1.GVL.lowerCorner%/s%', function (data) {",
+          "    if (data.error === TcHmi.Errors.NONE) {",
+          "        // Handle result value... ",
+          "        lowerCornerSrcData = data.value;",
+          "        console.log(lowerCornerSrcData);",
+          "    } else {",
+          "        // Handle error... ",
+          "        console.log(data.error);",
+          "        console.log(TcHmi.Errors);",
+          "        console.log('lower corner read failed');",
+          "    }",
+          "});"
+        ],
+        "injectContextObject": false,
+        "asyncWait": true,
+        "waitMode": "Synchronous"
+      }
+    ]
+  }
+]
+</script>
+</div>

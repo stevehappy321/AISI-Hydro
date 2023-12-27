@@ -1,0 +1,37 @@
+﻿{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "definitions": {
+    "Cardboard": {
+      "frameworkControlNamespace": "TcHmi.Controls.Beckhoff",
+      "frameworkControlType": "TcHmi.Controls.System.TcHmiUserControl",
+      "frameworkInstanceOf": "TcHmi.Controls.System.TcHmiControl",
+      "frameworkUserControlConfig": "UserControls\\Cardboard.usercontrol.json",
+      "type": "object",
+      "id": "tchmi:project#/definitions/Cardboard"
+    },
+    "CornerGuard": {
+      "frameworkControlNamespace": "TcHmi.Controls.Beckhoff",
+      "frameworkControlType": "TcHmi.Controls.System.TcHmiUserControl",
+      "frameworkInstanceOf": "TcHmi.Controls.System.TcHmiControl",
+      "frameworkUserControlConfig": "UserControls\\CornerGuard.usercontrol.json",
+      "type": "object",
+      "id": "tchmi:project#/definitions/CornerGuard"
+    },
+    "Chipboard": {
+      "frameworkControlNamespace": "TcHmi.Controls.Beckhoff",
+      "frameworkControlType": "TcHmi.Controls.System.TcHmiUserControl",
+      "frameworkInstanceOf": "TcHmi.Controls.System.TcHmiControl",
+      "frameworkUserControlConfig": "UserControls\\Chipboard.usercontrol.json",
+      "type": "object",
+      "id": "tchmi:project#/definitions/Chipboard"
+    },
+    "SummaryMaterial": {
+      "frameworkControlNamespace": "TcHmi.Controls.Beckhoff",
+      "frameworkControlType": "TcHmi.Controls.System.TcHmiUserControl",
+      "frameworkInstanceOf": "TcHmi.Controls.System.TcHmiControl",
+      "frameworkUserControlConfig": "UserControls\\SummaryMaterial.usercontrol.json",
+      "type": "object",
+      "id": "tchmi:project#/definitions/SummaryMaterial"
+    }
+  }
+}

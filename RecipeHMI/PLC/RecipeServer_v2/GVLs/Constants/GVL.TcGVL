@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <GVL Name="GVL" Id="{6005d647-bd6e-4bd7-a193-ba8df11fe75c}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'global_init_slot' := '45000'}
+VAR_GLOBAL CONSTANT //first to compile
+	maxMessages : UINT := 64;
+	maxMaterials : DINT := 16; //max index, 0-15 are used with 16 as buffer
+	
+	//by materials
+	Paper : ARRAY[1..1] OF STRING := ['PAP28'];
+	CornerGuard : ARRAY[1..2] OF STRING := ['COR48', 'COR96'];
+	
+	CardboardSurfaces : ARRAY[1..6] OF STRING := ['CAR20S', 'CAR20M', 'CAR20L', 'CAR28S', 'CAR28M', 'CAR28L'];
+	CardboardCorners : ARRAY[1..6] OF STRING := ['CAR20SF', 'CAR20MF', 'CAR20LF', 'CAR28SF', 'CAR28MF', 'CAR28LF'];
+	
+	Chipboard : ARRAY[1..2] OF STRING := ['CIP18', 'CIP54'];
+	
+	WoodBunkTop : ARRAY[1..5] OF STRING := ['WDT20', 'WDT22', 'WDT28', 'WDW20', 'WDW22'];
+	WoodBunkSides : ARRAY[1..13] OF STRING := [	'WDS08', 'WDS10', 'WDS12', 'WDS14', 'WDS20','WDS22', 'WDS28', 'WDS8x8', 'WDS8x10', 'WDS12x12', 'WDS12x14', 'WDS20x10', 'WDS20x12'];										
+	WoodBunkBottom : ARRAY[1..3] OF STRING := [	'WDB20', 'WDB22', 'WDB28'];
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

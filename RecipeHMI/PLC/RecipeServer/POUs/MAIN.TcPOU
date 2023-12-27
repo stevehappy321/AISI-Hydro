@@ -1,0 +1,102 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="MAIN" Id="{37c506fa-13d3-435a-92ee-4c132e7c51fc}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAIN
+VAR	
+	generateRecipe : BOOL;
+	
+	addRecipeToDB : AddRecipeToDatabase;
+	validator : Validation;
+	arrayHelpers : ArrayFunctions;
+	
+	resetAddRecipeToDatabase : AddRecipeToDatabase;
+	resetValidation : Validation;
+	resetArrayFunctions : ArrayFunctions;
+	
+	start : BOOL := TRUE;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[validator(); //real time error/warning message generator
+
+IF generateRecipe THEN
+	addRecipeToDB();
+	
+	IF addRecipeToDB.finished THEN
+		reset();
+		//reset all variables
+		generateRecipe := FALSE;
+		RETURN;
+	END_IF
+END_IF]]></ST>
+    </Implementation>
+    <Method Name="reset" Id="{0124509e-13da-40a2-aab9-bdaac9c2a94c}">
+      <Declaration><![CDATA[METHOD reset : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//reset FBs
+MEMCPY(ADR(addRecipeToDB), ADR(resetAddRecipeToDatabase), SIZEOF(AddRecipeToDatabase));
+MEMCPY(ADR(validator), ADR(resetValidation), SIZEOF(Validation));
+MEMCPY(ADR(arrayHelpers), ADR(resetArrayFunctions), SIZEOF(ArrayFunctions));
+
+//reset fields
+BundleData.id := '';
+BundleData.weight := 0;
+BundleData.length := 0;
+BundleData.height := 0;
+BundleData.width := 0;
+BundleData.pieces := 0;
+BundleData.piecesHeight := 0;
+BundleData.piecesWidth := 0;
+MEMSET(ADR(BundleData.requiredProcessing), 0, SIZEOF(BundleData.requiredProcessing));
+
+ExtrusionData.extrusionWeight := 0;
+ExtrusionData.extrusionHeight := 0;
+ExtrusionData.extrusionWidth := 0;
+
+MEMSET(ADR(StrapWrapRecipe.facePaper), 0, SIZEOF(StrapWrapRecipe.facePaper));
+MEMSET(ADR(StrapWrapRecipe.faceCardboard), 0, SIZEOF(StrapWrapRecipe.faceCardboard));
+MEMSET(ADR(StrapWrapRecipe.TopPaper), 0, SIZEOF(StrapWrapRecipe.TopPaper));
+MEMSET(ADR(StrapWrapRecipe.SidesPaper), 0, SIZEOF(StrapWrapRecipe.SidesPaper));
+MEMSET(ADR(StrapWrapRecipe.BottomPaper), 0, SIZEOF(StrapWrapRecipe.BottomPaper));
+MEMSET(ADR(StrapWrapRecipe.Cardboard), 0, SIZEOF(StrapWrapRecipe.Cardboard));
+MEMSET(ADR(StrapWrapRecipe.CornerGuard), 0, SIZEOF(StrapWrapRecipe.CornerGuard));
+MEMSET(ADR(StrapWrapRecipe.Chipboard), 0, SIZEOF(StrapWrapRecipe.Chipboard));
+MEMSET(ADR(StrapWrapRecipe.WoodBunk), 0, SIZEOF(StrapWrapRecipe.WoodBunk));]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="MAIN">
+      <LineId Id="214" Count="0" />
+      <LineId Id="189" Count="0" />
+      <LineId Id="154" Count="0" />
+      <LineId Id="158" Count="0" />
+      <LineId Id="170" Count="0" />
+      <LineId Id="157" Count="0" />
+      <LineId Id="169" Count="0" />
+      <LineId Id="229" Count="0" />
+      <LineId Id="167" Count="0" />
+      <LineId Id="270" Count="0" />
+      <LineId Id="168" Count="0" />
+      <LineId Id="153" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.reset">
+      <LineId Id="16" Count="0" />
+      <LineId Id="13" Count="2" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="20" Count="0" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="36" Count="1" />
+      <LineId Id="39" Count="3" />
+      <LineId Id="47" Count="0" />
+      <LineId Id="51" Count="1" />
+      <LineId Id="54" Count="0" />
+      <LineId Id="50" Count="0" />
+      <LineId Id="79" Count="1" />
+      <LineId Id="69" Count="0" />
+      <LineId Id="56" Count="0" />
+      <LineId Id="70" Count="5" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

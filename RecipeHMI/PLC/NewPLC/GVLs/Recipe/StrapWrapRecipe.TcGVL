@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <GVL Name="StrapWrapRecipe" Id="{2f2135bb-af10-4a95-95af-220d57acec3d}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+	//v1 - entries are in the format of material-position separated by face
+	TopMaterials : ARRAY[0..GVL.maxMaterials] OF MaterialPosition;
+	SidesMaterials : ARRAY[0..GVL.maxMaterials] OF MaterialPosition;
+	BottomMaterials : ARRAY[0..GVL.maxMaterials] OF MaterialPosition;
+
+	UCMaterials : ARRAY[0..GVL.maxMaterials] OF MaterialPosition;
+	LCMaterials : ARRAY[0..GVL.maxMaterials] OF MaterialPosition;
+	
+	//v2 - entries are in the format of position-material separated by material type
+	faceCardboard : ARRAY[0..1] OF BOOL;
+	facePaper : ARRAY[0..1] OF BOOL;
+	
+	TopPaper : ARRAY[0..4] OF PaperInterval;
+	SidesPaper : ARRAY[0..4] OF PaperInterval;
+	BottomPaper : ARRAY[0..4] OF PaperInterval;
+	
+	Cardboard : ARRAY[0..11] OF PositionMaterials;
+	CornerGuard : ARRAY[0..4] OF PositionMaterials;
+	
+	Chipboard : ARRAY[0..7] OF PositionMaterials;
+	WoodBunk : ARRAY[0..7] OF PositionMaterials;
+	
+	//plasticWrap : INT; //number of wrapping rotations at each position
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

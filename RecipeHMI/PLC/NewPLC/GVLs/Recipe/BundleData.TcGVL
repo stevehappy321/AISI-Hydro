@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <GVL Name="BundleData" Id="{234509b0-81b5-441a-b3ed-7825cc083a10}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+	//HMI RECIPE
+	id : STRING;
+	weight : REAL;
+	
+	length : REAL;
+	height : REAL;
+	width : REAL;
+	
+	piecesHeight : USINT;
+	piecesWidth : USINT;
+	
+	//processAreas : (AUTO_RE, MANUAL_RE, AUTO_SS, MANUAL_SS);
+	requiredProcessing : ARRAY[0..3] OF BOOL;
+	//IF AUTO_SS is selected then allow access to warp and strap recipe creation
+
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

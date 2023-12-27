@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <GVL Name="BundleData" Id="{ddb8470a-4de2-47e1-8750-5cc641e978a0}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+	id : STRING;
+	weight : REAL;
+	
+	length : REAL;
+	height : REAL;
+	width : REAL;
+	
+	pieces : USINT;
+	layers : USINT;
+	piecesPerLayer : USINT;
+	
+	requiredProcessing : ARRAY[0..3] OF BOOL;
+END_VAR
+VAR_GLOBAL CONSTANT
+	//for requiredProcessing array
+	AUTO_RE : INT := 0;
+	MANUAL_RE : INT := 1;
+	AUTO_SS : INT := 2;
+	MANUAL_SS : INT := 3;
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

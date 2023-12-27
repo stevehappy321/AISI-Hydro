@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="SortMaterialPositionArray" Id="{73245192-df11-4d1b-bad1-b2d9b4c81944}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION SortMaterialPositionArray : BOOL
+VAR_IN_OUT
+	arr : ARRAY[*] OF MaterialPosition;
+END_VAR
+VAR
+	//iterators
+	i : INT;
+	j : INT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[FOR i:=0 TO GVL.maxMaterials BY 1 DO
+	FOR j:=0 TO GVL.maxMaterials BY 1 DO
+		IF arr[j].position > arr[j+1].position THEN
+			SwapMaterialPosition(ADR(arr[j]), ADR(arr[j+1]));
+		END_IF
+	END_FOR
+END_FOR]]></ST>
+    </Implementation>
+    <LineIds Name="SortMaterialPositionArray">
+      <LineId Id="8" Count="5" />
+      <LineId Id="7" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

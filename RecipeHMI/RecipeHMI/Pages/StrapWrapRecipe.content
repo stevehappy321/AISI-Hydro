@@ -1,0 +1,240 @@
+﻿<div id="StrapWrapRecipe" data-tchmi-type="TcHmi.Controls.System.TcHmiContent" data-tchmi-top="0" data-tchmi-left="0" data-tchmi-width="100" data-tchmi-height="100" data-tchmi-width-unit="%" data-tchmi-height-unit="%" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center" data-tchmi-creator-viewport-width="2500" data-tchmi-creator-viewport-height="900" data-tchmi-is-enabled="true">
+<div id="ChipboardContainer" data-tchmi-type="TcHmi.Controls.System.TcHmiContainer" data-tchmi-height="325" data-tchmi-height-unit="px" data-tchmi-left="1040" data-tchmi-left-unit="px" data-tchmi-top="435" data-tchmi-top-unit="px" data-tchmi-width="450" data-tchmi-width-unit="px" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+<div id="Chipboard_text" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="10" data-tchmi-left-unit="px" data-tchmi-text="Chipboard" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+</div>
+<div id="AddChipboardButton" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiButton" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="170" data-tchmi-left-unit="px" data-tchmi-text="+" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="41" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+</div>
+</div>
+<div id="CornerGuardContainer" data-tchmi-type="TcHmi.Controls.System.TcHmiContainer" data-tchmi-height="600" data-tchmi-height-unit="px" data-tchmi-left="755" data-tchmi-left-unit="px" data-tchmi-top="100" data-tchmi-top-unit="px" data-tchmi-width="275" data-tchmi-width-unit="px" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+<div id="CornerGuard_text" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="10" data-tchmi-left-unit="px" data-tchmi-text="Corner Guard" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+</div>
+<div id="AddCornerGuardButton" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiButton" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="170" data-tchmi-left-unit="px" data-tchmi-text="+" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="41" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+</div>
+</div>
+<div id="CardboardContainer" data-tchmi-type="TcHmi.Controls.System.TcHmiContainer" data-tchmi-height="600" data-tchmi-height-unit="px" data-tchmi-left="295" data-tchmi-left-unit="px" data-tchmi-top="100" data-tchmi-top-unit="px" data-tchmi-width="450" data-tchmi-width-unit="px" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center" data-tchmi-tooltip="">
+    <div id="Cardboard_text" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="10" data-tchmi-left-unit="px" data-tchmi-text="Cardboard" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+    </div>
+    <div id="AddCardboardButton" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiButton" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="170" data-tchmi-left-unit="px" data-tchmi-text="+" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="41" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center" data-tchmi-icon-horizontal-alignment="Center" data-tchmi-icon-vertical-alignment="Center">
+
+        <script data-tchmi-target-attribute="data-tchmi-trigger" type="application/json">
+[
+  {
+    "event": "TcHmiButton_8.onMouseClick",
+    "actions": [
+      {
+        "objectType": "Comment",
+        "comment": "add new TopMaterial usercontrol"
+      },
+      {
+        "objectType": "JavaScript",
+        "active": true,
+        "sourceLines": [
+          "addTopMaterial(this);"
+        ],
+        "injectContextObject": false,
+        "asyncWait": true,
+        "waitMode": "Synchronous"
+      }
+    ]
+  }
+]
+</script>
+    </div>
+</div>
+<div id="FaceCardboardContainer" data-tchmi-type="TcHmi.Controls.System.TcHmiContainer" data-tchmi-height="80" data-tchmi-height-unit="px" data-tchmi-left="10" data-tchmi-left-unit="px" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="206" data-tchmi-width-unit="px" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+
+<div id="TcHmiTextblock_25" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="10" data-tchmi-left-unit="px" data-tchmi-text="CAR20LD (double folded)" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="126" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center" data-tchmi-text-vertical-alignment="Center">
+</div>
+<div id="TcHmiCheckbox_16" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiCheckbox" data-tchmi-grid-column-index="0" data-tchmi-grid-row-index="0" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="10" data-tchmi-left-unit="px" data-tchmi-text="Front" data-tchmi-top="46" data-tchmi-top-unit="px" data-tchmi-width="78" data-tchmi-width-unit="px" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center" data-tchmi-text-vertical-alignment="Center">
+</div>
+<div id="TcHmiCheckbox_17" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiCheckbox" data-tchmi-grid-column-index="0" data-tchmi-grid-row-index="0" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="98" data-tchmi-left-unit="px" data-tchmi-text="Back" data-tchmi-top="46" data-tchmi-top-unit="px" data-tchmi-width="78" data-tchmi-width-unit="px" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center" data-tchmi-text-vertical-alignment="Center">
+</div>
+</div>
+
+
+
+
+
+<script data-tchmi-target-attribute="data-tchmi-trigger" type="application/json">
+[
+  {
+    "event": "StrapWrapRecipe_1.onAttached",
+    "actions": [
+      {
+        "objectType": "JavaScript",
+        "active": false,
+        "sourceLines": [
+          "TcHmi.Symbol.readEx2('%s%PLC1.GVL.top%/s%', function (data) {",
+          "    if (data.error === TcHmi.Errors.NONE) {",
+          "        // Handle result value... ",
+          "        topSrcData = data.value;",
+          "        console.log(topSrcData);",
+          "    } else {",
+          "        // Handle error... ",
+          "        console.log(data.error);",
+          "        console.log(TcHmi.Errors);",
+          "        console.log('top read failed');",
+          "    }",
+          "});",
+          "",
+          "TcHmi.Symbol.readEx2('%s%PLC1.GVL.sides%/s%', function (data) {",
+          "    if (data.error === TcHmi.Errors.NONE) {",
+          "        // Handle result value... ",
+          "        sidesSrcData = data.value;",
+          "        console.log(sidesSrcData);",
+          "    } else {",
+          "        // Handle error... ",
+          "        console.log(data.error);",
+          "        console.log(TcHmi.Errors);",
+          "        console.log('sides read failed');",
+          "    }",
+          "});",
+          "",
+          "TcHmi.Symbol.readEx2('%s%PLC1.GVL.bottom%/s%', function (data) {",
+          "    if (data.error === TcHmi.Errors.NONE) {",
+          "        // Handle result value... ",
+          "        bottomSrcData = data.value;",
+          "        console.log(bottomSrcData);",
+          "    } else {",
+          "        // Handle error... ",
+          "        console.log(data.error);",
+          "        console.log(TcHmi.Errors);",
+          "        console.log('bottom read failed');",
+          "    }",
+          "});",
+          "",
+          "TcHmi.Symbol.readEx2('%s%PLC1.GVL.upperCorner%/s%', function (data) {",
+          "    if (data.error === TcHmi.Errors.NONE) {",
+          "        // Handle result value... ",
+          "        upperCornerSrcData = data.value;",
+          "        console.log(upperCornerSrcData);",
+          "    } else {",
+          "        // Handle error... ",
+          "        console.log(data.error);",
+          "        console.log(TcHmi.Errors);",
+          "        console.log('upper corner read failed');",
+          "    }",
+          "});",
+          "",
+          "TcHmi.Symbol.readEx2('%s%PLC1.GVL.lowerCorner%/s%', function (data) {",
+          "    if (data.error === TcHmi.Errors.NONE) {",
+          "        // Handle result value... ",
+          "        lowerCornerSrcData = data.value;",
+          "        console.log(lowerCornerSrcData);",
+          "    } else {",
+          "        // Handle error... ",
+          "        console.log(data.error);",
+          "        console.log(TcHmi.Errors);",
+          "        console.log('lower corner read failed');",
+          "    }",
+          "});"
+        ],
+        "injectContextObject": false,
+        "asyncWait": true,
+        "waitMode": "Synchronous"
+      }
+    ]
+  }
+]
+</script>
+<div id="TopPaperContainer" data-tchmi-type="TcHmi.Controls.System.TcHmiContainer" data-tchmi-height="225" data-tchmi-height-unit="px" data-tchmi-left="10" data-tchmi-left-unit="px" data-tchmi-top="100" data-tchmi-top-unit="px" data-tchmi-width="275" data-tchmi-width-unit="px" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+<div id="TopPaper_text" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="10" data-tchmi-left-unit="px" data-tchmi-text="Paper (Top)" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+    </div>
+    <div id="AddTopPaperButton" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiButton" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="170" data-tchmi-left-unit="px" data-tchmi-text="+" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="41" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center" data-tchmi-icon-horizontal-alignment="Center" data-tchmi-icon-vertical-alignment="Center">
+
+        <script data-tchmi-target-attribute="data-tchmi-trigger" type="application/json">
+[
+  {
+    "event": "TcHmiButton_8.onMouseClick",
+    "actions": [
+      {
+        "objectType": "Comment",
+        "comment": "add new TopMaterial usercontrol"
+      },
+      {
+        "objectType": "JavaScript",
+        "active": true,
+        "sourceLines": [
+          "addTopMaterial(this);"
+        ],
+        "injectContextObject": false,
+        "asyncWait": true,
+        "waitMode": "Synchronous"
+      }
+    ]
+  }
+]
+</script>
+    </div>
+</div>
+<div id="TcHmiTextblock_43" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="68" data-tchmi-height-unit="px" data-tchmi-left="1430" data-tchmi-left-unit="px" data-tchmi-text="Leaving a dropdown list empty or selecting the emtpy item at the end of each list indicates no material" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="170" data-tchmi-width-unit="px" data-tchmi-word-wrap="true">
+</div>
+<div id="MapToServer_1" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiButton" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="295" data-tchmi-left-unit="px" data-tchmi-text="Generate Recipe (debugging only)" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="175" data-tchmi-width-unit="px" data-tchmi-word-wrap="true">
+</div>
+<div id="SidesPaperContainer" data-tchmi-type="TcHmi.Controls.System.TcHmiContainer" data-tchmi-height="225" data-tchmi-height-unit="px" data-tchmi-left="10" data-tchmi-left-unit="px" data-tchmi-top="335" data-tchmi-top-unit="px" data-tchmi-width="275" data-tchmi-width-unit="px" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+<div id="SidesPaper_text" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="10" data-tchmi-left-unit="px" data-tchmi-text="Paper (Sides)" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+    </div>
+    <div id="AddSidesPaperButton" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiButton" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="170" data-tchmi-left-unit="px" data-tchmi-text="+" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="41" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center" data-tchmi-icon-horizontal-alignment="Center" data-tchmi-icon-vertical-alignment="Center">
+
+        <script data-tchmi-target-attribute="data-tchmi-trigger" type="application/json">
+[
+  {
+    "event": "TcHmiButton_8.onMouseClick",
+    "actions": [
+      {
+        "objectType": "Comment",
+        "comment": "add new TopMaterial usercontrol"
+      },
+      {
+        "objectType": "JavaScript",
+        "active": true,
+        "sourceLines": [
+          "addTopMaterial(this);"
+        ],
+        "injectContextObject": false,
+        "asyncWait": true,
+        "waitMode": "Synchronous"
+      }
+    ]
+  }
+]
+</script>
+    </div>
+</div>
+<div id="BottomPaperContainer" data-tchmi-type="TcHmi.Controls.System.TcHmiContainer" data-tchmi-height="225" data-tchmi-height-unit="px" data-tchmi-left="10" data-tchmi-left-unit="px" data-tchmi-top="570" data-tchmi-top-unit="px" data-tchmi-width="275" data-tchmi-width-unit="px" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+<div id="BottomPaper_text" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="10" data-tchmi-left-unit="px" data-tchmi-text="Paper (Bottom)" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+    </div>
+    <div id="AddBottomPaperButton" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiButton" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="170" data-tchmi-left-unit="px" data-tchmi-text="+" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="41" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center" data-tchmi-icon-horizontal-alignment="Center" data-tchmi-icon-vertical-alignment="Center">
+
+        <script data-tchmi-target-attribute="data-tchmi-trigger" type="application/json">
+[
+  {
+    "event": "TcHmiButton_8.onMouseClick",
+    "actions": [
+      {
+        "objectType": "Comment",
+        "comment": "add new TopMaterial usercontrol"
+      },
+      {
+        "objectType": "JavaScript",
+        "active": true,
+        "sourceLines": [
+          "addTopMaterial(this);"
+        ],
+        "injectContextObject": false,
+        "asyncWait": true,
+        "waitMode": "Synchronous"
+      }
+    ]
+  }
+]
+</script>
+    </div>
+</div>
+<div id="WoodBunkContainer" data-tchmi-type="TcHmi.Controls.System.TcHmiContainer" data-tchmi-height="325" data-tchmi-height-unit="px" data-tchmi-left="1040" data-tchmi-left-unit="px" data-tchmi-top="100" data-tchmi-top-unit="px" data-tchmi-width="450" data-tchmi-width-unit="px" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+<div id="WoodBunk_text" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="10" data-tchmi-left-unit="px" data-tchmi-text="Wood Bunks/Strap Points" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+</div>
+<div id="AddWoodBunkButton" data-tchmi-grid-row-index="0" data-tchmi-grid-column-index="0" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiButton" data-tchmi-height="26" data-tchmi-height-unit="px" data-tchmi-left="170" data-tchmi-left-unit="px" data-tchmi-text="+" data-tchmi-top="10" data-tchmi-top-unit="px" data-tchmi-width="41" data-tchmi-width-unit="px" data-tchmi-word-wrap="true" data-tchmi-background-image-horizontal-alignment="Center" data-tchmi-background-image-vertical-alignment="Center">
+</div>
+</div>
+</div>

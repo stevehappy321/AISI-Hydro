@@ -1,0 +1,298 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="ArrayFunctions" Id="{58c27b29-9c36-4154-beae-8694b276d544}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK ArrayFunctions
+VAR
+	j : DINT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Folder Name="Remover Helpers" Id="{caee5c89-7180-4da1-b8ed-fcb6467c0fba}" />
+    <Folder Name="Sorting Helpers" Id="{92b7c989-1742-4e63-bdca-3c8a72eb57bd}" />
+    <Method Name="removeCardboard" Id="{1e976056-6265-4832-b046-1bda3235170c}" FolderPath="Remover Helpers\">
+      <Declaration><![CDATA[{attribute 'TcRpcEnable'}
+METHOD removeCardboard : BOOL
+VAR_INPUT
+	i : INT; //index to be removed
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[MEMMOVE(ADR(StrapWrapRecipe.Cardboard[i]), ADR(StrapWrapRecipe.Cardboard[i+1]), (GVL.maxMaterials-i)*SIZEOF(PositionMaterials));
+StrapWrapRecipe.Cardboard[GVL.maxMaterials].position := 0;
+
+StrapWrapRecipe.Cardboard[GVL.maxMaterials].top := '';
+StrapWrapRecipe.Cardboard[GVL.maxMaterials].left := '';
+StrapWrapRecipe.Cardboard[GVL.maxMaterials].right := '';
+StrapWrapRecipe.Cardboard[GVL.maxMaterials].bottom := '';
+
+StrapWrapRecipe.Cardboard[GVL.maxMaterials].topLeft := '';
+StrapWrapRecipe.Cardboard[GVL.maxMaterials].topRight := '';
+StrapWrapRecipe.Cardboard[GVL.maxMaterials].bottomLeft := '';
+StrapWrapRecipe.Cardboard[GVL.maxMaterials].bottomRight := '';
+
+StrapWrapRecipe.Cardboard[GVL.maxMaterials].topLeftFold := 0;
+StrapWrapRecipe.Cardboard[GVL.maxMaterials].topRightFold := 0;
+StrapWrapRecipe.Cardboard[GVL.maxMaterials].bottomLeftFold := 0;
+StrapWrapRecipe.Cardboard[GVL.maxMaterials].bottomRightFold := 0;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="removeChipboard" Id="{1552586b-66d3-415f-a6af-c325a10ac5e5}" FolderPath="Remover Helpers\">
+      <Declaration><![CDATA[{attribute 'TcRpcEnable'}
+METHOD removeChipboard : BOOL
+VAR_INPUT
+	i : INT; //index to be removed
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[MEMMOVE(ADR(StrapWrapRecipe.Chipboard[i]), ADR(StrapWrapRecipe.Chipboard[i+1]), (GVL.maxMaterials-i)*SIZEOF(PositionMaterials));
+StrapWrapRecipe.Chipboard[GVL.maxMaterials].position := 0;
+
+StrapWrapRecipe.Chipboard[GVL.maxMaterials].top := '';
+StrapWrapRecipe.Chipboard[GVL.maxMaterials].left := '';
+StrapWrapRecipe.Chipboard[GVL.maxMaterials].right := '';
+StrapWrapRecipe.Chipboard[GVL.maxMaterials].bottom := '';
+
+StrapWrapRecipe.Chipboard[GVL.maxMaterials].topLeft := '';
+StrapWrapRecipe.Chipboard[GVL.maxMaterials].topRight := '';
+StrapWrapRecipe.Chipboard[GVL.maxMaterials].bottomLeft := '';
+StrapWrapRecipe.Chipboard[GVL.maxMaterials].bottomRight := '';
+
+StrapWrapRecipe.Chipboard[GVL.maxMaterials].topLeftFold := 0;
+StrapWrapRecipe.Chipboard[GVL.maxMaterials].topRightFold := 0;
+StrapWrapRecipe.Chipboard[GVL.maxMaterials].bottomLeftFold := 0;
+StrapWrapRecipe.Chipboard[GVL.maxMaterials].bottomRightFold := 0;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="removeCornerGuard" Id="{80ecf489-36ec-43a5-83b5-7f1b5d9cd408}" FolderPath="Remover Helpers\">
+      <Declaration><![CDATA[{attribute 'TcRpcEnable'}
+METHOD removeCornerGuard : BOOL
+VAR_INPUT
+	i : INT; //index to be removed
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[MEMMOVE(ADR(StrapWrapRecipe.CornerGuard[i]), ADR(StrapWrapRecipe.CornerGuard[i+1]), (GVL.maxMaterials-i)*SIZEOF(PositionMaterials));
+StrapWrapRecipe.CornerGuard[GVL.maxMaterials].position := 0;
+
+MEMSET(ADR(StrapWrapRecipe.CornerGuard[GVL.maxMaterials]), 0, SIZEOF(PositionMaterials));]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="removePaper" Id="{7c96ee8a-4338-49e1-938a-5c9e08bbf4da}" FolderPath="Remover Helpers\">
+      <Declaration><![CDATA[{attribute 'TcRpcEnable'}
+METHOD removePaper: BOOL
+VAR_INPUT
+	face : STRING;
+	i : DINT; //index to be removed
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF face = 'Top' THEN
+	MEMMOVE(ADR(StrapWrapRecipe.TopPaper[i]), ADR(StrapWrapRecipe.TopPaper[i+1]), (GVL.maxMaterials-i)*SIZEOF(PaperInterval));
+	StrapWrapRecipe.TopPaper[GVL.maxMaterials].start := 0;
+	StrapWrapRecipe.TopPaper[GVL.maxMaterials].end := 0;
+ELSIF face = 'Left' THEN
+	MEMMOVE(ADR(StrapWrapRecipe.LeftPaper[i]), ADR(StrapWrapRecipe.LeftPaper[i+1]), (GVL.maxMaterials-i)*SIZEOF(PaperInterval));
+	StrapWrapRecipe.LeftPaper[GVL.maxMaterials].start := 0;
+	StrapWrapRecipe.LeftPaper[GVL.maxMaterials].end := 0;
+ELSIF face = 'Right' THEN
+	MEMMOVE(ADR(StrapWrapRecipe.RightPaper[i]), ADR(StrapWrapRecipe.RightPaper[i+1]), (GVL.maxMaterials-i)*SIZEOF(PaperInterval));
+	StrapWrapRecipe.RightPaper[GVL.maxMaterials].start := 0;
+	StrapWrapRecipe.RightPaper[GVL.maxMaterials].end := 0;
+ELSIF face = 'Bottom' THEN
+	MEMMOVE(ADR(StrapWrapRecipe.TopPaper[i]), ADR(StrapWrapRecipe.TopPaper[i+1]), (GVL.maxMaterials-i)*SIZEOF(PaperInterval));
+	StrapWrapRecipe.BottomPaper[GVL.maxMaterials].start := 0;
+	StrapWrapRecipe.BottomPaper[GVL.maxMaterials].end := 0;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="removeWoodBunk" Id="{ed856a23-68ec-4035-b488-96f89e34eedb}" FolderPath="Remover Helpers\">
+      <Declaration><![CDATA[{attribute 'TcRpcEnable'}
+METHOD removeWoodBunk : BOOL
+VAR_INPUT
+	i : INT; //index to be removed
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[MEMMOVE(ADR(StrapWrapRecipe.WoodBunk[i]), ADR(StrapWrapRecipe.WoodBunk[i+1]), (GVL.maxMaterials-i)*SIZEOF(PositionMaterials));
+StrapWrapRecipe.WoodBunk[GVL.maxMaterials].position := 0;
+
+StrapWrapRecipe.WoodBunk[GVL.maxMaterials].top := '';
+StrapWrapRecipe.WoodBunk[GVL.maxMaterials].left := '';
+StrapWrapRecipe.WoodBunk[GVL.maxMaterials].right := '';
+StrapWrapRecipe.WoodBunk[GVL.maxMaterials].bottom := '';
+
+StrapWrapRecipe.WoodBunk[GVL.maxMaterials].topLeft := '';
+StrapWrapRecipe.WoodBunk[GVL.maxMaterials].topRight := '';
+StrapWrapRecipe.WoodBunk[GVL.maxMaterials].bottomLeft := '';
+StrapWrapRecipe.WoodBunk[GVL.maxMaterials].bottomRight := '';
+
+StrapWrapRecipe.WoodBunk[GVL.maxMaterials].topLeftFold := 0;
+StrapWrapRecipe.WoodBunk[GVL.maxMaterials].topRightFold := 0;
+StrapWrapRecipe.WoodBunk[GVL.maxMaterials].bottomLeftFold := 0;
+StrapWrapRecipe.WoodBunk[GVL.maxMaterials].bottomRightFold := 0;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="sortEntries" Id="{4d2717b5-7f2c-4234-94b4-2d640485db56}">
+      <Declaration><![CDATA[{attribute 'TcRpcEnable'}
+METHOD sortEntries : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[sortPositionMaterials(StrapWrapRecipe.Cardboard);
+sortPositionMaterials(StrapWrapRecipe.CornerGuard);
+sortPositionMaterials(StrapWrapRecipe.Chipboard);
+sortPositionMaterials(StrapWrapRecipe.WoodBunk);
+
+sortPaperIntervals(StrapWrapRecipe.TopPaper);
+sortPaperIntervals(StrapWrapRecipe.LeftPaper);
+sortPaperIntervals(StrapWrapRecipe.RightPaper);
+sortPaperIntervals(StrapWrapRecipe.BottomPaper);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="sortPaperIntervals" Id="{4464e9de-a760-416a-9586-1c8a09797937}" FolderPath="Sorting Helpers\">
+      <Declaration><![CDATA[METHOD sortPaperIntervals : BOOL
+VAR_IN_OUT
+	arr : ARRAY[*] OF PaperInterval;
+END_VAR
+VAR_INST
+	i : DINT;
+	j : DINT;
+	temp : PaperInterval;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i:=LOWER_BOUND(arr, 1) TO UPPER_BOUND(arr, 1) BY 1 DO
+	FOR j:=LOWER_BOUND(arr, 1) TO UPPER_BOUND(arr, 1)-i-1 BY 1 DO
+		IF 
+			(arr[j].start = 0 AND arr[j].end = 0) //unused entry
+			OR 
+			arr[j].start > arr[j+1].start AND //out of order and both entries are valid
+			NOT(arr[j+1].start = 0 AND arr[j+1].end = 0)
+		THEN //unused entry or out of order
+			MEMCPY(ADR(temp), ADR(arr[j]), SIZEOF(PaperInterval));
+			MEMCPY(ADR(arr[j]), ADR(arr[j+1]), SIZEOF(PaperInterval));
+			MEMCPY(ADR(arr[j+1]), ADR(temp), SIZEOF(PaperInterval));
+		END_IF
+	END_FOR
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="sortPositionMaterials" Id="{9a9dd07b-f859-469c-98e1-ac1000910039}" FolderPath="Sorting Helpers\">
+      <Declaration><![CDATA[METHOD sortPositionMaterials : BOOL
+VAR_IN_OUT
+	arr : ARRAY[*] OF PositionMaterials;
+END_VAR
+VAR_INST
+	i : DINT;
+	j : DINT;
+	temp : PositionMaterials;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i:=LOWER_BOUND(arr, 1) TO UPPER_BOUND(arr, 1)-1 BY 1 DO
+	FOR j:=LOWER_BOUND(arr, 1) TO UPPER_BOUND(arr, 1)-i-1 BY 1 DO
+		IF //unused entry
+			arr[j].top = '' AND arr[j].left = '' AND arr[j].right = '' AND arr[j].bottom = '' AND 
+			arr[j].topRight = '' AND arr[j].topLeft = '' AND arr[j].bottomRight = '' AND arr[j].bottomLeft = ''
+		THEN //unused entry
+			arr[j].position := 0; //set position to 0
+			MEMCPY(ADR(temp), ADR(arr[j]), SIZEOF(PositionMaterials));
+			MEMCPY(ADR(arr[j]), ADR(arr[j+1]), SIZEOF(PositionMaterials));
+			MEMCPY(ADR(arr[j+1]), ADR(temp), SIZEOF(PositionMaterials));
+		ELSIF //out of order and both entries are valid
+			arr[j].position > arr[j+1].position AND 
+			NOT(
+				arr[j+1].top = '' AND arr[j+1].left = '' AND arr[j+1].right = '' AND arr[j+1].bottom = '' AND 
+				arr[j+1].topRight = '' AND arr[j+1].topLeft = '' AND arr[j+1].bottomRight = '' AND arr[j+1].bottomLeft = '')
+		THEN
+			MEMCPY(ADR(temp), ADR(arr[j]), SIZEOF(PositionMaterials));
+			MEMCPY(ADR(arr[j]), ADR(arr[j+1]), SIZEOF(PositionMaterials));
+			MEMCPY(ADR(arr[j+1]), ADR(temp), SIZEOF(PositionMaterials));
+		END_IF
+	END_FOR
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="ArrayFunctions">
+      <LineId Id="104" Count="0" />
+    </LineIds>
+    <LineIds Name="ArrayFunctions.removeCardboard">
+      <LineId Id="22" Count="1" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="24" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="25" Count="0" />
+      <LineId Id="38" Count="0" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="27" Count="0" />
+      <LineId Id="36" Count="0" />
+      <LineId Id="35" Count="0" />
+      <LineId Id="40" Count="3" />
+      <LineId Id="39" Count="0" />
+    </LineIds>
+    <LineIds Name="ArrayFunctions.removeChipboard">
+      <LineId Id="22" Count="0" />
+      <LineId Id="33" Count="14" />
+      <LineId Id="15" Count="0" />
+    </LineIds>
+    <LineIds Name="ArrayFunctions.removeCornerGuard">
+      <LineId Id="22" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="54" Count="0" />
+      <LineId Id="53" Count="0" />
+    </LineIds>
+    <LineIds Name="ArrayFunctions.removePaper">
+      <LineId Id="87" Count="1" />
+      <LineId Id="108" Count="1" />
+      <LineId Id="122" Count="2" />
+      <LineId Id="121" Count="0" />
+      <LineId Id="126" Count="2" />
+      <LineId Id="125" Count="0" />
+      <LineId Id="91" Count="0" />
+      <LineId Id="112" Count="1" />
+      <LineId Id="92" Count="1" />
+    </LineIds>
+    <LineIds Name="ArrayFunctions.removeWoodBunk">
+      <LineId Id="22" Count="0" />
+      <LineId Id="33" Count="14" />
+      <LineId Id="15" Count="0" />
+    </LineIds>
+    <LineIds Name="ArrayFunctions.sortEntries">
+      <LineId Id="5" Count="3" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="14" Count="0" />
+      <LineId Id="11" Count="1" />
+    </LineIds>
+    <LineIds Name="ArrayFunctions.sortPaperIntervals">
+      <LineId Id="7" Count="2" />
+      <LineId Id="36" Count="0" />
+      <LineId Id="35" Count="0" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="39" Count="0" />
+      <LineId Id="38" Count="0" />
+      <LineId Id="10" Count="4" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="ArrayFunctions.sortPositionMaterials">
+      <LineId Id="6" Count="1" />
+      <LineId Id="47" Count="0" />
+      <LineId Id="55" Count="0" />
+      <LineId Id="82" Count="0" />
+      <LineId Id="61" Count="0" />
+      <LineId Id="54" Count="0" />
+      <LineId Id="50" Count="1" />
+      <LineId Id="48" Count="0" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="66" Count="1" />
+      <LineId Id="84" Count="0" />
+      <LineId Id="83" Count="0" />
+      <LineId Id="68" Count="0" />
+      <LineId Id="71" Count="1" />
+      <LineId Id="69" Count="0" />
+      <LineId Id="62" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

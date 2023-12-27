@@ -1,0 +1,29 @@
+﻿{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "definitions": {
+    "TopMaterials_static": {
+      "frameworkControlNamespace": "TcHmi.Controls.Beckhoff",
+      "frameworkControlType": "TcHmi.Controls.System.TcHmiUserControl",
+      "frameworkInstanceOf": "TcHmi.Controls.System.TcHmiControl",
+      "frameworkUserControlConfig": "UserControls\\TopMaterials_static.usercontrol.json",
+      "type": "object",
+      "id": "tchmi:project#/definitions/TopMaterials_static"
+    },
+    "TopMaterials": {
+      "frameworkControlNamespace": "TcHmi.Controls.Beckhoff",
+      "frameworkControlType": "TcHmi.Controls.System.TcHmiUserControl",
+      "frameworkInstanceOf": "TcHmi.Controls.System.TcHmiControl",
+      "frameworkUserControlConfig": "UserControls\\TopMaterials.usercontrol.json",
+      "id": "tchmi:project#/definitions/TopMaterials",
+      "type": "object"
+    },
+    "UserControl1": {
+      "frameworkControlNamespace": "TcHmi.Controls.Beckhoff",
+      "frameworkControlType": "TcHmi.Controls.System.TcHmiUserControl",
+      "frameworkInstanceOf": "TcHmi.Controls.System.TcHmiControl",
+      "frameworkUserControlConfig": "UserControls\\UserControl1.usercontrol.json",
+      "type": "object",
+      "id": "tchmi:project#/definitions/UserControl1"
+    }
+  }
+}

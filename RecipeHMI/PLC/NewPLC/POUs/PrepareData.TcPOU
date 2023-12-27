@@ -1,0 +1,568 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="PrepareData" Id="{dd5913c7-342f-48ba-8fcb-b2b67256f66d}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK PrepareData
+VAR
+	//local copy of StrapWrapRecipe arrays
+	TopMaterials : ARRAY[0..GVL.maxMaterials] OF MaterialPosition;
+	SidesMaterials : ARRAY[0..GVL.maxMaterials] OF MaterialPosition;
+	BottomMaterials : ARRAY[0..GVL.maxMaterials] OF MaterialPosition;
+	UCMaterials : ARRAY[0..GVL.maxMaterials] OF MaterialPosition;
+	LCMaterials : ARRAY[0..GVL.maxMaterials] OF MaterialPosition;
+
+	//database recipe
+	paperArr : ARRAY[0..4] OF BOOL; //5 faces
+	
+	//array of structs
+	cardboardArr : ARRAY[0..GVL.maxPairs] OF PositionMaterials;
+	cornerGuardArr : ARRAY[0..GVL.maxPairs] OF PositionMaterials;
+	chipboardArr : ARRAY[0..GVL.maxPairs] OF PositionMaterials;
+	woodBunkArr : ARRAY[0..GVL.maxPairs] OF PositionMaterials;
+	
+	cardboardPositions : IntQueue;
+	cornerGuardPositions : IntQueue;
+	chipboardPositions : IntQueue;
+	woodBunkPositions : IntQueue;
+	
+	allPositions : IntQueue;
+	allPos : ARRAY[0..24] OF INT;
+	
+	step : (FETCH, ORGANIZE, COLLECT, CONVERT, GENERATE);
+	manualLog : BOOL;
+	
+	i : INT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[CASE step OF
+	FETCH: //put data into local data structures
+		MEMCPY(ADR(TopMaterials), ADR(StrapWrapRecipe.TopMaterials), TO_UDINT(GVL.maxMaterials+1)*SIZEOF(MaterialPosition));
+		MEMCPY(ADR(SidesMaterials), ADR(StrapWrapRecipe.SidesMaterials), TO_UDINT(GVL.maxMaterials+1)*SIZEOF(MaterialPosition));
+		MEMCPY(ADR(BottomMaterials), ADR(StrapWrapRecipe.BottomMaterials), TO_UDINT(GVL.maxMaterials+1)*SIZEOF(MaterialPosition));
+		MEMCPY(ADR(UCMaterials), ADR(StrapWrapRecipe.UCMaterials), TO_UDINT(GVL.maxMaterials+1)*SIZEOF(MaterialPosition));
+		MEMCPY(ADR(LCMaterials), ADR(StrapWrapRecipe.LCMaterials), TO_UDINT(GVL.maxMaterials+1)*SIZEOF(MaterialPosition));
+		
+		cardboardPositions.clear();
+		cornerGuardPositions.clear();
+		chipboardPositions.clear();
+		woodBunkPositions.clear();
+		
+	ORGANIZE:
+		sort(TopMaterials);
+		sort(SidesMaterials);
+		sort(BottomMaterials);
+		sort(UCMaterials);
+		sort(LCMaterials);
+	
+	COLLECT:
+		//iterate through face arrays to get positions for each material type
+		collectMaterialPositions(cardboardPositions, 'CAR');
+		collectMaterialPositions(cornerGuardPositions, 'COR');
+		collectMaterialPositions(chipboardPositions, 'CIP');
+		collectMaterialPositions(woodBunkPositions, 'WD');
+
+		IF manualLog THEN
+			FOR i:=0 TO allPositions.size()-1 BY 1 DO
+				ADSLOGDINT(
+					msgCtrlMask := ADSLOG_MSGTYPE_ERROR,
+					msgFmtStr := 'allPositions.get() = %d',
+					dintArg := allPositions.get(i));
+			END_FOR
+			manualLog := FALSE;
+		END_IF
+		
+	CONVERT:
+		//sort all positions
+		cardboardPositions.sort();
+		cornerGuardPositions.sort();
+		chipboardPositions.sort();
+		woodBunkPositions.sort();
+		
+		//NULL materials (material: '', position: -1) are all at the rear, all valid materials are at the front
+		//we have all positions of each material type, now we iterate through those positions again and add materials to each pair
+		convertToPositionMaterials();
+		
+	GENERATE:
+		//log to database
+		//refer to eventlogger sample
+END_CASE]]></ST>
+    </Implementation>
+    <Folder Name="Helpers" Id="{4e2de0a2-3074-433b-b533-ba563b65c8a9}" />
+    <Folder Name="Redundant" Id="{7687626d-20d2-417d-b098-7b2e82053691}" />
+    <Folder Name="Save For Later" Id="{37317d92-8f91-4849-af2d-09decf69cc45}" />
+    <Method Name="cleanup" Id="{6707d233-b63c-46a0-af77-977ca8c1b117}" FolderPath="Redundant\">
+      <Declaration><![CDATA[METHOD cleanup : BOOL //moves all NULL materials to the back
+VAR_IN_OUT
+	arr : ARRAY[*] OF MaterialPosition;
+END_VAR
+VAR
+	//iterators
+	i : INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[(*
+FOR i:=0 TO GVL.maxMaterials BY 1 DO
+	IF arr[i].material = '' THEN //NULL material, shift elements forward
+		MEMCPY(ADR(arr[i]), ADR(arr[i+1]), TO_INT(GVL.maxMaterials-i)*SIZEOF(MaterialPosition));
+		arr[GVL.maxMaterials].material := '';
+		arr[GVL.maxMaterials].position := -1;
+	ELSE //valid material
+		allPositions.offer(arr[i].position);
+	END_IF
+END_FOR
+*)
+
+FOR i:=GVL.maxMaterials TO 0 BY -1 DO //iterate backwards
+	IF arr[i].material = '' THEN //NULL material, shift elements forward
+		MEMCPY(ADR(arr[i]), ADR(arr[i+1]), TO_UDINT(GVL.maxMaterials-i)*SIZEOF(MaterialPosition));
+		arr[GVL.maxMaterials].material := '';
+		arr[GVL.maxMaterials].position := -1;
+	ELSE //valid material
+		allPositions.push(arr[i].position); //add position to arraylist
+	END_IF
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="collectMaterialPositions" Id="{0bc121b3-e805-46e2-aae3-5b9a5677c3e8}">
+      <Declaration><![CDATA[METHOD collectMaterialPositions : BOOL
+VAR_IN_OUT
+	posQueue : IntQueue;
+END_VAR
+VAR_INPUT
+	materialPrefix : STRING;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[getAllPositionsFromFace(TopMaterials, posQueue, materialPrefix);
+getAllPositionsFromFace(SidesMaterials, posQueue, materialPrefix);
+getAllPositionsFromFace(BottomMaterials, posQueue, materialPrefix);
+getAllPositionsFromFace(UCMaterials, posQueue, materialPrefix);;
+getAllPositionsFromFace(LCMaterials, posQueue, materialPrefix);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="collectPositions_old" Id="{07d4c5aa-0160-4798-9aee-d55329d456e1}" FolderPath="Redundant\">
+      <Declaration><![CDATA[METHOD collectPositions_old : BOOL
+VAR_IN_OUT
+	arr : ARRAY[*] OF MaterialPosition;
+END_VAR
+VAR_INST
+	//iterators
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i:=0 TO GVL.maxMaterials BY 1 DO
+	IF arr[i].material <> '' AND arr[i].position >= 0 THEN
+		IF NOT allPositions.contains(arr[i].position) THEN //add new position if it does not exist yet
+			allPositions.push(arr[i].position);
+			ADSLOGDINT( //log
+				msgCtrlMask := ADSLOG_MSGTYPE_ERROR, 
+				msgFmtStr := 'New position found at iteration: %d',
+				dintArg := i);
+			ADSLOGDINT( //log
+				msgCtrlMask := ADSLOG_MSGTYPE_ERROR, 
+				msgFmtStr := 'Position: %d',
+				dintArg := arr[i].position);
+		END_IF
+	END_IF
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="convertToPositionMaterials" Id="{3117a643-5744-4178-8988-68c333606ab7}">
+      <Declaration><![CDATA[METHOD convertToPositionMaterials : BOOL
+VAR_INST
+	i : INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i:=0 TO allPositions.size()-1 BY 1 DO
+	//find all cardboard from all sides with this position value 
+	//nothing works here
+	findMaterialsAtPosition(pair := cardboardArr[i], materialPrefix := 'CAR', position := allPositions.get(i));
+	findMaterialsAtPosition(pair := cornerGuardArr[i], materialPrefix := 'COR', position := allPositions.get(i));
+	findMaterialsAtPosition(pair := chipboardArr[i], materialPrefix := 'CIP', position := allPositions.get(i));
+	findMaterialsAtPosition(pair := woodBunkArr[i], materialPrefix := 'WD', position := allPositions.get(i));
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="findMaterialsAtPosition" Id="{1585a427-10f7-4075-985c-b470e850ab1b}" FolderPath="Save For Later\">
+      <Declaration><![CDATA[METHOD findMaterialsAtPosition : BOOL
+VAR_IN_OUT
+	pair : PositionMaterials;
+END_VAR
+VAR_INPUT
+	materialPrefix : STRING;
+	position : INT;
+END_VAR
+VAR_INST
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[pair.position := position;
+
+//find 1 material for each face at this position
+FOR i:=0 TO GVL.maxMaterials BY 1 DO
+	IF FIND(StrapWrapRecipe.TopMaterials[i].material, materialPrefix) > 0 AND StrapWrapRecipe.TopMaterials[i].position = position THEN
+		pair.top := StrapWrapRecipe.TopMaterials[i].material;
+	END_IF
+	IF FIND(StrapWrapRecipe.SidesMaterials[i].material, materialPrefix) > 0 AND StrapWrapRecipe.SidesMaterials[i].position = position THEN
+		pair.sides := StrapWrapRecipe.SidesMaterials[i].material;
+	END_IF
+	IF FIND(StrapWrapRecipe.BottomMaterials[i].material, materialPrefix) > 0 AND StrapWrapRecipe.BottomMaterials[i].position = position THEN
+		pair.bottom := StrapWrapRecipe.BottomMaterials[i].material;
+	END_IF
+	IF FIND(StrapWrapRecipe.UCMaterials[i].material, materialPrefix) > 0 AND StrapWrapRecipe.UCMaterials[i].position = position THEN
+		pair.upperCorner := StrapWrapRecipe.UCMaterials[i].material;
+	END_IF
+	IF FIND(StrapWrapRecipe.LCMaterials[i].material, materialPrefix) > 0 AND StrapWrapRecipe.LCMaterials[i].position = position THEN
+		pair.lowerCorner := StrapWrapRecipe.LCMaterials[i].material;
+	END_IF
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="findMaterialsAtPosition_1" Id="{04968f53-3434-4d03-9d6b-c95896601d55}" FolderPath="Redundant\">
+      <Declaration><![CDATA[METHOD findMaterialsAtPosition_1 : BOOL
+VAR_IN_OUT
+	pair : PositionMaterials;
+	arr : ARRAY[*] OF MaterialPosition;
+END_VAR
+VAR_INPUT
+	materialPrefix : STRING;
+	position : INT;
+END_VAR
+VAR_INST
+	i : INT; //iterator
+	pairFaceNum : INT := 0;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[pairFaceNum := 0;
+
+pair.position := position;
+
+//???
+FOR i:=0 TO GVL.maxMaterials BY 1 DO
+	IF FIND(arr[i].material, materialPrefix) > 0 AND arr[i].position = position THEN
+		pair.top := arr[i].material;
+		pairFaceNum := pairFaceNum + 1;
+	END_IF
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="getAllPositionsFromFace" Id="{3d196fb9-f034-447e-9bf3-7db1018b5f4e}" FolderPath="Helpers\">
+      <Declaration><![CDATA[METHOD getAllPositionsFromFace : BOOL
+VAR_IN_OUT
+	arr : ARRAY[*] OF MaterialPosition;
+	posQueue : IntQueue;
+END_VAR
+VAR_INPUT
+	//posQueue : IntQueue;
+	materialPrefix : STRING;
+END_VAR
+VAR_INST
+	//iterators
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i:=0 TO GVL.maxMaterials BY 1 DO
+	IF FIND(arr[i].material, materialPrefix) > 0 AND arr[i].position >= 0 THEN
+		IF NOT posQueue.contains(arr[i].position) THEN
+			posQueue.push(TopMaterials[i].position);
+		END_IF
+	END_IF
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="pushToParallelArray" Id="{acd1cd8d-bf30-4f62-8a7f-5b46d5bfd36e}" FolderPath="Redundant\">
+      <Declaration><![CDATA[METHOD pushToParallelArray : BOOL
+VAR_IN_OUT
+	destID : ARRAY[*] OF STRING;
+	destPos : ARRAY[*] OF INT;
+	
+	src : ARRAY[*] OF MaterialPosition;
+END_VAR
+VAR_INST
+	i : INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i:=0 TO GVL.maxMaterials BY 1 DO
+	destID[i] := src[i].material;
+	destPos[i] := src[i].position;
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="sort" Id="{6d57d84c-a829-4b8c-b160-2960989a4b9a}">
+      <Declaration><![CDATA[METHOD sort : BOOL //sorts array by position, uses bubblesort
+VAR_IN_OUT
+	arr : ARRAY[*] OF MaterialPosition;
+END_VAR
+VAR_INST
+	//iterators
+	i : INT;
+	j : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i:=0 TO GVL.maxMaterials-1 BY 1 DO
+	FOR j:=0 TO GVL.maxMaterials-i-1 BY 1 DO
+		IF arr[j].material = '' THEN
+			arr[j].position := -1;
+			swap(arr[j], arr[j+1]);
+		ELSIF arr[j].position > arr[j+1].position AND arr[j+1].material <> '' THEN
+			swap(arr[j], arr[j+1]);
+		END_IF
+	END_FOR
+END_FOR
+
+(*
+FOR i:=0 TO GVL.maxMaterials BY 1 DO
+	IF arr[i].position >= 0 AND NOT allPositions.contains(arr[i].position) THEN
+		allPositions.offer(arr[i].position); //add new position if it does not exist yet
+		
+		ADSLOGDINT( //log
+			msgCtrlMask := ADSLOG_MSGTYPE_WARN, 
+			msgFmtStr := 'Current iteration position: %d',
+			dintArg := arr[i].position);
+		
+		ADSLOGDINT( //log
+			msgCtrlMask := ADSLOG_MSGTYPE_ERROR, 
+			msgFmtStr := 'New position found at iteration: %d',
+			dintArg := i);
+			
+		ADSLOGDINT( //log
+			msgCtrlMask := ADSLOG_MSGTYPE_ERROR, 
+			msgFmtStr := 'New position value: %d',
+			dintArg := arr[i].position);
+	END_IF
+END_FOR
+*)]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="sortParallelArrays" Id="{566c17a1-b68b-484f-9901-c1437244225d}" FolderPath="Redundant\">
+      <Declaration><![CDATA[METHOD sortParallelArrays : BOOL //sorts array by position, uses bubblesort
+VAR_IN_OUT
+	arrID : ARRAY[*] OF STRING;
+	arrPos : ARRAY[*] OF INT;
+END_VAR
+VAR_INST
+	//iterators
+	i : INT;
+	j : INT;
+	
+	tempID : STRING;
+	tempPos : INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i:=0 TO GVL.maxMaterials-1 BY 1 DO
+	FOR j:=0 TO GVL.maxMaterials-i-1 BY 1 DO
+		IF arrID[j] = '' THEN //swap anyways
+			arrPos[j] := -1;
+			
+			//tempID := arrID[j];
+			MEMCPY(ADR(tempID), ADR(arrID[j]), SIZEOF(STRING));
+			tempPos := arrPos[j];
+			
+			//arrID[j] := arrID[j+1];
+			MEMCPY(ADR(arrID[j]), ADR(arrID[j+1]), SIZEOF(STRING));
+			arrPos[j] := arrPos[j+1];
+			
+			//arrID[j+1] := tempID;
+			MEMCPY(ADR(arrID[j+1]), ADR(tempID), SIZEOF(STRING));
+			arrPos[j+1] := tempPos;
+		ELSIF arrPos[j] > arrPos[j+1] AND arrID[j+1] <> '' THEN //swap
+			//tempID := arrID[j];
+			MEMCPY(ADR(tempID), ADR(arrID[j]), SIZEOF(STRING));
+			tempPos := arrPos[j];
+			
+			//arrID[j] := arrID[j+1];
+			MEMCPY(ADR(arrID[j]), ADR(arrID[j+1]), SIZEOF(STRING));
+			arrPos[j] := arrPos[j+1];
+			
+			//arrID[j+1] := tempID;
+			MEMCPY(ADR(arrID[j+1]), ADR(tempID), SIZEOF(STRING));
+			arrPos[j+1] := tempPos;
+		END_IF
+	END_FOR
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="swap" Id="{983292a2-e79d-49cb-ba91-3c796984445c}" FolderPath="Helpers\">
+      <Declaration><![CDATA[METHOD swap : BOOL
+VAR_INPUT
+	elem1 : REFERENCE TO MaterialPosition;
+	elem2 : REFERENCE TO MaterialPosition;
+END_VAR
+VAR_INST
+	temp : MaterialPosition;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//(*
+MEMCPY(ADR(temp), ADR(elem1), SIZEOF(MaterialPosition)); //temp = arr[j]
+MEMCPY(ADR(elem1), ADR(elem2), SIZEOF(MaterialPosition)); //arr[j] = arr[j+1]
+MEMCPY(ADR(elem2), ADR(temp), SIZEOF(MaterialPosition)); //arr[j+1] = temp
+//*)
+
+(*
+//temp = arr[j]
+temp.material := elem1.material;
+temp.position := elem1.position;
+
+//arr[j] = arr[j+1]
+elem1.material := elem2.material;
+elem1.position := elem2.position;
+
+//arr[j+1] = temp
+elem2.material := temp.material;
+elem2.position := temp.position;
+*)]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="PrepareData">
+      <LineId Id="1389" Count="8" />
+      <LineId Id="1465" Count="2" />
+      <LineId Id="1398" Count="6" />
+      <LineId Id="1441" Count="0" />
+      <LineId Id="1464" Count="0" />
+      <LineId Id="1448" Count="0" />
+      <LineId Id="1442" Count="0" />
+      <LineId Id="1450" Count="2" />
+      <LineId Id="1414" Count="12" />
+      <LineId Id="1432" Count="0" />
+      <LineId Id="1460" Count="3" />
+      <LineId Id="1433" Count="0" />
+      <LineId Id="1498" Count="0" />
+      <LineId Id="1434" Count="4" />
+      <LineId Id="214" Count="0" />
+    </LineIds>
+    <LineIds Name="PrepareData.cleanup">
+      <LineId Id="52" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="14" Count="0" />
+      <LineId Id="27" Count="2" />
+      <LineId Id="39" Count="1" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="53" Count="0" />
+      <LineId Id="43" Count="7" />
+      <LineId Id="41" Count="0" />
+    </LineIds>
+    <LineIds Name="PrepareData.collectMaterialPositions">
+      <LineId Id="96" Count="0" />
+      <LineId Id="98" Count="3" />
+    </LineIds>
+    <LineIds Name="PrepareData.collectPositions_old">
+      <LineId Id="7" Count="1" />
+      <LineId Id="58" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="48" Count="2" />
+      <LineId Id="35" Count="0" />
+      <LineId Id="37" Count="2" />
+      <LineId Id="36" Count="0" />
+      <LineId Id="59" Count="0" />
+      <LineId Id="25" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="PrepareData.convertToPositionMaterials">
+      <LineId Id="39" Count="1" />
+      <LineId Id="49" Count="0" />
+      <LineId Id="41" Count="3" />
+      <LineId Id="20" Count="0" />
+    </LineIds>
+    <LineIds Name="PrepareData.findMaterialsAtPosition">
+      <LineId Id="74" Count="0" />
+      <LineId Id="114" Count="0" />
+      <LineId Id="75" Count="3" />
+      <LineId Id="80" Count="2" />
+      <LineId Id="84" Count="2" />
+      <LineId Id="88" Count="0" />
+      <LineId Id="90" Count="1" />
+      <LineId Id="93" Count="2" />
+      <LineId Id="97" Count="0" />
+      <LineId Id="15" Count="0" />
+    </LineIds>
+    <LineIds Name="PrepareData.findMaterialsAtPosition_1">
+      <LineId Id="103" Count="1" />
+      <LineId Id="74" Count="0" />
+      <LineId Id="117" Count="0" />
+      <LineId Id="75" Count="5" />
+      <LineId Id="15" Count="0" />
+    </LineIds>
+    <LineIds Name="PrepareData.getAllPositionsFromFace">
+      <LineId Id="9" Count="2" />
+      <LineId Id="20" Count="1" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="PrepareData.pushToParallelArray">
+      <LineId Id="10" Count="1" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="PrepareData.sort">
+      <LineId Id="6" Count="1" />
+      <LineId Id="50" Count="1" />
+      <LineId Id="53" Count="0" />
+      <LineId Id="52" Count="0" />
+      <LineId Id="38" Count="0" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="28" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="103" Count="0" />
+      <LineId Id="64" Count="0" />
+      <LineId Id="63" Count="0" />
+      <LineId Id="65" Count="0" />
+      <LineId Id="67" Count="0" />
+      <LineId Id="102" Count="0" />
+      <LineId Id="99" Count="2" />
+      <LineId Id="97" Count="0" />
+      <LineId Id="96" Count="0" />
+      <LineId Id="92" Count="2" />
+      <LineId Id="82" Count="0" />
+      <LineId Id="95" Count="0" />
+      <LineId Id="78" Count="0" />
+      <LineId Id="81" Count="0" />
+      <LineId Id="79" Count="1" />
+      <LineId Id="68" Count="0" />
+      <LineId Id="66" Count="0" />
+      <LineId Id="104" Count="0" />
+    </LineIds>
+    <LineIds Name="PrepareData.sortParallelArrays">
+      <LineId Id="50" Count="1" />
+      <LineId Id="98" Count="0" />
+      <LineId Id="102" Count="0" />
+      <LineId Id="116" Count="0" />
+      <LineId Id="118" Count="9" />
+      <LineId Id="117" Count="0" />
+      <LineId Id="52" Count="1" />
+      <LineId Id="82" Count="0" />
+      <LineId Id="62" Count="2" />
+      <LineId Id="83" Count="0" />
+      <LineId Id="67" Count="0" />
+      <LineId Id="65" Count="1" />
+      <LineId Id="84" Count="0" />
+      <LineId Id="68" Count="0" />
+      <LineId Id="55" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="PrepareData.swap">
+      <LineId Id="20" Count="0" />
+      <LineId Id="9" Count="1" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="30" Count="0" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="21" Count="0" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="31" Count="0" />
+      <LineId Id="25" Count="0" />
+      <LineId Id="24" Count="0" />
+      <LineId Id="26" Count="0" />
+      <LineId Id="32" Count="0" />
+      <LineId Id="28" Count="0" />
+      <LineId Id="27" Count="0" />
+      <LineId Id="29" Count="0" />
+      <LineId Id="42" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

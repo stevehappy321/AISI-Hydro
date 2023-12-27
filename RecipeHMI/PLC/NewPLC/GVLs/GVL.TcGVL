@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <GVL Name="GVL" Id="{9f9419d0-cf39-476a-8eb4-7c7ba9d9a9f2}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'global_init_slot' := '45000'}
+VAR_GLOBAL CONSTANT //first to compile
+	maxMaterials : INT := 13; //14-1
+	maxPairs : INT := 24; //25-1
+	
+	top : ARRAY[1..TO_INT(TopMaterialsEnum.size)] OF STRING := [		'CAR20S', 'CAR20M', 'CAR20L', 'CAR28S', 'CAR28M', 'CAR28L', //CARDBOARD	
+																		'CIP18', 'CIP54', //CHIPBOARD
+																		'WDT20', 'WDT22', 'WDT28', 'WDW20', 'WDW22']; //WOOD BUNK
+	
+	sides : ARRAY[1..TO_INT(SidesMaterialsEnum.size)] OF STRING := [	'CAR20S', 'CAR20M', 'CAR20L', 'CAR28S', 'CAR28M', 'CAR28L', //CARDBOARD
+																		'CIP18', 'CIP54', //CHIPBOARD
+																		'WDS08', 'WDS10', 'WDS12', 'WDS14', 'WDS20','WDS22', 'WDS28', //WOOD BUNKS
+																		'WDS8X8', 'WDS8X10', 'WDS12X12', 'WDS12X14', 'WDS20X10', 'WDS20X12'];
+	
+	bottom : ARRAY[1..TO_INT(BottomMaterialsEnum.size)] OF STRING := [	'CAR20S', 'CAR20M', 'CAR20L', 'CAR28S', 'CAR28M', 'CAR28L', //CARDBOARD
+																		'CIP18', 'CIP54', //CHIPBOARD
+																		'WDB20', 'WDB22', 'WDB28']; //WOOD BUNK
+	
+	//when inserted to database, materials here will be added to top and bottom materials
+	upperCorner : ARRAY[1..8] OF STRING := ['COR48', //CORNER GUARD
+											'CAR20SF', 'CAR20MF', 'CAR20LF', 'CAR28SF', 'CAR28MF', 'CAR28LF']; //CARDBOARD - SINGLE FOLDED
+	lowerCorner : ARRAY[1..8] OF STRING := ['COR48', //CORNER GUARD
+											'CAR20SF', 'CAR20MF', 'CAR20LF', 'CAR28SF', 'CAR28MF', 'CAR28LF']; //CARDBOARD - SINGLE FOLDED
+	
+	//by materials
+	paper : ARRAY[0..0] OF STRING := ['PAP28'];
+	cornerGuard : ARRAY[0..0] OF STRING := ['COR48'];
+	
+	cardboardTop : ARRAY[1..6] OF STRING := [	'CAR20S', 'CAR20M', 'CAR20L', 'CAR28S', 'CAR28M', 'CAR28L'];
+	cardboardSides : ARRAY[1..6] OF STRING := [	'CAR20S', 'CAR20M', 'CAR20L', 'CAR28S', 'CAR28M', 'CAR28L'];
+	cardboardBottom : ARRAY[1..6] OF STRING := [	'CAR20S', 'CAR20M', 'CAR20L', 'CAR28S', 'CAR28M', 'CAR28L'];
+	cardboardUC : ARRAY[1..6] OF STRING := [	'CAR20SF', 'CAR20MF', 'CAR20LF', 'CAR28SF', 'CAR28MF', 'CAR28LF'];
+	cardboardLC : ARRAY[1..6] OF STRING := [	'CAR20SF', 'CAR20MF', 'CAR20LF', 'CAR28SF', 'CAR28MF', 'CAR28LF'];
+	
+	chipboardTop : ARRAY[1..2] OF STRING := [	'CIP18', 'CIP54'];
+	chipboardSides : ARRAY[1..2] OF STRING := [	'CIP18', 'CIP54'];
+	chipboardBottom : ARRAY[1..2] OF STRING := ['CIP18', 'CIP54'];
+	
+	woodBunkTop : ARRAY[1..5] OF STRING := [	'WDT20', 'WDT22', 'WDT28', 'WDW20', 'WDW22'];
+	woodBunkSides : ARRAY[1..13] OF STRING := [	'WDS08', 'WDS10', 'WDS12', 'WDS14', 'WDS20','WDS22', 'WDS28',
+												'WDS8X8', 'WDS8X10', 'WDS12X12', 'WDS12X14', 'WDS20X10', 'WDS20X12'];										
+	woodBunkBottom : ARRAY[1..3] OF STRING := [	'WDB20', 'WDB22', 'WDB28'];
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>
