@@ -1,3 +1,9 @@
+Area2
+-renewed attempt at reintegration of section modules into the master project
+-wood bunk and [incomplete] chipboard modules reintegrated and added to Section heirarchy
+-separated hardware GVL into 5 GVLs (1 for each subarea)
+
+
 Area2v2
 -section modules declared in MAIN
 -hardware modules moved out of GVLs into Subarea PROGRAM modules
