@@ -17,16 +17,19 @@
     <LibraryReferences>{ee79a41c-73e9-42b6-b7b5-529231760065}</LibraryReferences>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Comms_ADS\AdsClient.TcPOU">
+    <Compile Include="Comms_ADS\AdsData.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Comms_ADS\AdsHandle.TcPOU">
+    <Compile Include="Comms_ADS\AdsMessage.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Comms_ADS\PROTOTYPE\AdsClient_1.TcPOU">
+    <Compile Include="Comms_ADS\AdsMessageQueue.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Comms_ADS\PROTOTYPE\AdsHandle_1.TcPOU">
+    <Compile Include="Comms_ADS\AdsSocket.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Comms_ADS\AdsTcpUnitEx.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Comms_TCP\TcpServer1Vision.TcPOU">
@@ -39,6 +42,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Comms_TCP\Types\TcpDataQueue.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DUTs\Enums\AreaNum.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DUTs\Enums\E_PMLCustomUnitMode.TcDUT">
@@ -152,22 +158,10 @@
     <Compile Include="DUTs\Hardware\Robots\RobotA22.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="DUTs\Watchdog.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="DUTs\ONE_BIT.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DUTs\Enums\Robot Tasks\TaskA21.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Comms_ADS\Types\AdsSocket.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Comms_ADS\Types\AdsDataQueue.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Comms_ADS\Types\AdsData.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DUTs\Bundle\Bundle.TcDUT">
@@ -230,6 +224,9 @@
     <Compile Include="DUTs\VisionSuite.TcDUT">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="DUTs\Watchdog.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="EventLogging\EventLogger.TcIO">
       <SubType>Code</SubType>
     </Compile>
@@ -238,6 +235,10 @@
     </Compile>
     <Compile Include="GlobalTextList.TcGTLO">
       <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="GVLs\COM.TcGVL">
+      <SubType>Code</SubType>
+      <LinkAlways>true</LinkAlways>
     </Compile>
     <Compile Include="GVLs\GVL.TcGVL">
       <SubType>Code</SubType>
@@ -395,11 +396,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Comms_ADS\PROTOTYPE" />
     <Folder Include="Comms_TCP\Types" />
     <Folder Include="DUTs\Enums\Materials" />
     <Folder Include="DUTs\Enums\Robot Tasks" />
-    <Folder Include="Comms_ADS\Types" />
     <Folder Include="DUTs" />
     <Folder Include="DUTs\Enums" />
     <Folder Include="DUTs\Containers" />

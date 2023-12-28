@@ -1,0 +1,326 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="AdsSocket" Id="{4b08c35a-5e88-4e7b-a45b-894d0e3f10ba}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK AdsSocket
+VAR_INPUT
+	bEnable : BOOL;
+END_VAR
+VAR_OUTPUT
+	PrgName : STRING; //descriptive string for the name of the running program
+	AmsNetId : T_AmsNetId; //this must be assigned even if it is used for local communication - otherwise socket is not considered valid
+	AmsPort : T_AmsPort; //for now, use ADS port 851 for communication
+END_VAR
+VAR_OUTPUT
+	receivingData : AdsData;
+	sendingData : AdsData;
+	
+	readBusy : BOOL;
+	readError : BOOL;
+	readErrorId : UDINT;
+	
+	writeBusy : BOOL;
+	writeError : BOOL;
+	writeErrorId : UDINT;
+	
+	writeReady : BOOL;
+	
+	timeout : BOOL;
+	prevMsgTimestamp : TIMESTRUCT;
+END_VAR
+VAR	
+	targetSocket : STRING := CONCAT('COM.adsMajorNetwork.', localPrgName); //write into the recipient's allocated socket for this system
+	adsWriteSymbol : FB_WriteAdsSymByName;
+	adsReadSymbol : FB_ReadAdsSymByName;
+END_VAR
+VAR	
+	toggleBit : BOOL; //remote system toggles this bit - use as heartbeat input
+	sendingBit : BOOL; //this system toggles this bit - write to remote system's toggleBit
+	
+	heartbeat : Watchdog;
+	writeTimer : TON;
+	
+	flagWriter : FB_WriteAdsSymByName;
+	nameWriter : FB_WriteAdsSymByName;
+	netIdWriter : FB_WriteAdsSymByName;
+	portWriter : FB_WriteAdsSymByName;
+	
+	writeSync : BOOL := FALSE;
+END_VAR
+VAR_STAT
+	fbGetLocalAmsNetId : FB_GetLocalAmsNetId;
+	
+	localPrgName : STRING := TO_STRING(AreaNum.AREA_2);
+	localAmsNetId : T_AmsNetId := '';
+	localAmsPort : T_AmsPort := 851;
+	
+	writeSpacing : TIME := T#200MS;
+END_VAR
+(*
+TCP-style ADS connection that only writes to a buffer in the recipient's AdsTcpUnit module
+*)]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[writeTimer(IN:= NOT writeBusy, PT:= writeSpacing, Q=> writeReady, ET=> );
+
+targetSocket := CONCAT('COM.adsMajorNetwork.', localPrgName);
+
+flagSequence();
+
+IF //do not use this socket if invalid
+	NOT bEnable OR
+	NOT IsValid
+THEN
+	RETURN;
+END_IF
+
+setup();
+
+(*
+if timeout, stop all read/write
+if data has no contents, do not send
+*)
+adsReadSymbol.bRead := NOT timeout AND NOT adsReadSymbol.bRead AND adsReadSymbol.sVarName <> '';
+adsWriteSymbol.bWrite := 
+	NOT timeout AND
+	NOT BufferIsEmpty(sendingData.binaryData) AND 
+	NOT adsWriteSymbol.bWrite;
+
+blocks();
+
+(*
+IF timeout THEN //stop data read/write attempts
+	adsWriteSymbol.bWrite := FALSE;
+	adsReadSymbol.bRead := FALSE;
+	
+ELSE //only writes if data has contents, otherwise remains false
+	adsWriteSymbol.bWrite := NOT BufferIsEmpty(sendingData.binaryData) AND NOT adsWriteSymbol.bWrite;
+END_IF
+*)]]></ST>
+    </Implementation>
+    <Method Name="blocks" Id="{aafa1f89-5424-428c-92a9-eff1fd826f0b}">
+      <Declaration><![CDATA[METHOD PRIVATE blocks : BOOL
+VAR_INPUT
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[adsReadSymbol(
+	bRead:= , 
+	sNetId:= AmsNetId, 
+	nPort:= AmsPort, 
+	sVarName:= , 
+	nDestAddr:= , 
+	nLen:= , 
+	tTimeout:= , 
+	eComMode:= , 
+	bClearOnError:= , 
+	bBusy=> readBusy, 
+	bError=> readError, 
+	nErrorId=> readErrorId);
+	
+adsWriteSymbol(
+	bWrite:= , 
+	sNetId:= AmsNetId, 
+	nPort:= AmsPort, 
+	sVarName:= CONCAT(targetSocket, '.receivingData'), 
+	nSrcAddr:= ADR(sendingData), 
+	nLen:= SIZEOF(sendingData), 
+	tTimeout:= , 
+	eComMode:= eAdsComModeSecureCom, 
+	bBusy=> writeBusy, 
+	bError=> writeError, 
+	nErrorId=> writeErrorId);
+	
+IF NOT adsWriteSymbol.bBusy THEN
+	MEMSET(ADR(sendingData), 0, SIZEOF(sendingData));
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="flagSequence" Id="{282d8f86-2a36-4b14-910d-5c0d51c4379e}">
+      <Declaration><![CDATA[METHOD PRIVATE flagSequence : BOOL
+VAR_INPUT
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[heartbeat(
+	enable:= TRUE, 
+	toggleBit:= toggleBit, 
+	timeoutWidth:= DEFAULT_ADS_TIMEOUT, 
+	timeout=> timeout);
+
+prevMsgTimestamp := heartbeat.prevMsgTimestamp;
+
+IF NOT flagWriter.bBusy THEN
+	sendingBit := NOT sendingBit;
+END_IF
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="IsValid" Id="{06919978-c9ca-434b-851a-2a74e573c75a}">
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY IsValid : BOOL]]></Declaration>
+      <Get Name="Get" Id="{8efcfd41-9a2b-4700-922a-0a8ec6cada2f}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[IsValid := 
+	PrgName <> '' AND
+	AmsNetId <> '' AND
+	AmsPort <> 0;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="send" Id="{17359b84-8e84-4f55-9ea9-7b9b4062b4aa}">
+      <Declaration><![CDATA[METHOD send : BOOL
+VAR_INPUT
+	data : REFERENCE TO AdsData;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[sendingData := data;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="setup" Id="{924e3658-3899-4767-999f-eb1a77052422}">
+      <Declaration><![CDATA[METHOD PRIVATE setup : BOOL
+VAR_INST
+	name : STRING;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fbGetLocalAmsNetId(
+	bExecute:= (localAmsNetId = '' OR localAmsNetId = '0.0.0.0.0.0') AND NOT fbGetLocalAmsNetId.bExecute, 
+	tTimeOut:= , 
+	bBusy=> , 
+	bError=> , 
+	nErrId=> , 
+	AddrString=> localAmsNetId, 
+	AddrBytes=> );
+
+writeSync := NOT writeSync;
+
+nameWriter(
+	bWrite:= writeSync, 
+	sNetId:= AmsNetId, 
+	nPort:= AmsPort, 
+	sVarName:= CONCAT(targetSocket, '.PrgName'), 
+	nSrcAddr:= ADR(localPrgName), 
+	nLen:= SIZEOF(localPrgName), 
+	tTimeout:= , 
+	eComMode:= , 
+	bBusy=> , 
+	bError=> , 
+	nErrorId=> );
+	
+netIdWriter(
+	bWrite:= writeSync, 
+	sNetId:= AmsNetId, 
+	nPort:= AmsPort, 
+	sVarName:= CONCAT(targetSocket, '.AmsNetId'), 
+	nSrcAddr:= ADR(localAmsNetId), 
+	nLen:= SIZEOF(localAmsNetId), 
+	tTimeout:= , 
+	eComMode:= , 
+	bBusy=> , 
+	bError=> , 
+	nErrorId=> );
+	
+portWriter(
+	bWrite:= writeSync, 
+	sNetId:= AmsNetId, 
+	nPort:= AmsPort, 
+	sVarName:= CONCAT(targetSocket, '.AmsPort'), 
+	nSrcAddr:= ADR(localAmsPort), 
+	nLen:= SIZEOF(localAmsPort), 
+	tTimeout:= , 
+	eComMode:= , 
+	bBusy=> , 
+	bError=> , 
+	nErrorId=> );
+	
+flagWriter(
+	bWrite:= writeSync, 
+	sNetId:= AmsNetId, 
+	nPort:= AmsPort, 
+	sVarName:= CONCAT(targetSocket, '.toggleBit'), 
+	nSrcAddr:= ADR(sendingBit), 
+	nLen:= SIZEOF(sendingBit), 
+	tTimeout:= , 
+	eComMode:= , 
+	bBusy=> , 
+	bError=> , 
+	nErrorId=> );]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="AdsSocket">
+      <LineId Id="1552" Count="0" />
+      <LineId Id="1554" Count="0" />
+      <LineId Id="1247" Count="0" />
+      <LineId Id="1459" Count="0" />
+      <LineId Id="1467" Count="1" />
+      <LineId Id="1249" Count="0" />
+      <LineId Id="1462" Count="0" />
+      <LineId Id="1464" Count="0" />
+      <LineId Id="1463" Count="0" />
+      <LineId Id="1250" Count="1" />
+      <LineId Id="1461" Count="0" />
+      <LineId Id="1018" Count="0" />
+      <LineId Id="1444" Count="0" />
+      <LineId Id="1442" Count="0" />
+      <LineId Id="1426" Count="0" />
+      <LineId Id="1429" Count="0" />
+      <LineId Id="1443" Count="0" />
+      <LineId Id="1421" Count="0" />
+      <LineId Id="1420" Count="0" />
+      <LineId Id="1423" Count="0" />
+      <LineId Id="1422" Count="0" />
+      <LineId Id="1425" Count="0" />
+      <LineId Id="1033" Count="0" />
+      <LineId Id="1085" Count="0" />
+      <LineId Id="1446" Count="8" />
+      <LineId Id="1445" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsSocket.blocks">
+      <LineId Id="20" Count="12" />
+      <LineId Id="60" Count="0" />
+      <LineId Id="34" Count="10" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="63" Count="0" />
+      <LineId Id="65" Count="1" />
+      <LineId Id="64" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsSocket.flagSequence">
+      <LineId Id="85" Count="3" />
+      <LineId Id="83" Count="0" />
+      <LineId Id="68" Count="0" />
+      <LineId Id="75" Count="0" />
+      <LineId Id="78" Count="2" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="82" Count="0" />
+      <LineId Id="81" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsSocket.IsValid.Get">
+      <LineId Id="2" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="6" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsSocket.send">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsSocket.setup">
+      <LineId Id="134" Count="6" />
+      <LineId Id="132" Count="1" />
+      <LineId Id="130" Count="1" />
+      <LineId Id="69" Count="2" />
+      <LineId Id="106" Count="0" />
+      <LineId Id="73" Count="11" />
+      <LineId Id="107" Count="0" />
+      <LineId Id="111" Count="1" />
+      <LineId Id="88" Count="9" />
+      <LineId Id="110" Count="0" />
+      <LineId Id="99" Count="1" />
+      <LineId Id="113" Count="0" />
+      <LineId Id="102" Count="3" />
+      <LineId Id="44" Count="0" />
+      <LineId Id="117" Count="0" />
+      <LineId Id="119" Count="10" />
+      <LineId Id="118" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

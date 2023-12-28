@@ -10,6 +10,7 @@ VAR_INPUT
 END_VAR
 VAR_OUTPUT
 	timeout : BOOL;
+	prevMsgTimestamp : TIMESTRUCT;
 END_VAR
 VAR	
 	timer : TON;
@@ -22,20 +23,16 @@ END_VAR]]></Declaration>
 	Q=> timeout, 
 	ET=> );
 	
-(*
-mem		tgbt	timer.IN
-0		0		1
-0		1		0
-1		0		0
-1		1		1
-*)]]></ST>
+IF enable AND memoryBit <> toggleBit THEN
+	prevMsgTimestamp := MAIN.localTime;
+END_IF
+
+memoryBit := toggleBit;]]></ST>
     </Implementation>
     <LineIds Name="Watchdog">
-      <LineId Id="9" Count="0" />
-      <LineId Id="54" Count="2" />
-      <LineId Id="78" Count="1" />
-      <LineId Id="82" Count="5" />
-      <LineId Id="57" Count="0" />
+      <LineId Id="150" Count="8" />
+      <LineId Id="167" Count="0" />
+      <LineId Id="166" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>
