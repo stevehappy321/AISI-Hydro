@@ -19,4 +19,5 @@ Area2v2a
 -moved conveyors to ConveyorSyncUnit as VAR_OUTPUTs
   *conveyors are no longer tied to any particular subarea, any subarea can access them
 
-section modules may contain minor changes between versions
+(existing) section modules may contain minor changes between versions
+-some sections are missing as their modules are not developed yet
