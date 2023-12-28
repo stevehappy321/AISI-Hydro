@@ -1,0 +1,354 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="PMLStackLight" Id="{8eb618d8-fea5-408c-8782-cc252d3e1c1f}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK PMLStackLight
+VAR_INPUT
+	pmlState : E_PMLState;
+	lowMaterial : BOOL;
+	materialExhausted : BOOL;
+END_VAR
+VAR_OUTPUT
+	red AT %M* : BOOL;
+	yellow AT %M* : BOOL;
+	blue AT %M* : BOOL;
+	green AT %M* : BOOL;
+END_VAR
+VAR_STAT //flashing is sychronized between all instances
+	redPulse : TP;
+	yellowPulse : TP;
+	bluePulse : TP;
+	greenPulse : TP;
+	
+	flashingRed : BOOL;
+	flashingYellow : BOOL;
+	flashingBlue : BOOL;
+	flashingGreen : BOOL;
+END_VAR
+VAR_STAT CONSTANT
+	flashWidth : TIME := T#1500MS;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[redPulse(IN:= NOT redPulse.Q, PT:= flashWidth, Q=> , ET=> );
+yellowPulse(IN:= NOT yellowPulse.Q, PT:= flashWidth, Q=> , ET=> );
+bluePulse(IN:= NOT bluePulse.Q, PT:= flashWidth, Q=> , ET=> ); //material status light
+greenPulse(IN:= NOT greenPulse.Q, PT:= flashWidth, Q=> , ET=> );
+
+flashingRed := redPulse.Q AND redPulse.ET < flashWidth/2;
+flashingYellow := yellowPulse.Q AND yellowPulse.ET < flashWidth/2;
+flashingBlue := bluePulse.Q AND bluePulse.ET < flashWidth/2;
+flashingGreen := greenPulse.Q AND greenPulse.ET < flashWidth/2;
+
+blue := materialExhausted OR (lowMaterial AND flashingBlue);
+
+//stack light sequences
+CASE pmlState OF
+	0: //nothing
+	ePMLState_Stopping:			ps_Stopping();
+	ePMLState_Stopped:			ps_Stopped();
+    ePMLState_Resetting:		ps_Resetting();
+	ePMLState_Idle:				ps_Idle();
+	ePMLState_Starting:			ps_Starting();
+	ePMLState_Execute:			ps_Execute();
+	ePMLState_Completing:		ps_Completing();
+	ePMLState_Complete:			ps_Complete();
+	ePMLState_Holding:			ps_Holding();
+	ePMLState_Held:				ps_Held();
+	ePMLState_Unholding:		ps_Unholding();
+	ePMLState_Suspended:		ps_Suspended();
+	ePMLState_Suspending:		ps_Suspending();
+	ePMLState_Unsuspending:		ps_Unsuspending();
+	ePMLState_Aborting:			ps_Aborting();
+	ePMLState_Aborted:			ps_Aborted();
+	ePMLState_Clearing:			ps_Clearing();
+END_CASE]]></ST>
+    </Implementation>
+    <Folder Name="PML States" Id="{6510c64e-7d9f-4648-b451-ee08d0d71fc3}" />
+    <Method Name="ps_Aborted" Id="{0acef093-6276-46ca-a22b-ba6e1a2f487f}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PROTECTED ps_Aborted : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[red := flashingRed;
+yellow := FALSE;
+green := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Aborting" Id="{3b29e6ed-e550-471a-b927-1b52ffa2db36}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PROTECTED ps_Aborting : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[red := flashingRed;
+yellow := FALSE;
+green := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Clearing" Id="{e269acd0-c0c8-441a-93db-bfdd37e6c683}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PROTECTED ps_Clearing : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[red := flashingRed;
+yellow := FALSE;
+green := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Complete" Id="{9b1d1c9b-a1ed-4417-82ad-d0f4889ac6e8}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PROTECTED ps_Complete : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[red := TRUE;
+yellow := FALSE;
+green := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Completing" Id="{aeb4b0dc-b883-4f40-83f6-fe03d3b81018}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PROTECTED ps_Completing : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[red := FALSE;
+yellow := FALSE;
+green := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Execute" Id="{2c48395f-92a0-4d4b-bf33-5139bd52718f}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PROTECTED ps_Execute : BOOL
+VAR_INPUT
+END_VAR
+VAR_OUTPUT
+	error : BOOL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[red := FALSE;
+yellow := FALSE;
+green := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Held" Id="{09fb4ed8-cb50-4bfc-a0d5-08371414ed31}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PROTECTED ps_Held : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[red := FALSE;
+yellow := FALSE;
+green := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Holding" Id="{c3ad8efd-81b8-452e-bc1a-cc34c6f2da3c}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PROTECTED ps_Holding : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[red := FALSE;
+yellow := FALSE;
+green := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Idle" Id="{01b3a206-61cd-4560-ab88-039a8175da93}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PROTECTED ps_Idle : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[red := FALSE;
+yellow := FALSE;
+green := flashingGreen;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Resetting" Id="{cf71158b-1013-4d8f-97e3-b2d5c9eeaf74}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PROTECTED ps_Resetting : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[red := TRUE;
+yellow := FALSE;
+green := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Starting" Id="{b9b99e21-c23c-415c-ba4e-60047f54dd0e}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PROTECTED ps_Starting : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[red := FALSE;
+yellow := FALSE;
+green := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Stopped" Id="{7d9c8273-eb77-412c-a310-afa2b264bf15}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PROTECTED ps_Stopped : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[red := TRUE;
+yellow := FALSE;
+green := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Stopping" Id="{756df641-3012-4420-834a-42afc24f0a95}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PROTECTED ps_Stopping : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[red := TRUE;
+yellow := FALSE;
+green := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Suspended" Id="{c4d97171-7c00-465c-bac6-1fbdc1984298}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PROTECTED ps_Suspended : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[red := FALSE;
+yellow := TRUE;
+green := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Suspending" Id="{ff001c4b-a139-4a05-b1df-5ee30d3e77a3}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PROTECTED ps_Suspending : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[red := FALSE;
+yellow := TRUE;
+green := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Unholding" Id="{7020e99e-b62f-4080-b7e7-0c8d4d654df6}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PROTECTED ps_Unholding : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[red := FALSE;
+yellow := FALSE;
+green := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ps_Unsuspending" Id="{a7998186-4b4c-4865-97d9-b8ed8df786ed}" FolderPath="PML States\">
+      <Declaration><![CDATA[METHOD PROTECTED ps_Unsuspending : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[red := FALSE;
+yellow := TRUE;
+green := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="setStackLights" Id="{de5310c9-dabd-4829-a399-a386c3380555}">
+      <Declaration><![CDATA[METHOD PROTECTED setStackLights : BOOL
+VAR_INPUT
+	redLight : BOOL;
+	yellowLight : BOOL;
+	blueLight : BOOL;
+	greenLight : BOOL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[red := redLight;
+yellow := yellowLight;
+blue := blueLight;
+green := greenLight;]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="PMLStackLight">
+      <LineId Id="358" Count="1" />
+      <LineId Id="419" Count="0" />
+      <LineId Id="360" Count="3" />
+      <LineId Id="420" Count="0" />
+      <LineId Id="364" Count="0" />
+      <LineId Id="424" Count="0" />
+      <LineId Id="423" Count="0" />
+      <LineId Id="365" Count="20" />
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="PMLStackLight.ps_Aborted">
+      <LineId Id="14" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="PMLStackLight.ps_Aborting">
+      <LineId Id="43" Count="1" />
+      <LineId Id="41" Count="0" />
+    </LineIds>
+    <LineIds Name="PMLStackLight.ps_Clearing">
+      <LineId Id="26" Count="1" />
+      <LineId Id="13" Count="0" />
+    </LineIds>
+    <LineIds Name="PMLStackLight.ps_Complete">
+      <LineId Id="13" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="PMLStackLight.ps_Completing">
+      <LineId Id="7" Count="0" />
+      <LineId Id="11" Count="1" />
+    </LineIds>
+    <LineIds Name="PMLStackLight.ps_Execute">
+      <LineId Id="16" Count="1" />
+      <LineId Id="10" Count="0" />
+    </LineIds>
+    <LineIds Name="PMLStackLight.ps_Held">
+      <LineId Id="9" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="PMLStackLight.ps_Holding">
+      <LineId Id="21" Count="1" />
+      <LineId Id="17" Count="0" />
+    </LineIds>
+    <LineIds Name="PMLStackLight.ps_Idle">
+      <LineId Id="10" Count="1" />
+      <LineId Id="6" Count="0" />
+    </LineIds>
+    <LineIds Name="PMLStackLight.ps_Resetting">
+      <LineId Id="23" Count="1" />
+      <LineId Id="6" Count="0" />
+    </LineIds>
+    <LineIds Name="PMLStackLight.ps_Starting">
+      <LineId Id="22" Count="1" />
+      <LineId Id="15" Count="0" />
+    </LineIds>
+    <LineIds Name="PMLStackLight.ps_Stopped">
+      <LineId Id="5" Count="0" />
+      <LineId Id="10" Count="1" />
+    </LineIds>
+    <LineIds Name="PMLStackLight.ps_Stopping">
+      <LineId Id="44" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="PMLStackLight.ps_Suspended">
+      <LineId Id="9" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="PMLStackLight.ps_Suspending">
+      <LineId Id="9" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="PMLStackLight.ps_Unholding">
+      <LineId Id="9" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="PMLStackLight.ps_Unsuspending">
+      <LineId Id="9" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="PMLStackLight.setStackLights">
+      <LineId Id="5" Count="0" />
+      <LineId Id="12" Count="2" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

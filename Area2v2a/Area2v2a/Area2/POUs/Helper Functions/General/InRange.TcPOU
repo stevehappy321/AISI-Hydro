@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="InRange" Id="{67a1dc66-fa74-417f-82b2-d5cf0e606fd4}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION InRange : BOOL
+VAR_INPUT
+	v1 : LREAL;
+	v2 : LREAL;
+	value : LREAL;
+	
+	inclusivity : (INCLUSIVE, EXCLUSIVE);
+END_VAR
+VAR
+	lower : LREAL;
+	upper : LREAL;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[lower := MIN(v1, v2);
+upper := MAX(v1, v2);
+
+IF inclusivity = INCLUSIVE THEN
+	InRange := (value >= lower AND value <= upper);
+ELSIF inclusivity = EXCLUSIVE THEN
+	InRange := (value > lower AND value < upper);
+END_IF]]></ST>
+    </Implementation>
+    <LineIds Name="InRange">
+      <LineId Id="32" Count="0" />
+      <LineId Id="35" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="21" Count="1" />
+      <LineId Id="24" Count="1" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,171 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="SpacerRecollectionUnit" Id="{6fea2dc6-ce06-4fa1-9588-ba3bbddda180}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK SpacerRecollectionUnit //EXTENDS SectionEx
+VAR_IN_OUT
+	robot : RobotA26; //placeholder, will need another robot definition for A26
+	robotSlider : ServoNC;
+END_VAR
+VAR_INPUT
+	spacerPresent_A24_LRC_C02 : BOOL; //these conveyoors move bundles from A2.7 to A2.4
+	spacerPresent_A24_LRC_C04 : BOOL;
+	spacerPresent_A24_LRC_C06 : BOOL;
+	spacerPresent_A24_LRC_C08 : BOOL;
+	spacerPresent_A24_LRC_C10 : BOOL;
+	spacerPresent_A24_LRC_C12 : BOOL;
+END_VAR
+VAR_OUTPUT
+	ready : BOOL;
+	busy : BOOL;
+	done : BOOL;
+	error : BOOL;
+	
+	failCounter : INT;
+END_VAR
+VAR
+	//spacersPresent : ARRAY[1..6] OF BOOL;
+	
+	step : (IDLE, SLIDE, PICK_SPACER, COMPLETE);
+	iPosition : INT;
+END_VAR
+VAR
+	pos1, pos2, pos3 : LREAL;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[ready := step = 0;
+busy := step > 0;
+done := done;
+error := error;
+(*
+spacersPresent[1] := spacerPresent_A24_LRC_C02;
+spacersPresent[2] := spacerPresent_A24_LRC_C04;
+spacersPresent[3] := spacerPresent_A24_LRC_C06;
+spacersPresent[4] := spacerPresent_A24_LRC_C08;
+spacersPresent[5] := spacerPresent_A24_LRC_C10;
+spacersPresent[6] := spacerPresent_A24_LRC_C12;
+*)
+IF 
+	ConveyorSyncUnit.A24_SC_C01.IsOccupied OR
+	ConveyorSyncUnit.A24_SC_C03.IsOccupied OR
+	ConveyorSyncUnit.A24_SC_C05.IsOccupied OR
+	ConveyorSyncUnit.A24_SC_C07.IsOccupied OR
+	ConveyorSyncUnit.A24_SC_C09.IsOccupied OR
+	ConveyorSyncUnit.A24_SC_C11.IsOccupied OR
+	ConveyorSyncUnit.A24_SC_C13.IsOccupied
+THEN
+	robot.clearCommand();
+	
+ELSE
+	//remove spacers from transfer conveyors in ascending order
+	process();
+	
+END_IF]]></ST>
+    </Implementation>
+    <Method Name="process" Id="{0707ef1b-9ba5-4d26-b34d-69bdd29b3450}">
+      <Declaration><![CDATA[METHOD process : BOOL
+VAR_INPUT
+END_VAR
+VAR
+	spacersPresent : ARRAY[1..6] OF BOOL := [
+		spacerPresent_A24_LRC_C02,
+		spacerPresent_A24_LRC_C04,
+		spacerPresent_A24_LRC_C06,
+		spacerPresent_A24_LRC_C08,
+		spacerPresent_A24_LRC_C10,
+		spacerPresent_A24_LRC_C12];
+END_VAR
+VAR CONSTANT
+	suctionDistance : INT := 10;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[{warning disable C0371}
+
+iPosition := MAX(1, iPosition); //value is always at least 1
+
+CASE step OF
+	IDLE:
+		IF DataIsEmpty(arr := ADR(spacersPresent), arrSize := SIZEOF(spacersPresent)) THEN
+			iPosition := 0;
+			failCounter := 0;
+			process := TRUE;
+		
+		ELSIF NOT spacersPresent[iPosition] THEN
+			iPosition := iPosition + 1;
+			
+		ELSIF robot.Ready THEN
+			step := PICK_SPACER;
+		END_IF
+		
+	PICK_SPACER:
+		IF robot.eoatDistance > suctionDistance THEN
+			robot.HoldMaterial := 'SPACER';
+		ELSE
+			robot.HoldMaterial := '';
+		END_IF
+	
+		IF robot.Done THEN
+			step := COMPLETE;
+		ELSE
+			robot.setGroup(group := 1, value := TaskA26.PICK_SPACER);
+			robot.setGroup(group := 2, value := iPosition);
+		END_IF
+		
+	COMPLETE:
+		robot.HoldMaterial := '';
+		
+		IF spacersPresent[iPosition] THEN
+			failCounter := failCounter + 1;
+		END_IF
+		
+		robot.clearCommand();
+		step := 0;
+	
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="SpacerRecollectionUnit">
+      <LineId Id="103" Count="2" />
+      <LineId Id="101" Count="1" />
+      <LineId Id="76" Count="4" />
+      <LineId Id="75" Count="0" />
+      <LineId Id="74" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="30" Count="3" />
+      <LineId Id="39" Count="1" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="41" Count="1" />
+      <LineId Id="93" Count="0" />
+      <LineId Id="44" Count="0" />
+      <LineId Id="94" Count="0" />
+      <LineId Id="48" Count="0" />
+      <LineId Id="45" Count="1" />
+    </LineIds>
+    <LineIds Name="SpacerRecollectionUnit.process">
+      <LineId Id="49" Count="1" />
+      <LineId Id="41" Count="1" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="21" Count="0" />
+      <LineId Id="26" Count="0" />
+      <LineId Id="62" Count="0" />
+      <LineId Id="74" Count="0" />
+      <LineId Id="27" Count="0" />
+      <LineId Id="25" Count="0" />
+      <LineId Id="28" Count="3" />
+      <LineId Id="39" Count="0" />
+      <LineId Id="33" Count="2" />
+      <LineId Id="63" Count="0" />
+      <LineId Id="68" Count="3" />
+      <LineId Id="64" Count="0" />
+      <LineId Id="43" Count="3" />
+      <LineId Id="48" Count="0" />
+      <LineId Id="47" Count="0" />
+      <LineId Id="51" Count="1" />
+      <LineId Id="72" Count="1" />
+      <LineId Id="76" Count="2" />
+      <LineId Id="75" Count="0" />
+      <LineId Id="53" Count="1" />
+      <LineId Id="24" Count="0" />
+      <LineId Id="22" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

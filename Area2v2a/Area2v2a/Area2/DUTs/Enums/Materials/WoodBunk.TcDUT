@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="WoodBunk" Id="{104f8471-d020-4f5e-a508-fef740c0034c}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'to_string'}
+TYPE WoodBunk : //21
+(
+	WDW20 := 1, //special top (wide) 
+	WDW22,
+
+	WDT20, //top
+	WDT22, 
+	WDT28,
+
+	WDB20, //bottom
+	WDB22, 
+	WDB28, 
+
+	WDS08, //side
+	WDS10, 
+	WDS12, 
+	WDS14, 
+	WDS20, 
+	WDS22, 
+	WDS28, 
+	
+	size
+	(*
+	WDS08_WDS08, //side combined - X - 2 wood bunks joined by underscore
+	WDS08_WDS10, 
+	WDS12_WDS12, 
+	WDS12_WDS14, 
+	WDS20_WDS10, 
+	WDS20_WDS12, 
+	
+	sizeAll
+	*)
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

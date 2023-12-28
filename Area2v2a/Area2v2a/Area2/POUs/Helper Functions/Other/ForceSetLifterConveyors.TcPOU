@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="ForceSetLifterConveyors" Id="{88a3f320-c7c0-4458-aaf6-5a95ff294af9}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION ForceSetLifterConveyors : BOOL
+VAR
+	i : INT;
+	temp : REFERENCE TO BOOL;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[(*
+lifter conveyors:
+	5..7
+	//add more here
+*)
+
+FOR i:=5 TO 7 BY 1 DO
+	temp REF= conveyorsArr[i].hasLifter;
+	temp := TRUE;
+END_FOR]]></ST>
+    </Implementation>
+    <LineIds Name="ForceSetLifterConveyors">
+      <LineId Id="16" Count="0" />
+      <LineId Id="19" Count="2" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="14" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

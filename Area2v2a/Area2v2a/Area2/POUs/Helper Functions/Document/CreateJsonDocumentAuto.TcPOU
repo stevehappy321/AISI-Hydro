@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="CreateJsonDocumentAuto" Id="{4213c277-03d4-4979-8ce4-3c9baf2d9087}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM CreateJsonDocumentAuto
+VAR_INPUT
+	visionFrameData : REFERENCE TO VisionFrame;
+END_VAR
+VAR_OUTPUT
+	jsonDocument : STRING(1000); 
+END_VAR
+VAR
+	fbJson : FB_JsonSaxWriter;
+	fbJsonDataType : FB_JsonReadWriteDataType;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[fbJson.ResetDocument();
+
+fbJsonDataType.AddJsonValueFromSymbol(fbJson, 'VisionFrame', SIZEOF(visionFrameData), ADR(visionFrameData));
+
+fbJson.CopyDocument(jsonDocument, SIZEOF(jsonDocument));]]></ST>
+    </Implementation>
+    <LineIds Name="CreateJsonDocumentAuto">
+      <LineId Id="122" Count="0" />
+      <LineId Id="125" Count="0" />
+      <LineId Id="110" Count="0" />
+      <LineId Id="124" Count="0" />
+      <LineId Id="85" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

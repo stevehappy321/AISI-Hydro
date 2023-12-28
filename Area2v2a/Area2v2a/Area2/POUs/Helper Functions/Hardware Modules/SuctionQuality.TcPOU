@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="SuctionQuality" Id="{3106f67e-f43d-4897-a02b-af3d4fe96328}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION SuctionQuality : BOOL
+VAR_IN_OUT
+	suctions : ARRAY[*] OF SuctionPad;
+END_VAR
+VAR
+	i : DINT;
+	
+	failedPads : INT;
+	numPads : INT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[FOR i:=LOWER_BOUND(suctions, 1) TO UPPER_BOUND(suctions, 1) BY 1 DO
+	IF suctions[i].enable THEN
+		numPads := numPads + 1;
+		IF NOT suctions[i].occupied THEN
+			failedPads := failedPads + 1;
+		END_IF
+	END_IF
+	
+END_FOR
+
+SuctionQuality := TRUE;
+	//failedPads <= numPads/2;]]></ST>
+    </Implementation>
+    <LineIds Name="SuctionQuality">
+      <LineId Id="152" Count="8" />
+      <LineId Id="163" Count="0" />
+      <LineId Id="67" Count="0" />
+      <LineId Id="165" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

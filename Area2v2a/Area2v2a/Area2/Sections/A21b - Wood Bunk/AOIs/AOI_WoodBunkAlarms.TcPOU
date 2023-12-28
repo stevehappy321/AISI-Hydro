@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="AOI_WoodBunkAlarms" Id="{52cc73a4-5d87-414b-9f82-1691c8b1fc45}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK AOI_WoodBunkAlarms
+VAR_OUTPUT
+	panelPowerOn : BOOL;
+	safetyOk : BOOL;
+	airPressureOk : BOOL;
+END_VAR
+VAR_OUTPUT
+	alarm : BOOL;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[alarm :=
+	NOT panelPowerOn OR 
+	NOT safetyOk OR
+	NOT airPressureOk;]]></ST>
+    </Implementation>
+    <LineIds Name="AOI_WoodBunkAlarms">
+      <LineId Id="9" Count="0" />
+      <LineId Id="15" Count="2" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

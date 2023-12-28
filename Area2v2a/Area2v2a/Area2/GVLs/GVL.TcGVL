@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <GVL Name="GVL" Id="{cd4bbf90-35e7-4ef6-9f55-dd1e548fe410}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+	bundleOut : Bundle; //may or may not be used?
+	
+	iecCriticalSection : FB_IecCriticalSection; //if communication is separated into their own core/task
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

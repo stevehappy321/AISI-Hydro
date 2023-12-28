@@ -1,0 +1,196 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="ConveyorSyncUnit" Id="{d2813101-76bc-4755-905c-5accc464218e}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM ConveyorSyncUnit
+VAR_OUTPUT
+	A24_LRC_C02 	: Conveyor; //these conveyoors move bundles from A2.7 to A2.4
+	A24_LRC_C04 	: Conveyor;
+	A24_LRC_C06	 	: Conveyor;
+	A24_LRC_C08 	: Conveyor;
+	A24_LRC_C10 	: Conveyor;
+	A24_LRC_C12 	: Conveyor;
+	
+	A24_SC_C01 		: ConveyorSC; //these conveyors move bundles on A2.4 forward down the cell
+	A24_SC_C03 		: ConveyorSC;
+	A24_SC_C05 		: ConveyorSC;
+	A24_SC_C07 		: ConveyorSC;
+	A24_SC_C09 		: ConveyorSC;
+	A24_SC_C11 		: ConveyorSC;
+	A24_SC_C13 		: ConveyorSC;
+	
+	A23_LSC_C14 	: ConveyorLSC;
+	
+	A22_SC_C15 		: ConveyorSC;
+	A22_LSC_C16 	: ConveyorLSC;
+	A22_LSC_C17 	: ConveyorLSC;
+	
+	A21_SC_C18 		: ConveyorSC;
+	A21_LSC_C19 	: ConveyorLSC;
+	A21_LSC_C20 	: ConveyorLSC;
+	A21_LSC_C21 	: ConveyorLSC;
+	
+	A25_SC_C22 		: ConveyorSC;
+	A25_SC_C24 		: ConveyorSC;
+	A25_SC_C26 		: ConveyorSC;
+	A25_SC_C28 		: ConveyorSC;
+	A25_SC_C30 		: ConveyorSC;
+	
+	A25_LSC_C23 	: ConveyorLSC; //these conveyors move the bundle sideways onto the output buffers
+	A25_LSLCC_C25 	: ConveyorLSC;
+	A25_LSLCC_C27 	: ConveyorLSC;
+	A25_LSC_C29 	: ConveyorLSC;
+	A25_SC_C31 		: ConveyorSC;
+	A25_SC_C32 		: ConveyorSC;
+	A25_SC_C33 		: ConveyorSC;
+	A25_SC_C34 		: ConveyorSC;
+	A25_SC_C35 		: ConveyorSC;
+	A25_SC_C36 		: ConveyorSC;
+	A25_SC_C37 		: ConveyorSC;
+	A25_SC_C38 		: ConveyorSC;
+END_VAR
+VAR
+	conveyorsArr : ARRAY[1..38] OF POINTER TO ConveyorSC;
+	
+	spoolTimer : TON;
+	i : DINT := 1;
+END_VAR
+VAR CONSTANT
+	spoolSpacing : TIME := T#100MS;
+END_VAR
+(*
+this module contains all conveyors, which can be used by subarea/section modules as required
+*)]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[pushConveyorsToArray();
+linkCompute();
+
+spoolTimer(IN:= , PT:= spoolSpacing, Q=> , ET=> );
+spoolTimer.IN := TRUE;
+
+IF
+	(conveyorsArr[i]^.requestedMode = ConveyorMode.FORWARD OR conveyorsArr[i]^.requestedMode = ConveyorMode.BACKWARD) AND //conveyor requests motion
+	conveyorsArr[i]^.requestedMode <> conveyorsArr[i]^.trueMode AND //conveyor request differs from current operation
+	spoolTimer.Q //ready to spool
+THEN
+	//spool up conveyor
+	i := (i + 1) MOD (CONSTS.numCellConveyors + 1) + 1;
+	spoolTimer.IN := FALSE;
+END_IF]]></ST>
+    </Implementation>
+    <Method Name="linkCompute" Id="{21ed5267-d31d-4796-a487-2f0b78f4de81}">
+      <Declaration><![CDATA[METHOD PRIVATE linkCompute : BOOL
+VAR
+	i : DINT;
+	j : DINT;
+	
+	linkStart : DINT := -1;
+	linkEnd : DINT := -1;
+	
+	priorityInLink : ConveyorMode;
+END_VAR
+(*
+link interation method 
+slower, but will correctly set all operations every cycle
+*)]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i:=1 TO CONSTS.numCellConveyors BY 1 DO
+	IF conveyorsArr[i]^.IsOccupied THEN
+		
+		IF linkStart = -1 THEN
+			linkStart := i;
+		END_IF
+		
+		priorityInLink := MAX(priorityInLink, conveyorsArr[i]^.requestedMode);
+		linkEnd := i;
+		
+	ELSIF linkStart <> -1 AND linkEnd <> -1 THEN //set all conveyor operations to priorityInLink
+		linkEnd := i-1;
+		
+		FOR j:=linkStart TO linkEnd BY 1 DO
+			conveyorsArr[j]^.setMode(priorityInLink);
+		END_FOR
+		
+		linkStart := -1;
+		linkEnd := -1;
+		priorityInLink := ConveyorMode.IDLE;
+		
+		CONTINUE;
+	END_IF
+	
+END_FOR
+
+IF linkStart > -1 AND linkEnd > -1 THEN
+	FOR j:=linkStart TO linkEnd BY 1 DO
+		conveyorsArr[j]^.setMode(priorityInLink);
+	END_FOR
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="pushConveyorsToArray" Id="{c8e5e122-eb7d-4582-976d-beac3ca092df}">
+      <Declaration><![CDATA[METHOD PRIVATE pushConveyorsToArray : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[{warning disable C0371}
+conveyorsArr[1] := ADR(A24_SC_C01);
+conveyorsArr[2] := ADR(A24_LRC_C02);
+conveyorsArr[3] := ADR(A24_SC_C03);
+conveyorsArr[4] := ADR(A24_LRC_C04);
+conveyorsArr[5] := ADR(A24_SC_C05);
+conveyorsArr[6] := ADR(A24_LRC_C06);
+conveyorsArr[7] := ADR(A24_SC_C07);
+conveyorsArr[8] := ADR(A24_LRC_C08);
+conveyorsArr[9] := ADR(A24_SC_C09);
+conveyorsArr[10] := ADR(A24_LRC_C10);
+conveyorsArr[11] := ADR(A24_SC_C11);
+conveyorsArr[12] := ADR(A24_LRC_C12);
+conveyorsArr[13] := ADR(A24_SC_C13);
+
+conveyorsArr[14] := ADR(A23_LSC_C14);
+
+conveyorsArr[15] := ADR(A22_SC_C15);
+conveyorsArr[16] := ADR(A22_LSC_C16);
+conveyorsArr[17] := ADR(A22_LSC_C17);
+
+conveyorsArr[18] := ADR(A21_SC_C18);
+conveyorsArr[19] := ADR(A21_LSC_C19);
+conveyorsArr[20] := ADR(A21_LSC_C20);
+conveyorsArr[21] := ADR(A21_LSC_C21);
+
+conveyorsArr[22] := ADR(A25_SC_C22);
+conveyorsArr[23] := ADR(A25_LSC_C23);
+conveyorsArr[24] := ADR(A25_SC_C24);
+conveyorsArr[25] := ADR(A25_LSLCC_C25);
+conveyorsArr[26] := ADR(A25_SC_C26);
+conveyorsArr[27] := ADR(A25_LSLCC_C27);
+conveyorsArr[28] := ADR(A25_SC_C28);
+conveyorsArr[29] := ADR(A25_LSC_C29);
+conveyorsArr[30] := ADR(A25_SC_C30);
+conveyorsArr[31] := ADR(A25_SC_C31);
+conveyorsArr[32] := ADR(A25_SC_C32);
+conveyorsArr[33] := ADR(A25_SC_C33);
+conveyorsArr[34] := ADR(A25_SC_C34);
+conveyorsArr[35] := ADR(A25_SC_C35);
+conveyorsArr[36] := ADR(A25_SC_C36);
+conveyorsArr[37] := ADR(A25_SC_C37);
+conveyorsArr[38] := ADR(A25_SC_C38);]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="ConveyorSyncUnit">
+      <LineId Id="260" Count="0" />
+      <LineId Id="185" Count="3" />
+      <LineId Id="203" Count="0" />
+      <LineId Id="189" Count="7" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="ConveyorSyncUnit.linkCompute">
+      <LineId Id="6" Count="0" />
+      <LineId Id="127" Count="20" />
+      <LineId Id="28" Count="7" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="ConveyorSyncUnit.pushConveyorsToArray">
+      <LineId Id="48" Count="0" />
+      <LineId Id="6" Count="40" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,325 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="AdsHandle_1" Id="{5a218303-dd26-4595-a947-087b58fe398c}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK AdsHandle_1
+VAR_OUTPUT
+	RemotePrgName		: STRING;
+	RemoteNetId			: STRING; 	(* Server AmsNetId *)
+	RemotePort 			: UINT;		(* Server port number *)
+	
+	LocalPrgName 		: STRING;
+	LocalNetId 			: STRING;
+	LocalPort 			: UINT;
+	
+	remoteAccessPrefix	: STRING;
+	
+	busy				: BOOL;
+	error					: BOOL;
+	errorId				: UDINT;
+	
+	receiveBuffer		: ARRAY[0..100000] OF BYTE; //TCP style data buffer
+	receiveStruct		: AdsData;
+END_VAR
+VAR
+	adsReadSymbol : FB_ReadAdsSymByName;
+	adsWriteSymbol : FB_WriteAdsSymByName;
+	
+	sendQueue			: AdsDataQueue;
+	sendBufferQueue 	: DynamicQueue; //anything going into this needs to be a TcpStruct
+	
+	sendBuffer 			: ARRAY[0..50000] OF BYTE; //temp byte buffer to send if neccessary
+	sendStruct			: AdsData;
+	
+	setupStep 			: (SET_LOCAL_ENDPOINT, CLOSE_CONNECTIONS, SEND_CONNECTION_DATA, RECEIVE_SERVER_DATA, FINISH_SETUP);
+	writeDelay : TON;
+	
+	i : INT;
+	adsCtr : INT;
+END_VAR
+VAR_STAT CONSTANT
+	emptyData : AdsData;
+	writeDelayTime : TIME := T#1S;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[writeDelay(IN:= , PT:= writeDelayTime, Q=> , ET=> );
+writeDelay.IN := NOT adsWriteSymbol.bBusy;
+
+blocks();
+
+IF writeDelay.Q THEN
+	write();
+END_IF]]></ST>
+    </Implementation>
+    <Folder Name="ADS" Id="{5198003b-35fa-40da-b54d-ad55456f1592}" />
+    <Method Name="blocks" Id="{f052b581-8913-4a0d-aea6-c77278ede5be}">
+      <Declaration><![CDATA[METHOD blocks : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[adsWriteSymbol(
+	bWrite:= , 
+	sNetId:= RemoteNetId, 
+	nPort:= RemotePort, 
+	sVarName:= , 
+	nSrcAddr:= , 
+	nLen:= , 
+	tTimeout:= , 
+	eComMode:= , 
+	bBusy=> , 
+	bError=> , 
+	nErrorId=> );
+
+adsReadSymbol(
+	bRead:= , 
+	sNetId:= RemoteNetId, 
+	nPort:= RemotePort, 
+	sVarName:= , 
+	nDestAddr:= , 
+	nLen:= , 
+	tTimeout:= , 
+	eComMode:= , 
+	bClearOnError:= TRUE, 
+	bBusy=> ,
+	bError=> , 
+	nErrorId=> );
+
+adsReadSymbol.bRead := NOT adsReadSymbol.bRead;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="clearBuffer" Id="{f22f11dc-561c-4f67-9d1f-a4322f853329}">
+      <Declaration><![CDATA[METHOD clearBuffer : BOOL
+VAR
+	emptyReceiverStruct : AdsData;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//MEMSET(ADR(receiveBuffer), 0, SIZEOF(receiveBuffer));
+receiveStruct := emptyReceiverStruct;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="getHandlerName" Id="{cd418a63-b2bf-4855-8fea-fd46b9f0d3ee}">
+      <Declaration><![CDATA[METHOD getHandlerName : STRING]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[getHandlerName := socket.remotePrgName;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="open" Id="{bf1b682c-1dab-40dd-a933-95ce80b26f28}">
+      <Declaration><![CDATA[METHOD open : BOOL
+VAR_INPUT
+	localPrgName : STRING;
+	localNetId : T_AmsNetId;
+	localPort : T_AmsPort;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[socket.open(localPrgName, localNetId, localPort);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="queueData" Id="{68707bae-c360-457e-b457-1c68d7ee70fc}">
+      <Declaration><![CDATA[METHOD queueData : BOOL
+VAR_INPUT
+	data : REFERENCE TO AdsData;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//MEMCPY(ADR(temp), data.pValue, data.diSize);
+sendQueue.push(data);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="read" Id="{d024bde5-4633-4122-9df7-0ed6612e9dd3}" FolderPath="ADS\">
+      <Declaration><![CDATA[METHOD read : BOOL
+VAR_INPUT
+	symbol : STRING;
+	buffer : PVOID;
+	symbolSize : UDINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT socket.readBusy THEN
+	read := socket.read(
+		symbol:= symbol,
+		buffer := buffer,
+		symbolSize := symbolSize);
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="setup" Id="{8c0435c7-4c46-40f4-ae10-d4cd941c6aca}">
+      <Declaration><![CDATA[METHOD PROTECTED setup : BOOL
+VAR
+	pass : BOOL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CASE setupStep OF
+	SET_LOCAL_ENDPOINT:
+		IF
+			localPrgName <> '' AND
+			localNetId <> '' AND localNetId <> '0.0.0.0.0.0' OR
+			localPort <> 0
+		THEN
+			setupStep := SEND_CONNECTION_DATA;
+		END_IF
+		
+	SEND_CONNECTION_DATA: //send local name, net id, and port
+		IF adsWriteSymbol.bWrite AND NOT adsWriteSymbol.bBusy AND NOT adsWriteSymbol.bError THEN //writing done
+			adsWriteSymbol.bWrite := FALSE;
+			adsCtr := adsCtr + 1;
+		END_IF
+		
+		CASE adsCtr OF
+			0:
+				adsWriteSymbol.bWrite := NOT adsWriteSymbol.bWrite;
+				
+				adsWriteSymbol.sVarName := CONCAT(remoteAccessPrefix, 'RemotePrgName');
+				adsWriteSymbol.nSrcAddr := ADR(LocalPrgName);
+				adsWriteSymbol.nLen := SIZEOF(LocalPrgName);
+			
+			1:
+				
+				adsWriteSymbol.bWrite := NOT adsWriteSymbol.bWrite;
+				
+				adsWriteSymbol.sVarName := CONCAT(remoteAccessPrefix, 'RemoteNetId');
+				adsWriteSymbol.nSrcAddr := ADR(LocalNetId);
+				adsWriteSymbol.nLen := SIZEOF(LocalNetId);
+			
+			2:
+				
+				adsWriteSymbol.bWrite := NOT adsWriteSymbol.bWrite;
+				
+				adsWriteSymbol.sVarName := CONCAT(remoteAccessPrefix, 'RemotePort');
+				adsWriteSymbol.nSrcAddr := ADR(LocalPort);
+				adsWriteSymbol.nLen := SIZEOF(LocalPort);
+			
+			3:
+				adsCtr := 0;
+				setupStep := RECEIVE_SERVER_DATA;			
+		END_CASE
+		
+	RECEIVE_SERVER_DATA: //get server name, net id and port should already be known
+		IF adsReadSymbol.bRead AND NOT adsReadSymbol.bBusy AND NOT adsReadSymbol.bError THEN //reading done
+			adsReadSymbol.bRead := FALSE;
+			adsCtr := adsCtr + 1;
+		END_IF
+			
+		CASE adsCtr OF
+			0:
+				adsReadSymbol.bRead := NOT adsReadSymbol.bRead;
+				
+				adsReadSymbol.sVarName := CONCAT(remoteAccessPrefix, 'LocalPrgName');
+				adsReadSymbol.nDestAddr := ADR(RemotePrgName);
+				adsReadSymbol.nLen := SIZEOF(RemotePrgName);
+			
+			1:
+				adsReadSymbol.bRead := NOT adsReadSymbol.bRead;
+				
+				adsReadSymbol.sVarName := CONCAT(remoteAccessPrefix, 'LocalNetId');
+				adsReadSymbol.nDestAddr := ADR(RemoteNetId);
+				adsReadSymbol.nLen := SIZEOF(RemoteNetId);
+			
+			2:
+				adsReadSymbol.bRead := NOT adsReadSymbol.bRead;
+				
+				adsReadSymbol.sVarName := CONCAT(remoteAccessPrefix, 'LocalPort');
+				adsReadSymbol.nDestAddr := ADR(RemotePort);
+				adsReadSymbol.nLen := SIZEOF(RemotePort);
+			
+			3:
+				adsCtr := 0;
+				setupStep := FINISH_SETUP;
+				RETURN;
+			
+		END_CASE
+			
+	FINISH_SETUP:
+		setup := TRUE;
+		RETURN;
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="write" Id="{3f12e3ed-096b-4596-81da-20a77bb033f8}" FolderPath="ADS\">
+      <Declaration><![CDATA[METHOD write : BOOL
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[sendStruct := sendQueue.poll();
+	
+IF MEMCMP(ADR(sendStruct), ADR(emptyData), SIZEOF(AdsData)) <> 0 THEN //if valid data to send
+	adsWriteSymbol.nSrcAddr := ADR(sendStruct);
+	adsWriteSymbol.nSrcAddr := SIZEOF(sendStruct);
+	adsWriteSymbol.sVarName := CONCAT(remoteAccessPrefix, 'receiveStruct');
+	
+ELSE
+	adsWriteSymbol.bWrite := FALSE;
+	
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="AdsHandle_1">
+      <LineId Id="698" Count="1" />
+      <LineId Id="763" Count="0" />
+      <LineId Id="762" Count="0" />
+      <LineId Id="700" Count="2" />
+      <LineId Id="735" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsHandle_1.blocks">
+      <LineId Id="6" Count="26" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsHandle_1.clearBuffer">
+      <LineId Id="15" Count="0" />
+      <LineId Id="8" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsHandle_1.getHandlerName">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsHandle_1.open">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsHandle_1.queueData">
+      <LineId Id="133" Count="0" />
+      <LineId Id="121" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsHandle_1.read">
+      <LineId Id="70" Count="0" />
+      <LineId Id="73" Count="2" />
+      <LineId Id="71" Count="1" />
+      <LineId Id="60" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsHandle_1.setup">
+      <LineId Id="819" Count="1" />
+      <LineId Id="834" Count="4" />
+      <LineId Id="842" Count="1" />
+      <LineId Id="749" Count="1" />
+      <LineId Id="879" Count="2" />
+      <LineId Id="878" Count="0" />
+      <LineId Id="883" Count="0" />
+      <LineId Id="751" Count="1" />
+      <LineId Id="847" Count="1" />
+      <LineId Id="846" Count="0" />
+      <LineId Id="844" Count="1" />
+      <LineId Id="757" Count="1" />
+      <LineId Id="862" Count="4" />
+      <LineId Id="856" Count="0" />
+      <LineId Id="763" Count="1" />
+      <LineId Id="873" Count="4" />
+      <LineId Id="867" Count="0" />
+      <LineId Id="769" Count="3" />
+      <LineId Id="775" Count="0" />
+      <LineId Id="780" Count="1" />
+      <LineId Id="919" Count="2" />
+      <LineId Id="917" Count="0" />
+      <LineId Id="925" Count="0" />
+      <LineId Id="782" Count="1" />
+      <LineId Id="885" Count="3" />
+      <LineId Id="884" Count="0" />
+      <LineId Id="788" Count="1" />
+      <LineId Id="909" Count="3" />
+      <LineId Id="891" Count="0" />
+      <LineId Id="794" Count="1" />
+      <LineId Id="913" Count="3" />
+      <LineId Id="799" Count="7" />
+      <LineId Id="890" Count="0" />
+      <LineId Id="812" Count="2" />
+      <LineId Id="300" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsHandle_1.write">
+      <LineId Id="73" Count="5" />
+      <LineId Id="81" Count="3" />
+      <LineId Id="55" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,543 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="ServoNC" Id="{0dca52dd-52c6-4095-84db-a2861668b0da}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK ServoNC EXTENDS FBA_TrifectaDrive IMPLEMENTS I_EncodedDrive
+VAR_OUTPUT	
+	ready : BOOL;
+	position : LREAL;
+	velocity : LREAL;
+END_VAR
+VAR
+	axis : AXIS_REF;
+	
+	mcReadPosition : MC_ReadActualPosition;
+	mcReadVelocity : MC_ReadActualVelocity;
+	mcReadError : MC_ReadAxisError;
+	mcReset : MC_Reset;
+	
+	mcPower : MC_Power;
+	mcMoveAbsolute : MC_MoveAbsolute;
+	mcMoveRelative : MC_MoveRelative;
+	mcMoveVelocity : MC_MoveVelocity;
+	
+	mcSetPosition : MC_SetPosition;
+	mcStop : MC_Stop;
+END_VAR
+VAR_STAT CONSTANT
+	targetingVelocity : INT := 500;
+	continuousVelocity : INT := 100;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[override();
+
+blocks();
+
+mcReset.Execute := FALSE;
+mcMoveAbsolute.Execute := FALSE;
+mcMoveRelative.Execute := FALSE;
+mcMoveVelocity.Execute := FALSE;
+mcSetPosition.Execute := FALSE;
+mcStop.Execute := FALSE;
+
+blocks();
+
+ready := bEnable AND NOT Active AND HomeSet;]]></ST>
+    </Implementation>
+    <Folder Name="Private" Id="{3a001ead-937a-411b-b856-cd566324583e}" />
+    <Folder Name="Properties" Id="{58a4c37d-81d9-4549-bf4b-ff6a19d3bd23}" />
+    <Property Name="Active" Id="{d003dafb-43aa-4bdf-a1e6-41313567005c}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY Active : BOOL]]></Declaration>
+      <Get Name="Get" Id="{4ba0b7c5-8eb2-4177-bd44-f247b1189c98}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Active := 
+	mcMoveAbsolute.Busy OR 
+	mcMoveRelative.Busy OR 
+	mcMoveVelocity.Busy OR 
+	mcSetPosition.Busy OR 
+	mcReset.Busy OR 
+	mcStop.Busy OR 
+	step <> 0;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="blocks" Id="{5d15eac5-7553-4c7c-bfed-ede5459cef7d}" FolderPath="Private\">
+      <Declaration><![CDATA[METHOD PRIVATE blocks : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[mcReadPosition(
+	Axis:= axis, 
+	Enable:= TRUE, 
+	Valid=> , 
+	Busy=> , 
+	Error=> , 
+	ErrorID=> , 
+	Position=> position);
+	
+mcReadVelocity(
+	Axis:= axis, 
+	Enable:= TRUE, 
+	Valid=> , 
+	Busy=> , 
+	Error=> , 
+	ErrorID=> , 
+	ActualVelocity=> velocity);
+	
+mcReadError(
+	Axis:= axis, 
+	Enable:= TRUE, 
+	Valid=> , 
+	Busy=> , 
+	Error=> , 
+	ErrorID=> , 
+	AxisErrorID=> );
+
+mcReset(
+	Axis:= axis, 
+	Execute:= , 
+	Done=> , 
+	Busy=> , 
+	Error=> , 
+	ErrorID=> );
+
+mcPower(
+	Axis:= axis, 
+	Enable:= bEnable, 
+	Enable_Positive:= TRUE, 
+	Enable_Negative:= TRUE, 
+	Override:= 100, 
+	BufferMode:= , 
+	Options:= , 
+	Status=> , 
+	Busy=> , 
+	Active=> , 
+	Error=> , 
+	ErrorID=> );
+
+mcMoveAbsolute(
+	Axis:= axis, 
+	Execute:= , 
+	Position:= , 
+	Velocity:= targetingVelocity, 
+	Acceleration:= , 
+	Deceleration:= , 
+	Jerk:= , 
+	BufferMode:= , 
+	Options:= , 
+	Done=> , 
+	Busy=> , 
+	Active=> , 
+	CommandAborted=> , 
+	Error=> , 
+	ErrorID=> );
+	
+mcMoveRelative(
+	Axis:= axis, 
+	Execute:= , 
+	Distance:= ,
+	Velocity:= targetingVelocity, 
+	Acceleration:= , 
+	Deceleration:= , 
+	Jerk:= , 
+	BufferMode:= , 
+	Options:= , 
+	Done=> , 
+	Busy=> , 
+	Active=> , 
+	CommandAborted=> , 
+	Error=> , 
+	ErrorID=> );
+	
+mcMoveVelocity( //stopped with stop();
+	Axis:= axis, 
+	Execute:= , 
+	Velocity:= continuousVelocity, 
+	Acceleration:= , 
+	Deceleration:= , 
+	Jerk:= , 
+	Direction:= , 
+	BufferMode:= , 
+	Options:= , 
+	InVelocity=> , 
+	Busy=> , 
+	Active=> , 
+	CommandAborted=> , 
+	Error=> , 
+	ErrorID=> );
+	
+mcSetPosition(
+	Axis:= axis, 
+	Execute:= , 
+	Position:= , 
+	Mode:= , 
+	Options:= , 
+	Done=> , 
+	Busy=> , 
+	Error=> , 
+	ErrorID=> );
+	
+mcStop(
+	Axis:= axis, 
+	Execute:= , 
+	Deceleration:= , 
+	Jerk:= , 
+	Options:= , 
+	Done=> , 
+	Busy=> , 
+	Active=> , 
+	CommandAborted=> , 
+	Error=> , 
+	ErrorID=> );]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="CurrentPosition" Id="{f4257dfb-3582-4a08-b7fd-8c6df7d016f3}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY CurrentPosition : LREAL]]></Declaration>
+      <Get Name="Get" Id="{22497e21-3935-44cf-ba35-f356118bcf64}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[CurrentPosition := position;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{75659cf6-06a2-49e3-aa90-cef6aa969992}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[position := CurrentPosition;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="Error" Id="{39ce5b8a-0fe4-4f57-849e-7449af8260d1}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY Error : BOOL]]></Declaration>
+      <Get Name="Get" Id="{e42731d8-0805-4ac3-b852-181730f494fd}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[error := 
+	mcMoveAbsolute.Error OR 
+	mcMoveRelative.Error OR 
+	mcMoveVelocity.Error OR 
+	mcSetPosition.Error OR 
+	mcReset.Error OR 
+	mcStop.Error OR
+	mcReadError.AxisErrorID > 0;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="homingSequence" Id="{7c8301c4-3dda-47fb-b8b5-3efab684ea86}">
+      <Declaration><![CDATA[METHOD homingSequence : BOOL
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CASE step OF
+	Homing.IDLE:
+		reset();
+		IF bEnable THEN
+			step := Homing.START;
+		END_IF
+		
+	Homing.START:
+		IF AtHome THEN
+			mcMoveVelocity.Execute := FALSE;
+			step := Homing.STOP;
+			
+		ELSIF AtInnerLimit THEN
+			mcMoveVelocity.Execute := FALSE;
+			step := Homing.RETRY;
+			
+		ELSE
+			mcMoveVelocity.Direction := MC_Negative_Direction;
+			mcMoveVelocity.Execute := NOT mcMoveVelocity.Execute;
+		END_IF
+		
+	Homing.RETRY:
+		IF AtOuterLimit THEN
+			mcMoveVelocity.Execute := FALSE;
+			step := Homing.START;
+		ELSE
+			mcMoveVelocity.Direction := MC_Positive_Direction;
+			mcMoveVelocity.Execute := NOT mcMoveVelocity.Execute;
+		END_IF
+		
+	Homing.STOP:
+		IF velocity = 0 THEN
+			mcStop.Execute := FALSE;
+			step := Homing.SET;
+		ELSE
+			mcStop.Execute := TRUE;
+		END_IF
+		
+	Homing.SET:
+		IF position = 0 THEN
+			mcSetPosition.Execute := FALSE;
+			homingSequence := TRUE;
+			step := Homing.DONE;
+		ELSE
+			mcSetPosition.Position := 0;
+			mcSetPosition.Execute := TRUE;
+		END_IF
+		
+	Homing.DONE:
+		homingComplete := TRUE;
+		step := Homing.IDLE;
+		
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="moveAbsolute" Id="{34c57e6f-65df-4fa8-811e-8185b3e041e9}">
+      <Declaration><![CDATA[METHOD moveAbsolute : BOOL
+VAR_INPUT
+	newTarget : LREAL;
+END_VAR
+(*
+VAR_OUTPUT
+	fault : BOOL;
+END_VAR
+*)]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT Active AND NOT error THEN
+	mcMoveAbsolute.Position := newTarget;
+	mcMoveAbsolute.Execute := TRUE;
+END_IF
+
+moveAbsolute := (*mcMoveAbsolute.Done AND mcMoveAbsolute.Active;*)
+	position = newTarget;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="moveContinuous" Id="{59779624-d7c9-45bd-867f-51d1c2dca794}">
+      <Declaration><![CDATA[METHOD moveContinuous : BOOL
+VAR_INPUT
+	//direction : BOOL; //direction (F = inwards, T = outwards)
+	direction : MC_Direction;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[(*
+IF mcMoveVelocity.Active THEN
+	stop();
+END_IF
+
+IF NOT mcStop.Done THEN
+	RETURN;
+END_IF
+*)
+(*
+IF direction THEN
+	mcMoveVelocity.Direction := MC_Positive_Direction;
+ELSE
+	mcMoveVelocity.Direction := MC_Negative_Direction;
+END_IF
+*)
+mcMoveVelocity.Direction := direction;
+
+IF NOT mcMoveVelocity.Error THEN
+	mcMoveVelocity.Execute := TRUE;
+	moveContinuous := TRUE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="moveRelative" Id="{a63149da-3c21-4c30-a7d7-a1c64d819d77}">
+      <Declaration><![CDATA[METHOD moveRelative : BOOL
+VAR_INPUT
+	distance : LREAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[mcMoveRelative.Distance := distance;
+
+moveRelative := mcMoveRelative.Done;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="override" Id="{65ff6899-328b-4cc7-932b-b2e6cbc03a15}" FolderPath="Private\">
+      <Declaration><![CDATA[METHOD PRIVATE override : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[(*
+-at home and attempting to traverse outward
+-at outer limit and attempting to traverse outward
+-at inner limit and attempting to traverse inwards
+*)
+(*
+inward = negative direction, negative velocity
+outward = positive direction, positive velocity
+*)
+
+IF error THEN
+	stop();
+	reset();
+	
+ELSIF
+	AtHome AND (TargetPosition > CurrentPosition OR velocity > 0) OR
+	AtInnerLimit AND (TargetPosition > CurrentPosition OR velocity > 0) OR
+	AtOuterLimit AND (TargetPosition < CurrentPosition OR velocity < 0)
+THEN
+	stop();
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="reset" Id="{9dca3b68-8982-4ab7-9d18-3fb3cfaa5ca1}">
+      <Declaration><![CDATA[METHOD reset : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[mcReset.Execute := TRUE;
+
+reset := mcReset.Done;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="stop" Id="{3d822b89-0913-4858-9033-9c09b4bf48ee}">
+      <Declaration><![CDATA[METHOD stop : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[mcStop.Execute := TRUE;
+
+mcMoveAbsolute.Execute := FALSE;
+mcMoveRelative.Execute := FALSE;
+mcMoveVelocity.Execute := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="TargetPosition" Id="{ea15ec48-ad31-431d-926b-ac5696a95eec}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY TargetPosition : LREAL]]></Declaration>
+      <Get Name="Get" Id="{09f2a7b1-5098-458b-b277-3892331abf37}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{e1b04cfc-ac82-4fbc-b3c8-f9c50fd46bab}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[moveAbsolute(newTarget := TargetPosition);]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Method Name="toHome" Id="{38f76a5e-afbd-496e-91ce-3904693e2dcf}">
+      <Declaration><![CDATA[METHOD toHome : BOOL
+VAR_INPUT
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[moveAbsolute(newTarget := 0);
+
+toHome := AtHome;]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="ServoNC">
+      <LineId Id="493" Count="12" />
+      <LineId Id="165" Count="0" />
+    </LineIds>
+    <LineIds Name="ServoNC.Active.Get">
+      <LineId Id="14" Count="6" />
+      <LineId Id="11" Count="0" />
+    </LineIds>
+    <LineIds Name="ServoNC.blocks">
+      <LineId Id="86" Count="7" />
+      <LineId Id="137" Count="0" />
+      <LineId Id="139" Count="6" />
+      <LineId Id="138" Count="0" />
+      <LineId Id="146" Count="0" />
+      <LineId Id="148" Count="6" />
+      <LineId Id="147" Count="0" />
+      <LineId Id="94" Count="6" />
+      <LineId Id="21" Count="1" />
+      <LineId Id="101" Count="11" />
+      <LineId Id="35" Count="50" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="113" Count="0" />
+      <LineId Id="115" Count="8" />
+      <LineId Id="114" Count="0" />
+      <LineId Id="124" Count="0" />
+      <LineId Id="126" Count="10" />
+      <LineId Id="125" Count="0" />
+    </LineIds>
+    <LineIds Name="ServoNC.CurrentPosition.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="ServoNC.CurrentPosition.Set">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="ServoNC.Error.Get">
+      <LineId Id="2" Count="0" />
+      <LineId Id="5" Count="5" />
+      <LineId Id="13" Count="0" />
+    </LineIds>
+    <LineIds Name="ServoNC.homingSequence">
+      <LineId Id="439" Count="51" />
+      <LineId Id="7" Count="0" />
+    </LineIds>
+    <LineIds Name="ServoNC.moveAbsolute">
+      <LineId Id="72" Count="5" />
+      <LineId Id="51" Count="0" />
+    </LineIds>
+    <LineIds Name="ServoNC.moveContinuous">
+      <LineId Id="37" Count="0" />
+      <LineId Id="27" Count="0" />
+      <LineId Id="30" Count="1" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="32" Count="0" />
+      <LineId Id="36" Count="0" />
+      <LineId Id="35" Count="0" />
+      <LineId Id="28" Count="1" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="13" Count="3" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="39" Count="1" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="24" Count="0" />
+      <LineId Id="26" Count="0" />
+      <LineId Id="25" Count="0" />
+    </LineIds>
+    <LineIds Name="ServoNC.moveRelative">
+      <LineId Id="8" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="ServoNC.override">
+      <LineId Id="13" Count="0" />
+      <LineId Id="16" Count="2" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="72" Count="1" />
+      <LineId Id="71" Count="0" />
+      <LineId Id="47" Count="0" />
+      <LineId Id="40" Count="0" />
+      <LineId Id="57" Count="0" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="58" Count="0" />
+      <LineId Id="50" Count="0" />
+      <LineId Id="65" Count="3" />
+      <LineId Id="70" Count="0" />
+      <LineId Id="69" Count="0" />
+    </LineIds>
+    <LineIds Name="ServoNC.reset">
+      <LineId Id="5" Count="0" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="18" Count="0" />
+    </LineIds>
+    <LineIds Name="ServoNC.stop">
+      <LineId Id="9" Count="0" />
+      <LineId Id="14" Count="2" />
+      <LineId Id="13" Count="0" />
+    </LineIds>
+    <LineIds Name="ServoNC.TargetPosition.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="ServoNC.TargetPosition.Set">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="ServoNC.toHome">
+      <LineId Id="5" Count="0" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="6" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

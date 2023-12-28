@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Refactors>
+  <Renames>
+    <RenamedType>
+      <Type guid="d2813101-76bc-4755-905c-5accc464218e">CONVEYORCONTROLLER</Type>
+      <From>ConveyorControlModule_1</From>
+      <To>ConveyorSyncUnit</To>
+    </RenamedType>
+  </Renames>
+</Refactors>

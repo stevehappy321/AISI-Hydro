@@ -1,0 +1,171 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="CallHardware" Id="{37cad5aa-fa76-4d83-b429-cad99db8cb21}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM CallHardware]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[//conveyors
+callConveyors();
+
+//robots
+robot1();
+robot2();
+robot3();
+robot4();
+//robot5();
+//robot6();
+
+//A23
+wrapperA23();
+
+//A22
+skidA22Left();
+skidA22Right();
+magazineA22Left();
+magazineA22Right();
+
+insertionA22Left(
+	enable:= TRUE, 
+	slider:= verticalDriveA22Left, 
+	screw:= horizontalDriveA22Left, 
+	contact=> , 
+	active=> , 
+	error=> , 
+	home=> , 
+	homingComplete=> , 
+	sliderPos=> );
+	
+insertionA22Right(
+	enable:= TRUE, 
+	slider:= verticalDriveA22Right, 
+	screw:= horizontalDriveA22Right, 
+	contact=> , 
+	active=> , 
+	error=> , 
+	home=> , 
+	homingComplete=> , 
+	sliderPos=> );
+	
+pistonA22Bottom();
+wrapperA22();
+
+//A21
+skidA21Left();
+skidA21Right();
+
+magazineA21Left();
+magazineA21Right();
+
+stagingTableLeft();
+stagingTableRight();
+
+strapperA21();
+
+insertionA21Left(
+	enable:= TRUE, 
+	slider:= verticalDriveA21Left, 
+	screw:= horizontalDriveA21Left, 
+	contact=> , 
+	active=> , 
+	error=> , 
+	home=> , 
+	homingComplete=> , 
+	sliderPos=> );
+	
+insertionA21Right(
+	enable:= TRUE, 
+	slider:= verticalDriveA21Right, 
+	screw:= horizontalDriveA21Right, 
+	contact=> , 
+	active=> , 
+	error=> , 
+	home=> , 
+	homingComplete=> , 
+	sliderPos=> );
+	
+pistonA21Bottom();]]></ST>
+    </Implementation>
+    <Method Name="callConveyors" Id="{365141b1-cb20-44d4-87c7-77ba15ac296c}">
+      <Declaration><![CDATA[METHOD PRIVATE callConveyors : BOOL
+VAR
+	i : DINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//rewrite this method, call every conveyor individually
+//calling via loop will not call derived implementations
+(*
+FOR i:=1 TO numConveyors BY 1 DO
+	conveyorsArr[i]^(
+		bEnable:= , 
+		enable=> , 
+		direction=> , 
+		pulse=> , 
+		reset=> , 
+		error=> , 
+		sensorEntry=> , 
+		sensorExit=> , 
+		requestLifter=> , 
+		lifterEnable=> , 
+		lifterDirection=> , 
+		lifterPulse=> , 
+		lifterReset=> , 
+		lifterError=> , 
+		extended=> , 
+		retracted=> , 
+		position=> , 
+		velocity=> );
+END_FOR
+*)]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="pushConveyorsToArray" Id="{cb74d2be-b24d-425a-bc95-cdcd1fdaeaaf}">
+      <Declaration><![CDATA[METHOD PRIVATE pushConveyorsToArray : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="CallHardware">
+      <LineId Id="63" Count="1" />
+      <LineId Id="152" Count="0" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="126" Count="0" />
+      <LineId Id="147" Count="4" />
+      <LineId Id="153" Count="0" />
+      <LineId Id="96" Count="1" />
+      <LineId Id="127" Count="0" />
+      <LineId Id="110" Count="2" />
+      <LineId Id="178" Count="2" />
+      <LineId Id="182" Count="19" />
+      <LineId Id="102" Count="0" />
+      <LineId Id="202" Count="0" />
+      <LineId Id="103" Count="0" />
+      <LineId Id="98" Count="0" />
+      <LineId Id="128" Count="0" />
+      <LineId Id="109" Count="0" />
+      <LineId Id="120" Count="0" />
+      <LineId Id="122" Count="0" />
+      <LineId Id="124" Count="0" />
+      <LineId Id="146" Count="0" />
+      <LineId Id="125" Count="0" />
+      <LineId Id="133" Count="1" />
+      <LineId Id="132" Count="0" />
+      <LineId Id="136" Count="1" />
+      <LineId Id="129" Count="0" />
+      <LineId Id="203" Count="19" />
+      <LineId Id="131" Count="0" />
+      <LineId Id="223" Count="0" />
+      <LineId Id="95" Count="0" />
+    </LineIds>
+    <LineIds Name="CallHardware.callConveyors">
+      <LineId Id="83" Count="1" />
+      <LineId Id="81" Count="0" />
+      <LineId Id="50" Count="0" />
+      <LineId Id="60" Count="17" />
+      <LineId Id="59" Count="0" />
+      <LineId Id="58" Count="0" />
+      <LineId Id="82" Count="0" />
+    </LineIds>
+    <LineIds Name="CallHardware.pushConveyorsToArray">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

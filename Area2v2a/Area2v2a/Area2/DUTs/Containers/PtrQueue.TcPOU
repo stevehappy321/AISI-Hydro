@@ -1,0 +1,89 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="PtrQueue" Id="{2bf3e2d8-a2cd-4849-aa28-c045b8e15fa4}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK PtrQueue EXTENDS Queue //stores pointers to bundles, not the bundles themselves
+VAR_INPUT
+	
+END_VAR
+VAR
+	elements : FB_BA_DynamicArray := (uiEntrySize := SIZEOF(PVOID), uiMinExpCount := CONSTS.initArraySize);
+	//length : USINT := 0;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="get" Id="{6de458e0-d05d-4d69-8bd4-22d7bdaa6891}">
+      <Declaration><![CDATA[METHOD get : PVOID;
+VAR_INPUT
+	i : UINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[elements.GetEntry(diIndex := i, pResultEntry := ADR(get));]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="isEmpty" Id="{1ad3c8fd-cb6e-463c-88f0-72a17c67e277}">
+      <Declaration><![CDATA[METHOD isEmpty : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[isEmpty := (elements.diCount = 0);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="poll" Id="{9c526e4f-2f5b-4163-b909-8136233d5c58}">
+      <Declaration><![CDATA[METHOD poll : PVOID;
+VAR_INST
+	i : UINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[poll := get(i := 0);
+elements.RemoveEntry(diIndex := 0);
+//length := length - 1;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="push" Id="{62099035-afd2-40e7-913e-ca4cb8a360e3}">
+      <Declaration><![CDATA[METHOD push : BOOL
+VAR_INPUT
+	value : PVOID;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[elements.AddEntryPtr(pEntry := value);
+//length := length + 1;
+push := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="size" Id="{6058ab76-7167-40c5-9d7b-28da77ecc464}">
+      <Declaration><![CDATA[METHOD size : DINT
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[size := elements.diCount;]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="PtrQueue">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="PtrQueue.get">
+      <LineId Id="10" Count="0" />
+    </LineIds>
+    <LineIds Name="PtrQueue.isEmpty">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="PtrQueue.poll">
+      <LineId Id="50" Count="1" />
+      <LineId Id="36" Count="0" />
+    </LineIds>
+    <LineIds Name="PtrQueue.push">
+      <LineId Id="34" Count="1" />
+      <LineId Id="25" Count="0" />
+    </LineIds>
+    <LineIds Name="PtrQueue.size">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

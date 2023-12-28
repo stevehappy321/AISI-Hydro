@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="FBA_TrifectaDrive" Id="{f410d910-3fd9-42f5-8bfc-6a2906d78af5}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK ABSTRACT FBA_TrifectaDrive EXTENDS FBA_Drive
+VAR
+	outerLimit AT %I* : BOOL;
+END_VAR
+(*
+this abstract FB adds a rear limit sensor to FBA_Drive
+*)]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Property Name="AtOuterLimit" Id="{e02ad79c-ff8f-4672-8eae-eab46f608664}">
+      <Declaration><![CDATA[{attribute 'monitoring':='call'}
+PROPERTY AtOuterLimit : BOOL]]></Declaration>
+      <Get Name="Get" Id="{3e341a5b-d3a7-4ac5-beec-589afe8ba200}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[AtOuterLimit := outerLimit <> limitSensorDefaultState;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <LineIds Name="FBA_TrifectaDrive">
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="FBA_TrifectaDrive.AtOuterLimit.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

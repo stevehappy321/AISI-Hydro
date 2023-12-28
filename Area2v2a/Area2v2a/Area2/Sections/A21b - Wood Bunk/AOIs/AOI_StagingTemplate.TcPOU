@@ -1,0 +1,268 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="AOI_StagingTemplate" Id="{0037dd5b-bbfe-4f9c-ade0-ad27a646a516}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK AOI_StagingTemplate
+VAR_INPUT
+	execute : BOOL;
+END_VAR
+VAR_IN_OUT
+	materialsArr : ARRAY[*] OF PositionMaterials; //[0..GVL.maxPairs]
+	table : StagingTable;
+END_VAR
+VAR_INPUT
+	includeTop, includeLeft, includeRight, includeBottom : BOOL; 
+END_VAR
+VAR_OUTPUT
+	busy : BOOL;
+	done : BOOL;
+END_VAR
+VAR
+	trigger : R_TRIG;
+	run : BOOL;
+	step : (IDLE, GENERATE, COMPLETE);
+	i : INT;
+END_VAR
+VAR	
+	stagingArray : ARRAY[0..(Consts.maxPairs+1)*2] OF STRING;
+	
+	template : StagingTable;
+	templateSlots AT %M* : ARRAY[1..10] OF MaterialSlot;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[{warning disable C0371}
+
+template(slots:= templateSlots);
+
+trigger(CLK:= execute, Q=> run);
+
+CASE step OF
+	IDLE:
+		IF run THEN
+			step := GENERATE;
+			done := FALSE;
+		END_IF
+		
+	GENERATE:
+		//strings contain garbage chars after a null byte, they must be manually cleaned before checking if they are byte-empty
+		CleanStringsArray(arr := stagingArray);
+		IF DataIsEmpty(arr := ADR(stagingArray), arrSize := SIZEOF(stagingArray)) THEN //if staging array is empty, fill the array
+			createStagingArray(
+				includeTop:= includeTop, 
+				includeLeft:= includeLeft, 
+				includeRight:= includeRight, 
+				includeBottom:= includeBottom);
+		END_IF
+		
+		//copy over the real slots before autofilling, otherwise the template may fill occupied slots
+		table.copyFrom(src := table);
+		
+		(*
+		iterate through all pairs and autofill the template
+		replace succesfully autofilled materials with empty string
+		if staging needs to be performed a 2nd time, autofilling empty strings is always unsuccessful
+		*)
+		FOR i:=0 TO (CONSTS.maxPairs+1)*2 BY 1 DO
+			IF template.autofill(material := stagingArray[i]) THEN
+				stagingArray[i] := '';
+			END_IF
+		END_FOR
+		
+		step := COMPLETE;
+	
+	COMPLETE:
+		done := TRUE;
+		
+		step := IDLE;
+		
+END_CASE
+
+busy := run OR step > 0;]]></ST>
+    </Implementation>
+    <Folder Name="Private" Id="{3c6bf1e6-e944-469b-bcd7-a97f56b268e0}" />
+    <Method Name="addToStagingArray" Id="{655ab137-48d6-43ef-8a47-92e88a7eb6e3}" FolderPath="Private\">
+      <Declaration><![CDATA[METHOD PRIVATE addToStagingArray : BOOL
+VAR_INPUT
+	material : STRING;
+END_VAR
+VAR
+	remainingMaterial : STRING;
+	splitMaterial : STRING;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[remainingMaterial := material;
+WHILE FIND(remainingMaterial, '_') > 0 DO
+	splitCombinedMaterials(remainingMaterial, splitMaterial);
+	IF splitMaterial <> '' THEN
+		AddToStringArray(arr := stagingArray, newString := splitMaterial, numElements => , nextIndex => );
+	END_IF
+END_WHILE
+
+IF remainingMaterial <> '' THEN
+	AddToStringArray(arr := stagingArray, newString := remainingMaterial, numElements => , nextIndex => );
+END_IF
+
+addToStagingArray := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="clearArray" Id="{c4d9cbd8-5b02-4798-84d6-92f71b58ca65}">
+      <Declaration><![CDATA[METHOD clearArray : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[MEMSET(ADR(stagingArray), 0, SIZEOF(stagingArray));]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="clearTemplate" Id="{0b1de681-f998-4280-8661-36d9e7be5728}">
+      <Declaration><![CDATA[METHOD clearTemplate : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[template.clear();]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="createStagingArray" Id="{e33729e2-b40e-4f85-bcc3-df064c30aeb0}" FolderPath="Private\">
+      <Declaration><![CDATA[METHOD PRIVATE createStagingArray : BOOL
+VAR_INPUT
+	includeTop : BOOL;
+	includeLeft : BOOL;
+	includeRight : BOOL;
+	includeBottom : BOOL;
+END_VAR
+VAR
+	remainingMaterial : STRING;
+	splitMaterial : STRING;
+	
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i:=0 TO CONSTS.maxPairs BY 1 DO
+	IF includeTop THEN
+		addToStagingArray(material := materialsArr[i].top);
+	END_IF
+	
+	IF includeLeft THEN
+		addToStagingArray(material := materialsArr[i].left);
+	END_IF
+	
+	IF includeRight THEN
+		addToStagingArray(material := materialsArr[i].right);
+	END_IF
+	
+	IF includeBottom THEN
+		addToStagingArray(material := materialsArr[i].bottom);
+	END_IF
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="getSlot" Id="{20858403-7499-4509-b232-807eaa0bca7e}">
+      <Declaration><![CDATA[METHOD getSlot : STRING
+VAR_INPUT
+	i : INT;
+END_VAR
+VAR_OUTPUT
+	error : BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[getSlot := template.getSlot(i := i, error => error);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="reset" Id="{30967273-5971-4694-a3f9-4830fbeea9d0}">
+      <Declaration><![CDATA[METHOD reset : BOOL
+VAR_INPUT
+END_VAR
+VAR
+	temp : AOI_StagingTemplate;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//(*
+busy := FALSE;
+done := FALSE;
+step := 0;
+
+clearArray();
+clearTemplate();
+//*)
+//THIS^ := temp;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="splitCombinedMaterials" Id="{419e2fad-7d72-4697-81cf-ab6b3eae18e9}" FolderPath="Private\">
+      <Declaration><![CDATA[METHOD PRIVATE splitCombinedMaterials : BOOL
+VAR_IN_OUT
+	materialID : STRING;
+	splitMaterial : STRING;
+END_VAR
+VAR
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FindAndSplitChar(
+	sSeparatorChar:= '_', 
+	pSrcString:= ADR(materialID), 
+	
+	pLeftString:= ADR(splitMaterial), 
+	nLeftSize:= SIZEOF(splitMaterial), 
+	
+	pRightString:= ADR(materialID), 
+	nRightSize:= SIZEOF(materialID), 
+	
+	bSearchFromRight:= FALSE);]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="AOI_StagingTemplate">
+      <LineId Id="449" Count="13" />
+      <LineId Id="464" Count="32" />
+      <LineId Id="223" Count="0" />
+    </LineIds>
+    <LineIds Name="AOI_StagingTemplate.addToStagingArray">
+      <LineId Id="19" Count="9" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="30" Count="0" />
+      <LineId Id="29" Count="0" />
+    </LineIds>
+    <LineIds Name="AOI_StagingTemplate.clearArray">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="AOI_StagingTemplate.clearTemplate">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="AOI_StagingTemplate.createStagingArray">
+      <LineId Id="12" Count="0" />
+      <LineId Id="109" Count="2" />
+      <LineId Id="20" Count="0" />
+      <LineId Id="113" Count="1" />
+      <LineId Id="112" Count="0" />
+      <LineId Id="115" Count="0" />
+      <LineId Id="117" Count="1" />
+      <LineId Id="116" Count="0" />
+      <LineId Id="119" Count="0" />
+      <LineId Id="121" Count="1" />
+      <LineId Id="120" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="AOI_StagingTemplate.getSlot">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="AOI_StagingTemplate.reset">
+      <LineId Id="23" Count="0" />
+      <LineId Id="26" Count="0" />
+      <LineId Id="5" Count="1" />
+      <LineId Id="28" Count="0" />
+      <LineId Id="27" Count="0" />
+      <LineId Id="29" Count="0" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="21" Count="0" />
+    </LineIds>
+    <LineIds Name="AOI_StagingTemplate.splitCombinedMaterials">
+      <LineId Id="15" Count="2" />
+      <LineId Id="29" Count="0" />
+      <LineId Id="18" Count="1" />
+      <LineId Id="30" Count="0" />
+      <LineId Id="20" Count="1" />
+      <LineId Id="31" Count="0" />
+      <LineId Id="13" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

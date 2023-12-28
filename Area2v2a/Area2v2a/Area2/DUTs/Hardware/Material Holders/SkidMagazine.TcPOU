@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="SkidMagazine" Id="{cc4e8e9a-d375-4787-b88d-f0c2dcecd871}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK SkidMagazine EXTENDS MaterialHolder
+VAR_OUTPUT
+	inPosition AT %I* : ARRAY[1..2] OF BOOL;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[SUPER^();]]></ST>
+    </Implementation>
+    <Method Name="setOccupancy" Id="{30a7aa2b-716c-4159-99e8-4869a1f9802b}">
+      <Declaration><![CDATA[METHOD setOccupancy : BOOL
+VAR_INPUT
+	i : INT;
+	occupancy : BOOL;
+END_VAR
+VAR_OUTPUT
+	errorBounds : BOOL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[errorBounds := i < LOWER_BOUND(slots, 1) OR i > UPPER_BOUND(slots, 1);
+
+IF NOT errorBounds THEN
+	slots[i].occupied := occupancy;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="SkidMagazine">
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="SkidMagazine.setOccupancy">
+      <LineId Id="14" Count="0" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="18" Count="1" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

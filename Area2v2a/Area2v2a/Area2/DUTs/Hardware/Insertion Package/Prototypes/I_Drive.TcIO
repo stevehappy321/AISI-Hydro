@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <Itf Name="I_Drive" Id="{97843c9c-50ee-4368-8fd5-ec6e4d921ad0}">
+    <Declaration><![CDATA[INTERFACE I_Drive
+]]></Declaration>
+    <Property Name="Active" Id="{22f2c010-e5b4-4e6f-ae07-528442546c4a}">
+      <Declaration><![CDATA[{attribute 'monitoring':='call'}
+PROPERTY Active : BOOL]]></Declaration>
+      <Get Name="Get" Id="{ac46d058-d832-4885-9e23-835c98ce5c95}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+    </Property>
+    <Property Name="AtHome" Id="{c6a17622-f630-40a9-99aa-ef48eaf03c6a}">
+      <Declaration><![CDATA[{attribute 'monitoring':='call'}
+PROPERTY AtHome : BOOL]]></Declaration>
+      <Get Name="Get" Id="{a8ebae59-68e5-4b36-96cd-09b1d2de6c66}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+    </Property>
+    <Property Name="AtInnerLimit" Id="{62046dd2-2bc3-4e44-8062-4be2ad53fc82}">
+      <Declaration><![CDATA[{attribute 'monitoring':='call'}
+PROPERTY AtInnerLimit : BOOL]]></Declaration>
+      <Get Name="Get" Id="{ebbe29db-7268-47d3-84c5-e6d666063270}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+    </Property>
+    <Property Name="Error" Id="{b33f8b6d-756e-4d55-8410-5d769326987c}">
+      <Declaration><![CDATA[{attribute 'monitoring':='call'}
+PROPERTY Error : BOOL]]></Declaration>
+      <Get Name="Get" Id="{ad8d4ecb-7588-4940-a915-12e099739110}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+    </Property>
+    <Property Name="HomeSet" Id="{98b78224-2e9a-4729-a537-78ab67c08b81}">
+      <Declaration><![CDATA[{attribute 'monitoring':='call'}
+PROPERTY HomeSet : BOOL]]></Declaration>
+      <Get Name="Get" Id="{01978999-8b32-4a4b-a93d-551b16fc629d}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+    </Property>
+    <Method Name="homingSequence" Id="{966dc12e-40ee-4e92-b0ff-02568eb39008}">
+      <Declaration><![CDATA[METHOD ABSTRACT homingSequence : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="reset" Id="{78774315-3cbe-4e9e-9d23-8faa39eac41e}">
+      <Declaration><![CDATA[METHOD reset : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="stop" Id="{8a7e512c-d54f-4452-a55b-3ee979f4c06a}">
+      <Declaration><![CDATA[METHOD ABSTRACT stop : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="toHome" Id="{4f2dbe80-f09c-4518-b3f4-0b8aed81f621}">
+      <Declaration><![CDATA[METHOD toHome : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+    </Method>
+  </Itf>
+</TcPlcObject>

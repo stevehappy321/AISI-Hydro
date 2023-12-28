@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="PositionMaterials" Id="{72b2bf5b-2b93-42a9-bc8a-24d8ae335b1f}">
+    <Declaration><![CDATA[TYPE PositionMaterials : //REMOVE FOLDING INFORMATION FROM THIS STRUCTURE AND PLACE IN BUNDLE
+STRUCT
+	position : REAL; //:= GVL.nullPos; //default value is set to predefined constant if bundle needs less than 32 position material pairs
+	
+	top : STRING;
+	right : STRING;
+	left : STRING;
+	//sides : STRING;
+	bottom : STRING;
+	
+	topLeft : STRING;
+	//topLeftFold : USINT;
+	
+	topRight : STRING;
+	//topRightFold : USINT;
+	
+	bottomLeft : STRING;
+	//bottomLeftFold : USINT;
+	
+	bottomRight : STRING;
+	//bottomRightFold : USINT;
+
+	wrapPoints : USINT;
+	wrapRotations : USINT;
+END_STRUCT
+END_TYPE]]></Declaration>
+  </DUT>
+</TcPlcObject>

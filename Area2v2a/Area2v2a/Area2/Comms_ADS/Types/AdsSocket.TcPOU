@@ -1,0 +1,137 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="AdsSocket" Id="{94b06c8f-6363-4f38-8057-d0f2ec092ac9}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK AdsSocket
+VAR_OUTPUT
+	readBusy, readErr : BOOL;
+	readErrId : UDINT;
+	
+	writeBusy, writeErr : BOOL;
+	writeErrId : UDINT;
+END_VAR
+VAR_STAT
+	localPrgName : STRING;
+	localNetId : STRING;
+	localPort : UINT;
+END_VAR
+VAR
+	remotePrgName : STRING;
+	remoteNetId : STRING;
+	remotePort : UINT;
+	
+	adsReadSymbol : FB_ReadAdsSymByName;
+	adsWriteSymbol : FB_WriteAdsSymByName;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="close" Id="{5b9b3a4a-f4db-4662-8e31-880b17578695}">
+      <Declaration><![CDATA[METHOD close : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[remotePrgName := '';
+remoteNetId := '';
+remotePort := 0;
+
+//MEMSET(THIS, 0, SIZEOF(THIS^));]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="open" Id="{41dcc539-006b-4672-ab53-559a081cb5fc}">
+      <Declaration><![CDATA[METHOD open : BOOL
+VAR_INPUT
+	newLocalPrgName : STRING;
+	newLocalNetId : T_AmsNetId;
+	newLocalPort : T_AmsPort;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[localPrgName := newLocalPrgName;
+localNetId := newLocalNetId;
+localPort := newLocalPort;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="read" Id="{76310918-f166-49dc-9eaa-fa797266bfbf}">
+      <Declaration><![CDATA[METHOD read : BOOL
+VAR_INPUT
+	symbol : STRING;
+	buffer : PVOID;
+	symbolSize : UDINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[adsReadSymbol.bRead := NOT adsReadSymbol.bRead;
+
+adsReadSymbol(
+	bRead:= , 
+	sNetId:= remoteNetId, 
+	nPort:= remotePort, 
+	sVarName:= symbol, 
+	nDestAddr:= buffer, 
+	nLen:= symbolSize, 
+	tTimeout:= , 
+	eComMode:= , 
+	bClearOnError:= TRUE, 
+	bBusy=> readBusy,
+	bError=> readErr, 
+	nErrorId=> readErrId);
+	
+adsReadSymbol.bRead := FALSE;
+
+read := NOT adsReadSymbol.bBusy AND NOT adsReadSymbol.bError;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="write" Id="{78b7348b-168f-4aaf-82b1-6907845ef997}">
+      <Declaration><![CDATA[METHOD write : BOOL
+VAR_INPUT
+	symbol : STRING;
+	data : PVOID;
+	dataSize : UDINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[adsWriteSymbol.bWrite := NOT adsWriteSymbol.bWrite;
+
+adsWriteSymbol(
+	bWrite:= , 
+	sNetId:= remoteNetId, 
+	nPort:= remotePort, 
+	sVarName:= symbol, 
+	nSrcAddr:= data, 
+	nLen:= dataSize, 
+	tTimeout:= , 
+	eComMode:= , 
+	bBusy=> , 
+	bError=> , 
+	nErrorId=> );
+	
+adsWriteSymbol.bWrite := FALSE;
+
+write := NOT adsWriteSymbol.bBusy AND NOT adsWriteSymbol.bError;]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="AdsSocket">
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsSocket.close">
+      <LineId Id="9" Count="3" />
+      <LineId Id="8" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsSocket.open">
+      <LineId Id="7" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsSocket.read">
+      <LineId Id="35" Count="1" />
+      <LineId Id="8" Count="11" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="21" Count="0" />
+      <LineId Id="37" Count="1" />
+      <LineId Id="22" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsSocket.write">
+      <LineId Id="56" Count="0" />
+      <LineId Id="40" Count="0" />
+      <LineId Id="6" Count="10" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="32" Count="0" />
+      <LineId Id="57" Count="1" />
+      <LineId Id="26" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

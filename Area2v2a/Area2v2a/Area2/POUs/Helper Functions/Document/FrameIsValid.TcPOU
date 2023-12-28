@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="FrameIsValid" Id="{7ffde625-7111-4b70-aa34-bd80f0f00da2}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION FrameIsValid : BOOL
+VAR_INPUT
+	frame : REFERENCE TO VisionFrame;
+END_VAR
+VAR
+	emptyFrame : VisionFrame;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[FrameIsValid := 
+	MEMCMP(ADR(frame), ADR(emptyFrame), SIZEOF(VisionFrame)) <> 0 OR
+	frame.MaterialID = '' OR
+	frame.CheckFor = '' OR
+	frame.CameraNumber = 0;]]></ST>
+    </Implementation>
+    <LineIds Name="FrameIsValid">
+      <LineId Id="7" Count="0" />
+      <LineId Id="12" Count="3" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

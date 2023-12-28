@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="IntegerToBoolArray" Id="{0b5a855f-d726-46ed-b13f-e23c9348216a}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION IntegerToBoolArray : BOOL
+VAR_IN_OUT
+	arr : ARRAY[*] OF BOOL;
+END_VAR
+VAR_INPUT
+	num : ULINT;
+END_VAR
+VAR_OUTPUT
+	maxIterations : DINT;
+END_VAR
+VAR
+	i : DINT;
+	j : LINT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[maxIterations := MIN(
+	(UPPER_BOUND(arr,1) - LOWER_BOUND(arr,1) + 1),
+	SIZEOF(num) * 8);
+
+FOR i:=LOWER_BOUND(arr, 1) TO UPPER_BOUND(arr, 1) BY 1 DO
+	IF j < maxIterations THEN
+		arr[i] := IntegerBitAccess(num, j);
+		j := j + 1;
+	END_IF
+END_FOR]]></ST>
+    </Implementation>
+    <LineIds Name="IntegerToBoolArray">
+      <LineId Id="126" Count="8" />
+      <LineId Id="104" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

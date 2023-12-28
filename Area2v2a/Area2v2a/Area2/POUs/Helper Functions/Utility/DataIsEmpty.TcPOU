@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="DataIsEmpty" Id="{54b652fb-5a08-4825-8f85-ecafed736b6b}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION DataIsEmpty : BOOL
+VAR_INPUT
+	arr : POINTER TO BYTE;
+	arrSize : ULINT;
+END_VAR
+VAR
+	i : ULINT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[FOR i:=0 TO arrSize-1 BY 1 DO
+	IF arr[i] <> 0 THEN
+		RETURN;
+	END_IF
+END_FOR
+
+DataIsEmpty := TRUE;]]></ST>
+    </Implementation>
+    <LineIds Name="DataIsEmpty">
+      <LineId Id="25" Count="5" />
+      <LineId Id="12" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
