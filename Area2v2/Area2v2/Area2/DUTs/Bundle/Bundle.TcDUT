@@ -32,23 +32,23 @@ STRUCT
 	cardboardFront : BOOL;
 	cardboardBack : BOOL;
 	
-	paperTop : ARRAY[0..Consts.maxPairs] OF Interval;
-	paperLeft : ARRAY[0..Consts.maxPairs] OF Interval;
-	paperRight : ARRAY[0..Consts.maxPairs] OF Interval;
-	paperBottom : ARRAY[0..Consts.maxPairs] OF Interval;
+	paperTop : ARRAY[0..CONSTS.maxPairs] OF Interval;
+	paperLeft : ARRAY[0..CONSTS.maxPairs] OF Interval;
+	paperRight : ARRAY[0..CONSTS.maxPairs] OF Interval;
+	paperBottom : ARRAY[0..CONSTS.maxPairs] OF Interval;
 		
-	cardboard : ARRAY[0..Consts.maxPairs] OF PositionMaterials;
-	cardboardFolds : ARRAY[Surface.TOP_LEFT..Surface.BOTTOM_RIGHT] OF ARRAY[0..Consts.maxPairs] OF INT;
+	cardboard : ARRAY[0..CONSTS.maxPairs] OF PositionMaterials;
+	cardboardFolds : ARRAY[Surface.TOP_LEFT..Surface.BOTTOM_RIGHT] OF ARRAY[0..CONSTS.maxPairs] OF INT;
 	
-	topLeftFolds : ARRAY[0..Consts.maxPairs] OF INT;
-	topRightFolds : ARRAY[0..Consts.maxPairs] OF INT;
-	bottomLeftFolds : ARRAY[0..Consts.maxPairs] OF INT;
-	bottomRightFolds : ARRAY[0..Consts.maxPairs] OF INT;
+	topLeftFolds : ARRAY[0..CONSTS.maxPairs] OF INT;
+	topRightFolds : ARRAY[0..CONSTS.maxPairs] OF INT;
+	bottomLeftFolds : ARRAY[0..CONSTS.maxPairs] OF INT;
+	bottomRightFolds : ARRAY[0..CONSTS.maxPairs] OF INT;
 	
-	cornerGuard : ARRAY[0..Consts.maxPairs] OF PositionMaterials;
+	cornerGuard : ARRAY[0..CONSTS.maxPairs] OF PositionMaterials;
 	
-	chipboard : ARRAY[0..Consts.maxPairs] OF PositionMaterials;
-	woodBunk : ARRAY[0..Consts.maxPairs] OF PositionMaterials;
+	chipboard : ARRAY[0..CONSTS.maxPairs] OF PositionMaterials;
+	woodBunk : ARRAY[0..CONSTS.maxPairs] OF PositionMaterials;
 	
 	cardboard_over_cornerGuard : BOOL;
 	

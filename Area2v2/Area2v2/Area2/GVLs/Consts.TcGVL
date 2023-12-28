@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
-  <GVL Name="Consts" Id="{13a665d5-22f6-41f1-a512-b46be1eb7175}" ParameterList="True">
+  <GVL Name="CONSTS" Id="{13a665d5-22f6-41f1-a512-b46be1eb7175}" ParameterList="True">
     <Declaration><![CDATA[{attribute 'qualified_only'}
 VAR_GLOBAL CONSTANT
 	maxPairs : USINT := 16;
@@ -11,6 +11,7 @@ VAR_GLOBAL CONSTANT
 	
 	numMaterials : INT := 32;
 	allMaterials : ARRAY[0..numMaterials] OF Material := [
+		(code := '', width := 0, length := 0), //null material
 		(code := 'PAP28', width := 28, length := -1),
 		
 		(code := 'CAR20S', width := 20, length := 30),
@@ -49,7 +50,7 @@ VAR_GLOBAL CONSTANT
 		(code := 'WDS20x12', width := 32, length := 2.5),
 		
 		(code := 'WDW20', width := 20, length := 6),
-		(code := 'WDW22', width := 22, length := 6)]; //+1 null material
+		(code := 'WDW22', width := 22, length := 6)];
 
 	//nullBundle : Bundle;
 	

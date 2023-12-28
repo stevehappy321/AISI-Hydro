@@ -243,11 +243,14 @@
       <SubType>Code</SubType>
       <LinkAlways>true</LinkAlways>
     </Compile>
-    <Compile Include="GVLs\Consts.TcGVL">
+    <Compile Include="GVLs\CONSTS.TcGVL">
       <SubType>Code</SubType>
       <LinkAlways>true</LinkAlways>
     </Compile>
     <Compile Include="HARDWARE_DISTRUBUTION\ConveyorControlModule.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="HARDWARE_DISTRUBUTION\ConveyorSyncUnit.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="PlcTask.TcTTO">

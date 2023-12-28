@@ -19,7 +19,7 @@ VAR
 	loadSet : INT;
 END_VAR
 VAR //bundle data
-	materialsArr : (*REFERENCE TO*) ARRAY[0..Consts.maxPairs] OF PositionMaterials;
+	materialsArr : (*REFERENCE TO*) ARRAY[0..CONSTS.maxPairs] OF PositionMaterials;
 END_VAR
 VAR
 	aoiLoadLeft, aoiLoadRight : AOI_LoadChipboard;

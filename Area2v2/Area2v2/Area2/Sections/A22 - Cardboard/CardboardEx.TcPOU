@@ -36,7 +36,7 @@ VAR
 	releaseDelayTimer : TON;
 END_VAR
 VAR //local types
-	topLeftFoldsArr, topRightFoldsArr, bottomLeftFoldsArr, bottomRightFoldsArr : ARRAY[0..Consts.maxPairs] OF INT;
+	topLeftFoldsArr, topRightFoldsArr, bottomLeftFoldsArr, bottomRightFoldsArr : ARRAY[0..CONSTS.maxPairs] OF INT;
 	
 	//materialsArr : ARRAY[0..Consts.maxPairs] OF PositionMaterials;
 	materialsArr : ARRAY[0..2*Consts.maxPairs] OF PositionMaterials;
@@ -1666,10 +1666,10 @@ VAR_INST
 	iCornerGuard : INT;
 END_VAR]]></Declaration>
       <Implementation>
-        <ST><![CDATA[FOR i:=0 TO Consts.maxPairs*2 BY 1 DO
+        <ST><![CDATA[FOR i:=0 TO CONSTS.maxPairs*2 BY 1 DO
 	IF //no more cardboard (reached end of array or unused entries), 
-		(iCardboard >= Consts.maxPairs OR_ELSE NOT PositionIsValid(cardboard[iCardboard])) AND_THEN //no more valid cardboard entries
-		iCornerGuard < Consts.maxPairs AND_THEN //still has remaining corner guard
+		(iCardboard >= CONSTS.maxPairs OR_ELSE NOT PositionIsValid(cardboard[iCardboard])) AND_THEN //no more valid cardboard entries
+		iCornerGuard < CONSTS.maxPairs AND_THEN //still has remaining corner guard
 		PositionIsValid(cornerGuard[iCornerGuard]) //remaining corner guard is valid		
 	THEN //finish with cornerguard
 		combined[i] := cornerGuard[iCornerGuard];
@@ -1678,8 +1678,8 @@ END_VAR]]></Declaration>
 	END_IF
 	
 	IF //no more cornerguard (reached end of array or unused entries)
-		(iCornerGuard >= Consts.maxPairs OR_ELSE NOT PositionIsValid(cornerGuard[iCornerGuard])) AND_THEN
-		iCardboard < Consts.maxPairs AND_THEN
+		(iCornerGuard >= CONSTS.maxPairs OR_ELSE NOT PositionIsValid(cornerGuard[iCornerGuard])) AND_THEN
+		iCardboard < CONSTS.maxPairs AND_THEN
 		PositionIsValid(cardboard[iCardboard])
 	THEN //finish with cardboard
 		combined[i] := cardboard[iCardboard];
@@ -1726,7 +1726,7 @@ ELSIF NOT (robotLeft.reserve(sectionID) AND robotRight.reserve(sectionID)) THEN 
 	RETURN;
 END_IF
 
-IF pairIndex + 1 < Consts.maxPairs THEN
+IF pairIndex + 1 < CONSTS.maxPairs THEN
 	nextPair REF= materialsArr[pairIndex + 1];
 END_IF
 
@@ -1762,7 +1762,7 @@ CASE masterLoadStep OF
 		
 		
 	10: //next pair (which is to be placed over this pair) has the same position as this pair
-		IF pairIndex + 1 >= Consts.maxPairs THEN //no next pair - final pair is index 15 (16-1), not 16
+		IF pairIndex + 1 >= CONSTS.maxPairs THEN //no next pair - final pair is index 15 (16-1), not 16
 			masterLoadStep := 20;
 			loadStepLeft := loadStepRight := 0;
 			
@@ -2537,7 +2537,7 @@ END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[{warning disable C0371}
 
-IF iPair >= Consts.maxPairs THEN
+IF iPair >= CONSTS.maxPairs THEN
 	process := TRUE;
 	RETURN;
 ELSIF NOT PositionIsValid(pair := currentPair) THEN

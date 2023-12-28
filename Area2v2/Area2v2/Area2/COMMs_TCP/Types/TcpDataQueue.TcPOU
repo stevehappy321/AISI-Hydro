@@ -4,7 +4,7 @@
     <Declaration><![CDATA[{attribute 'call_after_init'}
 FUNCTION_BLOCK TcpDataQueue
 VAR
-	elements : FB_BA_DynamicArray := (uiEntrySize := SIZEOF(POINTER TO TcpData), uiMinExpCount := Consts.initArraySize); 
+	elements : FB_BA_DynamicArray := (uiEntrySize := SIZEOF(POINTER TO TcpData), uiMinExpCount := CONSTS.initArraySize); 
 	length : INT := 0;
 	
 	entrySize : UDINT;

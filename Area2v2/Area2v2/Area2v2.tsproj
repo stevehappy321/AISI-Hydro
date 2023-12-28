@@ -2,15 +2,6 @@
 <TcSmProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.beckhoff.com/schemas/2012/07/TcSmProject" TcSmVersion="1.0" TcVersion="3.1.4024.32">
 	<DataTypes>
 		<DataType>
-			<Name GUID="{0CC845D8-9BA1-18CF-F192-2496916AED96}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..20] OF WORD</Name>
-			<BitSize>320</BitSize>
-			<BaseType GUID="{18071995-0000-0000-0000-000000000004}">WORD</BaseType>
-			<ArrayInfo>
-				<LBound>1</LBound>
-				<Elements>20</Elements>
-			</ArrayInfo>
-		</DataType>
-		<DataType>
 			<Name GUID="{CBC83B73-B816-4597-A9E5-2B03263CA131}" Namespace="MC" TcBaseType="true" HideType="true" IecDeclaration="DWORD;">NCTOPLC_AXIS_REF_STATE</Name>
 			<BitSize>32</BitSize>
 			<SubItem>
@@ -804,12 +795,12 @@ External Setpoint Generation:
 			</ArrayInfo>
 		</DataType>
 		<DataType>
-			<Name GUID="{FCDAFB1E-2CF0-0830-625A-4C0917D98604}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..50] OF WORD</Name>
-			<BitSize>800</BitSize>
+			<Name GUID="{0CC845D8-9BA1-18CF-F192-2496916AED96}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..20] OF WORD</Name>
+			<BitSize>320</BitSize>
 			<BaseType GUID="{18071995-0000-0000-0000-000000000004}">WORD</BaseType>
 			<ArrayInfo>
 				<LBound>1</LBound>
-				<Elements>50</Elements>
+				<Elements>20</Elements>
 			</ArrayInfo>
 		</DataType>
 		<DataType>
@@ -990,6 +981,15 @@ External Setpoint Generation:
 				</Relation>
 			</Relations>
 		</DataType>
+		<DataType>
+			<Name GUID="{FCDAFB1E-2CF0-0830-625A-4C0917D98604}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..50] OF WORD</Name>
+			<BitSize>800</BitSize>
+			<BaseType GUID="{18071995-0000-0000-0000-000000000004}">WORD</BaseType>
+			<ArrayInfo>
+				<LBound>1</LBound>
+				<Elements>50</Elements>
+			</ArrayInfo>
+		</DataType>
 	</DataTypes>
 	<Project ProjectGUID="{D44B45B3-3411-4FDD-9AFD-89ED45E825F4}" Target64Bit="true" ShowHideConfigurations="#x106">
 		<System>
@@ -1002,7 +1002,7 @@ External Setpoint Generation:
 		</System>
 		<Plc>
 			<Project GUID="{E4C31D2B-679A-4B63-A160-76D77225E648}" Name="Area2" PrjFilePath="Area2\Area2.plcproj" TmcFilePath="Area2\Area2.tmc" ReloadTmc="true" AmsPort="851" FileArchiveSettings="#x000e" SymbolicMapping="true">
-				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcPath="Area2\Area2.tmc" TmcHash="{1CC54F32-7B37-3620-549A-198E652E9DA8}">
+				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcPath="Area2\Area2.tmc" TmcHash="{B87CC444-C05D-873C-9652-7F7033624E8B}">
 					<Name>Area2 Instance</Name>
 					<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
 					<Vars VarGrpType="1">
@@ -1022,66 +1022,6 @@ External Setpoint Generation:
 						</Var>
 						<Var>
 							<Name>A26.spacerPresent_A24_LRC_C04</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A26.robot7.inputs</Name>
-							<Type GUID="{0CC845D8-9BA1-18CF-F192-2496916AED96}">ARRAY [1..20] OF WORD</Type>
-						</Var>
-						<Var>
-							<Name>A26.robot7.offline</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A26.robot7.toggleBit</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.robot3.inputs</Name>
-							<Type GUID="{0CC845D8-9BA1-18CF-F192-2496916AED96}">ARRAY [1..20] OF WORD</Type>
-						</Var>
-						<Var>
-							<Name>A22.robot3.offline</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.robot3.toggleBit</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.robot4.inputs</Name>
-							<Type GUID="{0CC845D8-9BA1-18CF-F192-2496916AED96}">ARRAY [1..20] OF WORD</Type>
-						</Var>
-						<Var>
-							<Name>A22.robot4.offline</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.robot4.toggleBit</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A21.robot1.inputs</Name>
-							<Type GUID="{0CC845D8-9BA1-18CF-F192-2496916AED96}">ARRAY [1..20] OF WORD</Type>
-						</Var>
-						<Var>
-							<Name>A21.robot1.offline</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A21.robot1.toggleBit</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A21.robot2.inputs</Name>
-							<Type GUID="{0CC845D8-9BA1-18CF-F192-2496916AED96}">ARRAY [1..20] OF WORD</Type>
-						</Var>
-						<Var>
-							<Name>A21.robot2.offline</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A21.robot2.toggleBit</Name>
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
@@ -1118,19 +1058,281 @@ External Setpoint Generation:
 							<Type GUID="{10036166-C9D3-404B-BDD3-323034AAA7F4}" Namespace="MC">NCTOPLC_AXIS_REF</Type>
 						</Var>
 						<Var>
-							<Name>A21.toolStorageA21Left.pos1ChipboardEOAT</Name>
+							<Name>A22.A22_SC_C15.error</Name>
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
-							<Name>A21.toolStorageA21Left.pos1WoodBunkEOAT</Name>
+							<Name>A22.A22_SC_C15.position</Name>
+							<Type>REAL</Type>
+						</Var>
+						<Var>
+							<Name>A22.A22_SC_C15.velocity</Name>
+							<Type>REAL</Type>
+						</Var>
+						<Var>
+							<Name>A22.A22_SC_C15.sensorEntry</Name>
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
-							<Name>A21.toolStorageA21Left.pos2ChipboardEOAT</Name>
+							<Name>A22.A22_SC_C15.sensorExit</Name>
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
-							<Name>A21.toolStorageA21Left.pos2WoodBunkEOAT</Name>
+							<Name>A22.A22_LSC_C16.error</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.A22_LSC_C16.position</Name>
+							<Type>REAL</Type>
+						</Var>
+						<Var>
+							<Name>A22.A22_LSC_C16.velocity</Name>
+							<Type>REAL</Type>
+						</Var>
+						<Var>
+							<Name>A22.A22_LSC_C16.sensorEntry</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.A22_LSC_C16.sensorExit</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.A22_LSC_C16.lifterError</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.A22_LSC_C16.extended</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.A22_LSC_C16.retracted</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.A22_LSC_C17.error</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.A22_LSC_C17.position</Name>
+							<Type>REAL</Type>
+						</Var>
+						<Var>
+							<Name>A22.A22_LSC_C17.velocity</Name>
+							<Type>REAL</Type>
+						</Var>
+						<Var>
+							<Name>A22.A22_LSC_C17.sensorEntry</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.A22_LSC_C17.sensorExit</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.A22_LSC_C17.lifterError</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.A22_LSC_C17.extended</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.A22_LSC_C17.retracted</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.benderA22Left.ready</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.benderA22Left.busy</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.benderA22Left.done</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.benderA22Left.error</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.suctionA22Bottom[1].occupied</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.suctionA22Bottom[2].occupied</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.skidA22Left.inPosition</Name>
+							<Type GUID="{3D778266-9CB6-A2BC-B908-FC747FC8D738}">ARRAY [1..2] OF BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.skidA22Right.inPosition</Name>
+							<Type GUID="{3D778266-9CB6-A2BC-B908-FC747FC8D738}">ARRAY [1..2] OF BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.magazineA22Left.inPosition</Name>
+							<Type GUID="{3D778266-9CB6-A2BC-B908-FC747FC8D738}">ARRAY [1..2] OF BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.magazineA22Right.inPosition</Name>
+							<Type GUID="{3D778266-9CB6-A2BC-B908-FC747FC8D738}">ARRAY [1..2] OF BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.wrapperA22.error</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.wrapperA22.ready</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.wrapperA22.busy</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.wrapperA22.home</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.wrapperA22.trayOccupied</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.suctionA22TopLeft[1].occupied</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.suctionA22TopLeft[2].occupied</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.suctionA22TopLeft[3].occupied</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.horizontalDriveA22Left.innerLimit</Name>
+							<Comment><![CDATA[replacable with homeLimit]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.horizontalDriveA22Left.home</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.horizontalDriveA22Left.outerLimit</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.horizontalDriveA22Left.axis.NcToPlc</Name>
+							<Type GUID="{10036166-C9D3-404B-BDD3-323034AAA7F4}" Namespace="MC">NCTOPLC_AXIS_REF</Type>
+						</Var>
+						<Var>
+							<Name>A22.horizontalDriveA22Right.innerLimit</Name>
+							<Comment><![CDATA[replacable with homeLimit]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.horizontalDriveA22Right.home</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.horizontalDriveA22Right.outerLimit</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.horizontalDriveA22Right.axis.NcToPlc</Name>
+							<Type GUID="{10036166-C9D3-404B-BDD3-323034AAA7F4}" Namespace="MC">NCTOPLC_AXIS_REF</Type>
+						</Var>
+						<Var>
+							<Name>A22.verticalDriveA22Left.innerLimit</Name>
+							<Comment><![CDATA[replacable with homeLimit]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.verticalDriveA22Left.home</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.verticalDriveA22Left.outerLimit</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.verticalDriveA22Left.hlfb</Name>
+							<Comment><![CDATA[high level feedback, if -9999 then servo is idle]]></Comment>
+							<Type>REAL</Type>
+						</Var>
+						<Var>
+							<Name>A22.verticalDriveA22Right.innerLimit</Name>
+							<Comment><![CDATA[replacable with homeLimit]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.verticalDriveA22Right.home</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.verticalDriveA22Right.outerLimit</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.verticalDriveA22Right.hlfb</Name>
+							<Comment><![CDATA[high level feedback, if -9999 then servo is idle]]></Comment>
+							<Type>REAL</Type>
+						</Var>
+						<Var>
+							<Name>A22.insertionA22Left.contact</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.insertionA22Right.contact</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.pistonA22Bottom.extended</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.pistonA22Bottom.retracted</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.suctionA22TopRight[1].occupied</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.suctionA22TopRight[2].occupied</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.suctionA22TopRight[3].occupied</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.suctionA22BottomLeft[1].occupied</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.suctionA22BottomLeft[2].occupied</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.suctionA22BottomLeft[3].occupied</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.suctionA22BottomRight[1].occupied</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.suctionA22BottomRight[2].occupied</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.suctionA22BottomRight[3].occupied</Name>
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
@@ -1250,6 +1452,22 @@ External Setpoint Generation:
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
+							<Name>A21.toolStorageA21Left.pos1ChipboardEOAT</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A21.toolStorageA21Left.pos1WoodBunkEOAT</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A21.toolStorageA21Left.pos2ChipboardEOAT</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A21.toolStorageA21Left.pos2WoodBunkEOAT</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
 							<Name>A21.toolStorageA21Right.pos1ChipboardEOAT</Name>
 							<Type>BOOL</Type>
 						</Var>
@@ -1263,14 +1481,6 @@ External Setpoint Generation:
 						</Var>
 						<Var>
 							<Name>A21.toolStorageA21Right.pos2WoodBunkEOAT</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A21.suctionA21Bottom[1].occupied</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A21.suctionA21Bottom[2].occupied</Name>
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
@@ -1422,6 +1632,14 @@ External Setpoint Generation:
 						</Var>
 						<Var>
 							<Name>A21.suctionA21Right[4].occupied</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A21.suctionA21Bottom[1].occupied</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A21.suctionA21Bottom[2].occupied</Name>
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
@@ -1889,284 +2107,6 @@ External Setpoint Generation:
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
-							<Name>A22.A22_SC_C15.error</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.A22_SC_C15.position</Name>
-							<Type>REAL</Type>
-						</Var>
-						<Var>
-							<Name>A22.A22_SC_C15.velocity</Name>
-							<Type>REAL</Type>
-						</Var>
-						<Var>
-							<Name>A22.A22_SC_C15.sensorEntry</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.A22_SC_C15.sensorExit</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.A22_LSC_C16.error</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.A22_LSC_C16.position</Name>
-							<Type>REAL</Type>
-						</Var>
-						<Var>
-							<Name>A22.A22_LSC_C16.velocity</Name>
-							<Type>REAL</Type>
-						</Var>
-						<Var>
-							<Name>A22.A22_LSC_C16.sensorEntry</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.A22_LSC_C16.sensorExit</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.A22_LSC_C16.lifterError</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.A22_LSC_C16.extended</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.A22_LSC_C16.retracted</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.A22_LSC_C17.error</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.A22_LSC_C17.position</Name>
-							<Type>REAL</Type>
-						</Var>
-						<Var>
-							<Name>A22.A22_LSC_C17.velocity</Name>
-							<Type>REAL</Type>
-						</Var>
-						<Var>
-							<Name>A22.A22_LSC_C17.sensorEntry</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.A22_LSC_C17.sensorExit</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.A22_LSC_C17.lifterError</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.A22_LSC_C17.extended</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.A22_LSC_C17.retracted</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.benderA22Left.ready</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.benderA22Left.busy</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.benderA22Left.done</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.benderA22Left.error</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.suctionA22Bottom[1].occupied</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.suctionA22Bottom[2].occupied</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.skidA22Left.inPosition</Name>
-							<Type GUID="{3D778266-9CB6-A2BC-B908-FC747FC8D738}">ARRAY [1..2] OF BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.skidA22Right.inPosition</Name>
-							<Type GUID="{3D778266-9CB6-A2BC-B908-FC747FC8D738}">ARRAY [1..2] OF BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.magazineA22Left.inPosition</Name>
-							<Type GUID="{3D778266-9CB6-A2BC-B908-FC747FC8D738}">ARRAY [1..2] OF BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.magazineA22Right.inPosition</Name>
-							<Type GUID="{3D778266-9CB6-A2BC-B908-FC747FC8D738}">ARRAY [1..2] OF BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.wrapperA22.error</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.wrapperA22.ready</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.wrapperA22.busy</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.wrapperA22.home</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.wrapperA22.trayOccupied</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.suctionA22TopLeft[1].occupied</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.suctionA22TopLeft[2].occupied</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.suctionA22TopLeft[3].occupied</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.horizontalDriveA22Left.innerLimit</Name>
-							<Comment><![CDATA[replacable with homeLimit]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.horizontalDriveA22Left.home</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.horizontalDriveA22Left.outerLimit</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.horizontalDriveA22Left.axis.NcToPlc</Name>
-							<Type GUID="{10036166-C9D3-404B-BDD3-323034AAA7F4}" Namespace="MC">NCTOPLC_AXIS_REF</Type>
-						</Var>
-						<Var>
-							<Name>A22.horizontalDriveA22Right.innerLimit</Name>
-							<Comment><![CDATA[replacable with homeLimit]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.horizontalDriveA22Right.home</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.horizontalDriveA22Right.outerLimit</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.horizontalDriveA22Right.axis.NcToPlc</Name>
-							<Type GUID="{10036166-C9D3-404B-BDD3-323034AAA7F4}" Namespace="MC">NCTOPLC_AXIS_REF</Type>
-						</Var>
-						<Var>
-							<Name>A22.verticalDriveA22Left.innerLimit</Name>
-							<Comment><![CDATA[replacable with homeLimit]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.verticalDriveA22Left.home</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.verticalDriveA22Left.outerLimit</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.verticalDriveA22Left.hlfb</Name>
-							<Comment><![CDATA[high level feedback, if -9999 then servo is idle]]></Comment>
-							<Type>REAL</Type>
-						</Var>
-						<Var>
-							<Name>A22.verticalDriveA22Right.innerLimit</Name>
-							<Comment><![CDATA[replacable with homeLimit]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.verticalDriveA22Right.home</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.verticalDriveA22Right.outerLimit</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.verticalDriveA22Right.hlfb</Name>
-							<Comment><![CDATA[high level feedback, if -9999 then servo is idle]]></Comment>
-							<Type>REAL</Type>
-						</Var>
-						<Var>
-							<Name>A22.insertionA22Left.contact</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.insertionA22Right.contact</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.pistonA22Bottom.extended</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.pistonA22Bottom.retracted</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.suctionA22TopRight[1].occupied</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.suctionA22TopRight[2].occupied</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.suctionA22TopRight[3].occupied</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.suctionA22BottomLeft[1].occupied</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.suctionA22BottomLeft[2].occupied</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.suctionA22BottomLeft[3].occupied</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.suctionA22BottomRight[1].occupied</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.suctionA22BottomRight[2].occupied</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.suctionA22BottomRight[3].occupied</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
 							<Name>A25.A25_SC_C22.error</Name>
 							<Type>BOOL</Type>
 						</Var>
@@ -2554,72 +2494,281 @@ External Setpoint Generation:
 							<Name>A25.A25_SC_C38.sensorExit</Name>
 							<Type>BOOL</Type>
 						</Var>
+						<Var>
+							<Name>A26.robot7.inputs</Name>
+							<Type GUID="{0CC845D8-9BA1-18CF-F192-2496916AED96}">ARRAY [1..20] OF WORD</Type>
+						</Var>
+						<Var>
+							<Name>A26.robot7.offline</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A26.robot7.toggleBit</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.robot3.inputs</Name>
+							<Type GUID="{0CC845D8-9BA1-18CF-F192-2496916AED96}">ARRAY [1..20] OF WORD</Type>
+						</Var>
+						<Var>
+							<Name>A22.robot3.offline</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.robot3.toggleBit</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.robot4.inputs</Name>
+							<Type GUID="{0CC845D8-9BA1-18CF-F192-2496916AED96}">ARRAY [1..20] OF WORD</Type>
+						</Var>
+						<Var>
+							<Name>A22.robot4.offline</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.robot4.toggleBit</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A21.robot1.inputs</Name>
+							<Type GUID="{0CC845D8-9BA1-18CF-F192-2496916AED96}">ARRAY [1..20] OF WORD</Type>
+						</Var>
+						<Var>
+							<Name>A21.robot1.offline</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A21.robot1.toggleBit</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A21.robot2.inputs</Name>
+							<Type GUID="{0CC845D8-9BA1-18CF-F192-2496916AED96}">ARRAY [1..20] OF WORD</Type>
+						</Var>
+						<Var>
+							<Name>A21.robot2.offline</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A21.robot2.toggleBit</Name>
+							<Type>BOOL</Type>
+						</Var>
 					</Vars>
 					<Vars VarGrpType="2" AreaNo="1">
 						<Name>PlcTask Outputs</Name>
 						<Var>
-							<Name>A26.robot7.forceStop</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A26.robot7.resetSignal</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A26.robot7.outputs</Name>
-							<Type GUID="{FCDAFB1E-2CF0-0830-625A-4C0917D98604}">ARRAY [1..50] OF WORD</Type>
-						</Var>
-						<Var>
-							<Name>A22.robot3.forceStop</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.robot3.resetSignal</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.robot3.outputs</Name>
-							<Type GUID="{FCDAFB1E-2CF0-0830-625A-4C0917D98604}">ARRAY [1..50] OF WORD</Type>
-						</Var>
-						<Var>
-							<Name>A22.robot4.forceStop</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.robot4.resetSignal</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.robot4.outputs</Name>
-							<Type GUID="{FCDAFB1E-2CF0-0830-625A-4C0917D98604}">ARRAY [1..50] OF WORD</Type>
-						</Var>
-						<Var>
-							<Name>A21.robot1.forceStop</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A21.robot1.resetSignal</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A21.robot1.outputs</Name>
-							<Type GUID="{FCDAFB1E-2CF0-0830-625A-4C0917D98604}">ARRAY [1..50] OF WORD</Type>
-						</Var>
-						<Var>
-							<Name>A21.robot2.forceStop</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A21.robot2.resetSignal</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A21.robot2.outputs</Name>
-							<Type GUID="{FCDAFB1E-2CF0-0830-625A-4C0917D98604}">ARRAY [1..50] OF WORD</Type>
-						</Var>
-						<Var>
 							<Name>A26.robotSliderA26.axis.PlcToNc</Name>
 							<Type GUID="{63A84524-72E3-41C8-BEAB-4CCE44690A13}" Namespace="MC">PLCTONC_AXIS_REF</Type>
+						</Var>
+						<Var>
+							<Name>A22.A22_SC_C15.enable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.A22_SC_C15.direction</Name>
+							<Comment><![CDATA[FALSE = forward, TRUE = backward]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.A22_SC_C15.pulse</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.A22_SC_C15.reset</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.A22_LSC_C16.enable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.A22_LSC_C16.direction</Name>
+							<Comment><![CDATA[FALSE = forward, TRUE = backward]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.A22_LSC_C16.pulse</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.A22_LSC_C16.reset</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.A22_LSC_C16.lifterEnable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.A22_LSC_C16.lifterDirection</Name>
+							<Comment><![CDATA[FALSE = up, TRUE = down]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.A22_LSC_C16.lifterPulse</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.A22_LSC_C16.lifterReset</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.A22_LSC_C17.enable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.A22_LSC_C17.direction</Name>
+							<Comment><![CDATA[FALSE = forward, TRUE = backward]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.A22_LSC_C17.pulse</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.A22_LSC_C17.reset</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.A22_LSC_C17.lifterEnable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.A22_LSC_C17.lifterDirection</Name>
+							<Comment><![CDATA[FALSE = up, TRUE = down]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.A22_LSC_C17.lifterPulse</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.A22_LSC_C17.lifterReset</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.benderA22Left.enable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.benderA22Left.foldPos0</Name>
+							<Type>REAL</Type>
+						</Var>
+						<Var>
+							<Name>A22.benderA22Left.foldPos1</Name>
+							<Type>REAL</Type>
+						</Var>
+						<Var>
+							<Name>A22.suctionA22Bottom[1].enable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.suctionA22Bottom[2].enable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.wrapperA22.rotations</Name>
+							<Type>INT</Type>
+						</Var>
+						<Var>
+							<Name>A22.wrapperA22.execute</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.wrapperA22.enable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.wrapperA22.reset</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.suctionA22TopLeft[1].enable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.suctionA22TopLeft[2].enable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.suctionA22TopLeft[3].enable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.horizontalDriveA22Left.axis.PlcToNc</Name>
+							<Type GUID="{63A84524-72E3-41C8-BEAB-4CCE44690A13}" Namespace="MC">PLCTONC_AXIS_REF</Type>
+						</Var>
+						<Var>
+							<Name>A22.horizontalDriveA22Right.axis.PlcToNc</Name>
+							<Type GUID="{63A84524-72E3-41C8-BEAB-4CCE44690A13}" Namespace="MC">PLCTONC_AXIS_REF</Type>
+						</Var>
+						<Var>
+							<Name>A22.verticalDriveA22Left.pulse</Name>
+							<Type>INT</Type>
+						</Var>
+						<Var>
+							<Name>A22.verticalDriveA22Left.brakeRelease</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.verticalDriveA22Left.outputRegister</Name>
+							<Type>INT</Type>
+						</Var>
+						<Var>
+							<Name>A22.verticalDriveA22Right.pulse</Name>
+							<Type>INT</Type>
+						</Var>
+						<Var>
+							<Name>A22.verticalDriveA22Right.brakeRelease</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.verticalDriveA22Right.outputRegister</Name>
+							<Type>INT</Type>
+						</Var>
+						<Var>
+							<Name>A22.pistonA22Bottom.pistonExtend</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.pistonA22Bottom.pistonRetract</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.suctionA22TopRight[1].enable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.suctionA22TopRight[2].enable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.suctionA22TopRight[3].enable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.suctionA22BottomLeft[1].enable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.suctionA22BottomLeft[2].enable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.suctionA22BottomLeft[3].enable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.suctionA22BottomRight[1].enable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.suctionA22BottomRight[2].enable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.suctionA22BottomRight[3].enable</Name>
+							<Type>BOOL</Type>
 						</Var>
 						<Var>
 							<Name>A21.A21_SC_C18.enable</Name>
@@ -2741,14 +2890,6 @@ External Setpoint Generation:
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
-							<Name>A21.suctionA21Bottom[1].enable</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A21.suctionA21Bottom[2].enable</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
 							<Name>A21.strapperA21.enable</Name>
 							<Type>BOOL</Type>
 						</Var>
@@ -2850,6 +2991,14 @@ External Setpoint Generation:
 						</Var>
 						<Var>
 							<Name>A21.suctionA21Right[4].enable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A21.suctionA21Bottom[1].enable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A21.suctionA21Bottom[2].enable</Name>
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
@@ -3226,215 +3375,6 @@ External Setpoint Generation:
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
-							<Name>A22.A22_SC_C15.enable</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.A22_SC_C15.direction</Name>
-							<Comment><![CDATA[FALSE = forward, TRUE = backward]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.A22_SC_C15.pulse</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.A22_SC_C15.reset</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.A22_LSC_C16.enable</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.A22_LSC_C16.direction</Name>
-							<Comment><![CDATA[FALSE = forward, TRUE = backward]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.A22_LSC_C16.pulse</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.A22_LSC_C16.reset</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.A22_LSC_C16.lifterEnable</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.A22_LSC_C16.lifterDirection</Name>
-							<Comment><![CDATA[FALSE = up, TRUE = down]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.A22_LSC_C16.lifterPulse</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.A22_LSC_C16.lifterReset</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.A22_LSC_C17.enable</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.A22_LSC_C17.direction</Name>
-							<Comment><![CDATA[FALSE = forward, TRUE = backward]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.A22_LSC_C17.pulse</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.A22_LSC_C17.reset</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.A22_LSC_C17.lifterEnable</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.A22_LSC_C17.lifterDirection</Name>
-							<Comment><![CDATA[FALSE = up, TRUE = down]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.A22_LSC_C17.lifterPulse</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.A22_LSC_C17.lifterReset</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.benderA22Left.enable</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.benderA22Left.foldPos0</Name>
-							<Type>REAL</Type>
-						</Var>
-						<Var>
-							<Name>A22.benderA22Left.foldPos1</Name>
-							<Type>REAL</Type>
-						</Var>
-						<Var>
-							<Name>A22.suctionA22Bottom[1].enable</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.suctionA22Bottom[2].enable</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.wrapperA22.rotations</Name>
-							<Type>INT</Type>
-						</Var>
-						<Var>
-							<Name>A22.wrapperA22.execute</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.wrapperA22.enable</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.wrapperA22.reset</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.suctionA22TopLeft[1].enable</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.suctionA22TopLeft[2].enable</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.suctionA22TopLeft[3].enable</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.horizontalDriveA22Left.axis.PlcToNc</Name>
-							<Type GUID="{63A84524-72E3-41C8-BEAB-4CCE44690A13}" Namespace="MC">PLCTONC_AXIS_REF</Type>
-						</Var>
-						<Var>
-							<Name>A22.horizontalDriveA22Right.axis.PlcToNc</Name>
-							<Type GUID="{63A84524-72E3-41C8-BEAB-4CCE44690A13}" Namespace="MC">PLCTONC_AXIS_REF</Type>
-						</Var>
-						<Var>
-							<Name>A22.verticalDriveA22Left.pulse</Name>
-							<Type>INT</Type>
-						</Var>
-						<Var>
-							<Name>A22.verticalDriveA22Left.brakeRelease</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.verticalDriveA22Left.outputRegister</Name>
-							<Type>INT</Type>
-						</Var>
-						<Var>
-							<Name>A22.verticalDriveA22Right.pulse</Name>
-							<Type>INT</Type>
-						</Var>
-						<Var>
-							<Name>A22.verticalDriveA22Right.brakeRelease</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.verticalDriveA22Right.outputRegister</Name>
-							<Type>INT</Type>
-						</Var>
-						<Var>
-							<Name>A22.pistonA22Bottom.pistonExtend</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.pistonA22Bottom.pistonRetract</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.suctionA22TopRight[1].enable</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.suctionA22TopRight[2].enable</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.suctionA22TopRight[3].enable</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.suctionA22BottomLeft[1].enable</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.suctionA22BottomLeft[2].enable</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.suctionA22BottomLeft[3].enable</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.suctionA22BottomRight[1].enable</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.suctionA22BottomRight[2].enable</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>A22.suctionA22BottomRight[3].enable</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
 							<Name>A25.A25_SC_C22.enable</Name>
 							<Type>BOOL</Type>
 						</Var>
@@ -3790,6 +3730,66 @@ External Setpoint Generation:
 						<Var>
 							<Name>A25.A25_SC_C38.reset</Name>
 							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A26.robot7.forceStop</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A26.robot7.resetSignal</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A26.robot7.outputs</Name>
+							<Type GUID="{FCDAFB1E-2CF0-0830-625A-4C0917D98604}">ARRAY [1..50] OF WORD</Type>
+						</Var>
+						<Var>
+							<Name>A22.robot3.forceStop</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.robot3.resetSignal</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.robot3.outputs</Name>
+							<Type GUID="{FCDAFB1E-2CF0-0830-625A-4C0917D98604}">ARRAY [1..50] OF WORD</Type>
+						</Var>
+						<Var>
+							<Name>A22.robot4.forceStop</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.robot4.resetSignal</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A22.robot4.outputs</Name>
+							<Type GUID="{FCDAFB1E-2CF0-0830-625A-4C0917D98604}">ARRAY [1..50] OF WORD</Type>
+						</Var>
+						<Var>
+							<Name>A21.robot1.forceStop</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A21.robot1.resetSignal</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A21.robot1.outputs</Name>
+							<Type GUID="{FCDAFB1E-2CF0-0830-625A-4C0917D98604}">ARRAY [1..50] OF WORD</Type>
+						</Var>
+						<Var>
+							<Name>A21.robot2.forceStop</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A21.robot2.resetSignal</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>A21.robot2.outputs</Name>
+							<Type GUID="{FCDAFB1E-2CF0-0830-625A-4C0917D98604}">ARRAY [1..50] OF WORD</Type>
 						</Var>
 					</Vars>
 					<Contexts>

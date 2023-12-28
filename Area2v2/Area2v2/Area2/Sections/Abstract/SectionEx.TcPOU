@@ -168,7 +168,7 @@ VAR_INPUT
 END_VAR
 //returns true conveyorRef is in range of target]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF InRange(conveyorRef - Consts.precisionTolerance, conveyorRef + Consts.precisionTolerance, target, EXCLUSIVE) THEN
+        <ST><![CDATA[IF InRange(conveyorRef - CONSTS.precisionTolerance, conveyorRef + CONSTS.precisionTolerance, target, EXCLUSIVE) THEN
 	directionCheckAndSet := TRUE;
 	
 ELSIF conveyorRef > target THEN

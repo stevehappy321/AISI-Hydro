@@ -32,7 +32,7 @@ VAR
 END_VAR
 VAR //bundle data
 	demoHeight : REAL := 640; //mm
-	materialsArr : (*REFERENCE TO*) ARRAY[0..Consts.maxPairs] OF PositionMaterials;
+	materialsArr : (*REFERENCE TO*) ARRAY[0..CONSTS.maxPairs] OF PositionMaterials;
 END_VAR
 VAR
 	//AOIs encapsulate functionality and reduce the number of module variables
@@ -2422,7 +2422,7 @@ VAR
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[{warning disable C0371}
-IF iPair >= Consts.maxPairs THEN
+IF iPair >= CONSTS.maxPairs THEN
 	process := TRUE;
 	RETURN;
 ELSIF NOT PositionIsValid(pair := currentPair) THEN

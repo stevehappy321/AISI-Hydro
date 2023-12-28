@@ -29,14 +29,14 @@ robots should always be reserved before sending a task
 *)]]></Declaration>
     <Implementation>
       <ST><![CDATA[heartbeat(
-	enable := NOT offline,
+	enable:= NOT offline,
 	toggleBit:= toggleBit,
 	timeoutWidth:= T#200MS,
 	timeout=> );
 
-error := offline OR heartbeat.timeout; //add any addition conditions with OR
-
-]]></ST>
+error := //add any addition conditions with OR
+	offline OR
+	heartbeat.timeout; ]]></ST>
     </Implementation>
     <Folder Name="Properties" Id="{8ffe1e39-61c1-4398-8ddf-38564de07f51}" />
     <Property Name="Busy" Id="{152763dc-c4e3-4017-bc80-d712b47856e1}" FolderPath="Properties\">
@@ -217,8 +217,8 @@ outputs[group] := value;]]></ST>
       </Implementation>
     </Method>
     <LineIds Name="KukaRobot">
-      <LineId Id="251" Count="7" />
-      <LineId Id="186" Count="0" />
+      <LineId Id="251" Count="6" />
+      <LineId Id="283" Count="1" />
     </LineIds>
     <LineIds Name="KukaRobot.Busy.Get">
       <LineId Id="2" Count="0" />

@@ -25,8 +25,11 @@ END_VAR
 VAR
 	//spacersPresent : ARRAY[1..6] OF BOOL;
 	
-	step : (IDLE, PICK_SPACER, COMPLETE);
+	step : (IDLE, SLIDE, PICK_SPACER, COMPLETE);
 	iPosition : INT;
+END_VAR
+VAR
+	pos1, pos2, pos3 : LREAL;
 END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[ready := step = 0;

@@ -33,14 +33,14 @@ VAR
 	receiverStruct : AdsData;
 	
 	//ETA is not strictly required, area will process bundle even if it is not in ETA arrays
-	expectedBundles : ARRAY[0..Consts.maxQueue] OF STRING; //bundles expected to arrive
-	expectedArrivals : ARRAY[0..Consts.maxQueue] OF TIMESTRUCT; //bundles expected to arrive
+	expectedBundles : ARRAY[0..CONSTS.maxQueue] OF STRING; //bundles expected to arrive
+	expectedArrivals : ARRAY[0..CONSTS.maxQueue] OF TIMESTRUCT; //bundles expected to arrive
 	numEtaBundles : INT;
 	
 	//parallel arrays - bundle, bypass
 	numBundles : INT;
-	bundlesQueue : ARRAY[0..Consts.maxQueue] OF Bundle;
-	bundlesBypass : ARRAY[0..Consts.maxQueue] OF BOOL;
+	bundlesQueue : ARRAY[0..CONSTS.maxQueue] OF Bundle;
+	bundlesBypass : ARRAY[0..CONSTS.maxQueue] OF BOOL;
 END_VAR
 VAR //sections
 	spacerRecollector : SpacerRecollectionUnit;
@@ -226,7 +226,7 @@ END_VAR
 ]]></Declaration>
       <Implementation>
         <ST><![CDATA[IF NOT start THEN //for HMI testing only, remove for production
-	FOR i:=0 TO Consts.maxQueue BY 1 DO
+	FOR i:=0 TO CONSTS.maxQueue BY 1 DO
 		bundlesQueue[i].id := TO_STRING(i);
 	END_FOR
 	
@@ -586,7 +586,7 @@ VAR
 	invalidBundle : Bundle;
 END_VAR]]></Declaration>
       <Implementation>
-        <ST><![CDATA[FOR i:=0 TO Consts.maxQueue BY 1 DO //find the bundle in the ETA queue
+        <ST><![CDATA[FOR i:=0 TO CONSTS.maxQueue BY 1 DO //find the bundle in the ETA queue
 	IF expectedBundles[i] = bundleIn.id THEN
 		shiftIndex := i;
 		EXIT;
@@ -597,17 +597,17 @@ IF shiftIndex > -1 THEN //if the bundle is found in the ETA queue, shift everyth
 	MEMMOVE(
 		ADR(expectedBundles[shiftIndex]), 
 		ADR(expectedBundles[shiftIndex + 1]), 
-		SIZEOF(STRING) * TO_UINT(Consts.maxQueue - shiftIndex));
+		SIZEOF(STRING) * TO_UINT(CONSTS.maxQueue - shiftIndex));
 		
 	MEMMOVE(
 		ADR(expectedArrivals[shiftIndex]), 
 		ADR(expectedArrivals[shiftIndex + 1]), 
-		SIZEOF(TIMESTRUCT) * TO_UINT(Consts.maxQueue - shiftIndex) );
+		SIZEOF(TIMESTRUCT) * TO_UINT(CONSTS.maxQueue - shiftIndex) );
 		
 	numEtaBundles := numEtaBundles - 1;
 END_IF
 
-FOR i:=0 TO Consts.maxQueue BY 1 DO
+FOR i:=0 TO CONSTS.maxQueue BY 1 DO
 	IF BundleIsValid(bundlesQueue[i]) AND NOT bundlesBypass[i] THEN
 		bundlesQueue[i] := bundleIn;
 		bundlesBypass[i] := FALSE;
@@ -763,8 +763,8 @@ VAR_INPUT
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[//shift down parallel arrays
-MEMMOVE(ADR(bundlesQueue[0]), ADR(bundlesQueue[1]), SIZEOF(Bundle) * TO_UINT(Consts.maxQueue));
-MEMMOVE(ADR(bundlesBypass[0]), ADR(bundlesBypass[1]), SIZEOF(BOOL) * TO_UINT(Consts.maxQueue));
+MEMMOVE(ADR(bundlesQueue[0]), ADR(bundlesQueue[1]), SIZEOF(Bundle) * TO_UINT(CONSTS.maxQueue));
+MEMMOVE(ADR(bundlesBypass[0]), ADR(bundlesBypass[1]), SIZEOF(BOOL) * TO_UINT(CONSTS.maxQueue));
 
 //decrement each section's iterator to realign with their correct bundle
 //paperSection.shiftIterator();

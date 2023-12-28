@@ -3,7 +3,7 @@
   <POU Name="IntQueue" Id="{b88eabe4-fa96-488a-9c59-79d0926b2421}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK IntQueue EXTENDS Queue
 VAR
-	elements : FB_BA_DynamicArray := (uiEntrySize := SIZEOF(INT), uiMinExpCount := Consts.initArraySize);
+	elements : FB_BA_DynamicArray := (uiEntrySize := SIZEOF(INT), uiMinExpCount := CONSTS.initArraySize);
 	//length : USINT := 0;
 END_VAR
 ]]></Declaration>

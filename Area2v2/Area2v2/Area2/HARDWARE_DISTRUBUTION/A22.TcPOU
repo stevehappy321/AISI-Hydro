@@ -5,8 +5,8 @@
 VAR_IN_OUT
 	sectionCC : CardboardEx;
 	
-	bundlesQueue : ARRAY[0..Consts.maxQueue] OF Bundle;
-	bundlesBypass : ARRAY[0..Consts.maxQueue] OF BOOL;
+	bundlesQueue : ARRAY[0..CONSTS.maxQueue] OF Bundle;
+	bundlesBypass : ARRAY[0..CONSTS.maxQueue] OF BOOL;
 END_VAR
 VAR_OUTPUT //conveyors only
 	A22_SC_C15 		: ConveyorSC;
@@ -1017,7 +1017,7 @@ END_FOR
 
 //--------------------------------------------------
 
-FOR i:=1 TO Consts.maxQueue BY 1 DO //get corner guard magazine + cardboard skid availability from robot3 and robot4
+FOR i:=1 TO CONSTS.maxQueue BY 1 DO //get corner guard magazine + cardboard skid availability from robot3 and robot4
 	{warning disable C0195}
 	skidA22Left.setOccupancy( i := i, occupancy := IntegerBitAccess(robot3.inputs[4], i-1) );
 	skidA22Right.setOccupancy( i := i, occupancy := IntegerBitAccess(robot4.inputs[4], i-1) );

@@ -6,7 +6,7 @@ VAR_INPUT
 	
 END_VAR
 VAR
-	elements : FB_BA_DynamicArray := (uiEntrySize := SIZEOF(PVOID), uiMinExpCount := Consts.initArraySize);
+	elements : FB_BA_DynamicArray := (uiEntrySize := SIZEOF(PVOID), uiMinExpCount := CONSTS.initArraySize);
 	//length : USINT := 0;
 END_VAR
 ]]></Declaration>

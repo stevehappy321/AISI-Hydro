@@ -4,7 +4,7 @@
     <Declaration><![CDATA[{attribute 'call_after_init'}
 FUNCTION_BLOCK AdsDataQueue
 VAR
-	elements : FB_BA_DynamicArray := (uiEntrySize := SIZEOF(POINTER TO AdsData), uiMinExpCount := Consts.initArraySize); 
+	elements : FB_BA_DynamicArray := (uiEntrySize := SIZEOF(POINTER TO AdsData), uiMinExpCount := CONSTS.initArraySize); 
 	length : INT := 0;
 	
 	entrySize : UDINT;

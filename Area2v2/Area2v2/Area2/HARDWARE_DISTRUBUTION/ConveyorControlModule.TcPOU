@@ -71,7 +71,7 @@ IF
 	spoolTimer.Q //ready to spool
 THEN
 	//spool up conveyor
-	i := (i + 1) MOD (Consts.numCellConveyors + 1) + 1;
+	i := (i + 1) MOD (CONSTS.numCellConveyors + 1) + 1;
 	spoolTimer.IN := FALSE;
 END_IF]]></ST>
     </Implementation>
@@ -91,7 +91,7 @@ link interation method
 slower, but will correctly set all operations every cycle
 *)]]></Declaration>
       <Implementation>
-        <ST><![CDATA[FOR i:=1 TO Consts.numCellConveyors BY 1 DO
+        <ST><![CDATA[FOR i:=1 TO CONSTS.numCellConveyors BY 1 DO
 	IF conveyorsArr[i]^.IsOccupied THEN
 		
 		IF linkStart = -1 THEN

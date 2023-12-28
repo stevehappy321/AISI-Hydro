@@ -3,8 +3,8 @@
   <POU Name="DynamicQueue" Id="{e7bca9f7-e2c1-41e8-9e98-f6a9133845a3}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK DynamicQueue
 VAR
-	elements : FB_BA_DynamicArray := (uiEntrySize := SIZEOF(POINTER TO BYTE), uiMinExpCount := Consts.initArraySize); 
-	elementSizes : FB_BA_DynamicArray := (uiEntrySize := SIZEOF(LINT), uiMinExpCount := Consts.initArraySize);
+	elements : FB_BA_DynamicArray := (uiEntrySize := SIZEOF(POINTER TO BYTE), uiMinExpCount := CONSTS.initArraySize); 
+	elementSizes : FB_BA_DynamicArray := (uiEntrySize := SIZEOF(LINT), uiMinExpCount := CONSTS.initArraySize);
 	length : INT := 0;
 END_VAR
 (*

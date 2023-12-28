@@ -3,7 +3,7 @@
   <POU Name="StringQueue" Id="{d0805259-a10e-466f-82e5-5e0980abf977}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK StringQueue EXTENDS Queue
 VAR
-	elements : FB_BA_DynamicArray := (uiEntrySize := SIZEOF(STRING), uiMinExpCount := Consts.initArraySize);
+	elements : FB_BA_DynamicArray := (uiEntrySize := SIZEOF(STRING), uiMinExpCount := CONSTS.initArraySize);
 	//length : USINT := 0;
 END_VAR
 ]]></Declaration>
