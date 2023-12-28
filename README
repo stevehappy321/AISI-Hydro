@@ -11,4 +11,7 @@ Area2v2
 -each subarea module is responsible for cyclically calling its own hardware and section modules
 -master logic is retained in MAIN
 
+Area2v2a
+-moved conveyors to ConveyorSyncUnit as VAR_OUTPUTs, allowing any subarea/section to access them
+
 the section modules between both versions should be identical and transferable as is
