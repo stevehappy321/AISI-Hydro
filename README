@@ -1,17 +1,19 @@
 Area2
--renewed attempt at reintegration of section modules into the master project
--wood bunk and [incomplete] chipboard modules reintegrated and added to Section heirarchy
+-reintegration of section modules into the master project
+-wood bunk and [incomplete] chipboard modules reintegrated and added to SectionEx heirarchy
 -separated hardware GVL into 5 GVLs (1 for each subarea)
 
 
 Area2v2
 -section modules declared in MAIN
 -hardware modules moved out of GVLs into Subarea PROGRAM modules
+  *A21 - A26
 -section modules are passed to subarea modules to be assigned hardware and called cyclically
 -each subarea module is responsible for cyclically calling its own hardware and section modules
 -master logic is retained in MAIN
 
 Area2v2a
--moved conveyors to ConveyorSyncUnit as VAR_OUTPUTs, allowing any subarea/section to access them
+-moved conveyors to ConveyorSyncUnit as VAR_OUTPUTs
+  *conveyors are no longer tied to any particular subarea, any subarea can access them
 
 the section modules between both versions should be identical and transferable as is
