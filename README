@@ -3,7 +3,7 @@ Area 2 - Documentation
 
 Area2
 -reintegration of section modules into the master project
--wood bunk and [incomplete] chipboard modules reintegrated and added to SectionEx heirarchy
+-wood bunk and [incomplete] chipboard modules reintegrated and added to SectionEx hierarchy
 -separated hardware GVL into 5 GVLs (1 for each subarea)
 
 
@@ -19,4 +19,4 @@ Area2v2a
 -moved conveyors to ConveyorSyncUnit as VAR_OUTPUTs
   *conveyors are no longer tied to any particular subarea, any subarea can access them
 
-the section modules between both versions should be identical and transferable as is
+section modules may contain minor changes between versions
