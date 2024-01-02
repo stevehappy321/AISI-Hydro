@@ -2,23 +2,30 @@
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
   <POU Name="KukaRobot" Id="{60b8c04d-38ba-483d-baa2-feca47e063a5}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK KukaRobot
+VAR_INPUT
+	bEnable : BOOL; //this enables the robot
+	abort : BOOL; //this disables the robot
+	//bEnable must be TRUE and abort must be FALSE for the robot to function
+END_VAR
 VAR_OUTPUT
+	(*
 	forceStop AT %Q* : BOOL;
 	resetSignal AT %Q* : BOOL;
+	*)
 	
-	reservation : INT := SectionEnum.NULL_SECTION;
+	reservation : INT := 0;
 	
 	error : BOOL;
 	errId : DINT;
 	
-	outputs AT %Q* : ARRAY[1..50] OF WORD;
+	outputs AT %Q* : ARRAY[1..20] OF WORD;
 	inputs AT %I* : ARRAY[1..20] OF WORD;
 END_VAR
 VAR
 	heartbeat : Watchdog;
 	
-	offline AT %I* : BOOL;
-	toggleBit AT %I* : BOOL;
+	toggleBit AT %I* : BOOL; //check connection from PLC to bridge
+	disconnected AT %I* : BOOL; //check connection from bridge to robot
 	
 	hmiReservation : STRING;
 END_VAR
@@ -29,14 +36,18 @@ robots should always be reserved before sending a task
 *)]]></Declaration>
     <Implementation>
       <ST><![CDATA[heartbeat(
-	enable:= NOT offline,
+	enable:= NOT disconnected,
 	toggleBit:= toggleBit,
 	timeoutWidth:= T#200MS,
 	timeout=> );
 
 error := //add any addition conditions with OR
-	offline OR
-	heartbeat.timeout; ]]></ST>
+	disconnected OR
+	heartbeat.timeout;
+	
+IF (*NOT bEnable OR*) abort THEN //bEnable is not used for now, but abort is
+	stop();
+END_IF]]></ST>
     </Implementation>
     <Folder Name="Properties" Id="{8ffe1e39-61c1-4398-8ddf-38564de07f51}" />
     <Property Name="Busy" Id="{152763dc-c4e3-4017-bc80-d712b47856e1}" FolderPath="Properties\">
@@ -75,51 +86,6 @@ END_VAR
         </Implementation>
       </Get>
     </Property>
-    <Method Name="eStop" Id="{9d09e203-8c3b-40f7-893c-e33c2349a4ff}">
-      <Declaration><![CDATA[METHOD eStop : BOOL
-VAR_INPUT
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[forceStop := TRUE;
-eStop := TRUE;]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="fullCommand" Id="{4580bd0b-7468-4f0a-8a12-9d7d084c177b}">
-      <Declaration><![CDATA[METHOD fullCommand : BOOL
-VAR_INPUT
-	newOutputs : REFERENCE TO ARRAY[1..50] OF WORD;
-END_VAR]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[//IF NOT Busy THEN
-	//RETURN;
-//END_IF
-
-outputs := newOutputs;
-fullCommand := Done;
-
-(*
-CASE step OF
-	SEND_COMMAND: //wait 1 cycle
-		outputs := newOutputs;
-		step := WAIT;
-		
-	WAIT:
-		IF done THEN
-			(*	
-			IF NOT reset() THEN
-				RETURN;
-			END_IF
-			
-			step := 0;
-			*)
-			setCommandAndWait := TRUE;
-		END_IF
-		
-END_CASE
-*)]]></ST>
-      </Implementation>
-    </Method>
     <Property Name="Ready" Id="{9650ecd7-d852-4b27-ba50-624c1407563d}" FolderPath="Properties\">
       <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
 PROPERTY Ready : BOOL]]></Declaration>
@@ -199,7 +165,7 @@ VAR_INPUT
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[forceStop := FALSE;
+        <ST><![CDATA[//forceStop := FALSE;
 
 resume := NOT error AND errId = 0;]]></ST>
       </Implementation>
@@ -216,9 +182,21 @@ END_VAR
 outputs[group] := value;]]></ST>
       </Implementation>
     </Method>
+    <Method Name="stop" Id="{9d09e203-8c3b-40f7-893c-e33c2349a4ff}">
+      <Declaration><![CDATA[METHOD stop : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//forceStop := TRUE;
+clearCommand();
+
+stop := TRUE;]]></ST>
+      </Implementation>
+    </Method>
     <LineIds Name="KukaRobot">
-      <LineId Id="251" Count="6" />
-      <LineId Id="283" Count="1" />
+      <LineId Id="349" Count="11" />
+      <LineId Id="318" Count="0" />
     </LineIds>
     <LineIds Name="KukaRobot.Busy.Get">
       <LineId Id="2" Count="0" />
@@ -228,13 +206,6 @@ outputs[group] := value;]]></ST>
     </LineIds>
     <LineIds Name="KukaRobot.Done.Get">
       <LineId Id="2" Count="0" />
-    </LineIds>
-    <LineIds Name="KukaRobot.eStop">
-      <LineId Id="5" Count="1" />
-    </LineIds>
-    <LineIds Name="KukaRobot.fullCommand">
-      <LineId Id="138" Count="25" />
-      <LineId Id="95" Count="0" />
     </LineIds>
     <LineIds Name="KukaRobot.Ready.Get">
       <LineId Id="2" Count="0" />
@@ -271,6 +242,12 @@ outputs[group] := value;]]></ST>
     <LineIds Name="KukaRobot.setGroup">
       <LineId Id="11" Count="0" />
       <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="KukaRobot.stop">
+      <LineId Id="13" Count="0" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="14" Count="0" />
+      <LineId Id="6" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

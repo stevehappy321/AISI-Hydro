@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="AddToStringArray" Id="{62533109-713d-4adc-8713-a6fe80ca70e7}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION AddToStringArray : BOOL
+VAR_IN_OUT
+	arr : ARRAY[*] OF STRING; //must start from 0 index
+END_VAR
+VAR_INPUT
+	newString : STRING;
+END_VAR
+VAR_OUTPUT
+	numElements : DINT;
+	nextIndex : DINT;
+END_VAR
+VAR
+	i : DINT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[FOR i:=LOWER_BOUND(arr, 1) TO UPPER_BOUND(arr, 1) BY 1 DO	
+	IF arr[i] = '' THEN
+		arr[i] := newString;
+		nextIndex := i + 1;
+		AddToStringArray := TRUE;
+		EXIT;
+	END_IF
+	
+END_FOR
+
+numElements := UPPER_BOUND(arr, 1) - LOWER_BOUND(arr, 1) + 1;
+
+CleanStringsArray(arr := arr);]]></ST>
+    </Implementation>
+    <LineIds Name="AddToStringArray">
+      <LineId Id="45" Count="0" />
+      <LineId Id="48" Count="0" />
+      <LineId Id="50" Count="1" />
+      <LineId Id="53" Count="2" />
+      <LineId Id="89" Count="0" />
+      <LineId Id="56" Count="0" />
+      <LineId Id="92" Count="1" />
+      <LineId Id="88" Count="0" />
+      <LineId Id="87" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

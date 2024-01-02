@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="TypeSizeCheck" Id="{58756afd-ee77-4842-8005-9b6b1a222eca}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM TypeSizeCheck
+VAR
+	bundleSize : ULINT;
+	adsDataSize : ULINT;
+	tcpDataSize : ULINT;
+	allSectionSize : ULINT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[bundleSize := SIZEOF(Bundle);
+adsDataSize := SIZEOF(AdsData);
+tcpDataSize := SIZEOF(TcpData);
+
+allSectionSize := SIZEOF(SectionEx) * 5;]]></ST>
+    </Implementation>
+    <LineIds Name="TypeSizeCheck">
+      <LineId Id="5" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="62" Count="0" />
+      <LineId Id="61" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

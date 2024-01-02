@@ -1,12 +1,79 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
   <POU Name="A24" Id="{9825abd9-77b4-48ca-9d54-54afdff6fff9}" SpecialFunc="None">
-    <Declaration><![CDATA[PROGRAM A24
+    <Declaration><![CDATA[FUNCTION_BLOCK A24 EXTENDS GenericSubarea
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[]]></ST>
+      <ST><![CDATA[SUPER^();]]></ST>
     </Implementation>
+    <Method Name="callHardware" Id="{c8ac936c-7d12-438b-a0a6-3c27a72b6d3c}">
+      <Declaration><![CDATA[METHOD PROTECTED callHardware : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="runModules" Id="{2010770a-d99d-45d5-a371-a2a4fae79adb}">
+      <Declaration><![CDATA[METHOD PROTECTED runModules : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <NWL>
+          <XmlArchive>
+            <Data>
+              <o xml:space="preserve" t="NWLImplementationObject">
+                <v n="NetworkListComment">""</v>
+                <v n="DefaultViewMode">"Ld"</v>
+                <l2 n="NetworkList" cet="Network">
+                  <o>
+                    <v n="ILActive">false</v>
+                    <v n="FBDValid">false</v>
+                    <v n="ILValid">false</v>
+                    <l2 n="ILLines" />
+                    <v n="Comment">""</v>
+                    <v n="Title">""</v>
+                    <v n="Label">""</v>
+                    <v n="OutCommented">false</v>
+                    <l2 n="NetworkItems" />
+                    <l2 n="Connectors" />
+                    <v n="Id">5L</v>
+                  </o>
+                </l2>
+                <v n="BranchCounter">1</v>
+                <v n="ValidIds">true</v>
+              </o>
+            </Data>
+            <TypeList>
+              <Type n="Boolean">System.Boolean</Type>
+              <Type n="Int32">System.Int32</Type>
+              <Type n="Int64">System.Int64</Type>
+              <Type n="Network">{d9a99d73-b633-47db-b876-a752acb25871}</Type>
+              <Type n="NWLImplementationObject">{25e509de-33d4-4447-93f8-c9e4ea381c8b}</Type>
+              <Type n="String">System.String</Type>
+            </TypeList>
+          </XmlArchive>
+        </NWL>
+      </Implementation>
+    </Method>
+    <Method Name="setupHardware" Id="{4c5ab590-4716-4e6c-afb0-86b3c85cecc7}">
+      <Declaration><![CDATA[METHOD PROTECTED setupHardware : BOOL
+VAR
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
     <LineIds Name="A24">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="A24.callHardware">
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="A24.setupHardware">
       <LineId Id="5" Count="0" />
     </LineIds>
   </POU>

@@ -3,11 +3,11 @@
   <POU Name="SpacerRecollectionUnit" Id="{6fea2dc6-ce06-4fa1-9588-ba3bbddda180}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK SpacerRecollectionUnit //EXTENDS SectionEx
 VAR_IN_OUT
-	robot : RobotA26; //placeholder, will need another robot definition for A26
+	robot : RobotA26;
 	robotSlider : ServoNC;
 END_VAR
 VAR_INPUT
-	spacerPresent_A24_LRC_C02 : BOOL; //these conveyoors move bundles from A2.7 to A2.4
+	spacerPresent_A24_LRC_C02 : BOOL; //these conveyors move bundles from A2.7 to A2.4
 	spacerPresent_A24_LRC_C04 : BOOL;
 	spacerPresent_A24_LRC_C06 : BOOL;
 	spacerPresent_A24_LRC_C08 : BOOL;
@@ -23,13 +23,11 @@ VAR_OUTPUT
 	failCounter : INT;
 END_VAR
 VAR
-	//spacersPresent : ARRAY[1..6] OF BOOL;
-	
 	step : (IDLE, SLIDE, PICK_SPACER, COMPLETE);
 	iPosition : INT;
 END_VAR
-VAR
-	pos1, pos2 : LREAL;
+VAR //slider positions
+	pickPos1, pickPos2 : LREAL;
 	centerPos : LREAL;
 END_VAR]]></Declaration>
     <Implementation>
@@ -38,15 +36,6 @@ busy := step > 0;
 done := done;
 error := error;
 
-centerPos := (pos1 + pos2)/2;
-(*
-spacersPresent[1] := spacerPresent_A24_LRC_C02;
-spacersPresent[2] := spacerPresent_A24_LRC_C04;
-spacersPresent[3] := spacerPresent_A24_LRC_C06;
-spacersPresent[4] := spacerPresent_A24_LRC_C08;
-spacersPresent[5] := spacerPresent_A24_LRC_C10;
-spacersPresent[6] := spacerPresent_A24_LRC_C12;
-*)
 IF 
 	ConveyorSyncUnit.A24_SC_C01.IsOccupied OR
 	ConveyorSyncUnit.A24_SC_C03.IsOccupied OR
@@ -66,8 +55,6 @@ END_IF]]></ST>
     </Implementation>
     <Method Name="process" Id="{0707ef1b-9ba5-4d26-b34d-69bdd29b3450}">
       <Declaration><![CDATA[METHOD process : BOOL
-VAR_INPUT
-END_VAR
 VAR
 	spacersPresent : ARRAY[1..6] OF BOOL := [
 		spacerPresent_A24_LRC_C02,
@@ -103,8 +90,8 @@ CASE step OF
 		
 	SLIDE:
 		CASE iPosition OF
-			1,2,3:		robotSlider.moveAbsolute(newTarget := pos1);
-			4,5,6:		robotSlider.moveAbsolute(newTarget := pos2);
+			1,2,3:		robotSlider.moveAbsolute(newTarget := pickPos1);
+			4,5,6:		robotSlider.moveAbsolute(newTarget := pickPos2);
 		END_CASE
 		
 		//replace this condition with WithinTolerance() if the slider spends too long adjusting its position
@@ -142,12 +129,7 @@ END_CASE]]></ST>
     <LineIds Name="SpacerRecollectionUnit">
       <LineId Id="103" Count="2" />
       <LineId Id="101" Count="0" />
-      <LineId Id="137" Count="0" />
-      <LineId Id="136" Count="0" />
-      <LineId Id="102" Count="0" />
-      <LineId Id="76" Count="4" />
-      <LineId Id="75" Count="0" />
-      <LineId Id="74" Count="0" />
+      <LineId Id="169" Count="0" />
       <LineId Id="9" Count="0" />
       <LineId Id="30" Count="3" />
       <LineId Id="39" Count="1" />

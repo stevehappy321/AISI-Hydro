@@ -6,6 +6,14 @@ VAR_GLOBAL
 	bundleOut : Bundle; //may or may not be used?
 	
 	iecCriticalSection : FB_IecCriticalSection; //if communication is separated into their own core/task
+END_VAR
+VAR_GLOBAL //changed from PROGRAMs to global instances of FUNCTION_BLOCKs to enable inheritance
+	sa21 : A21;
+	sa22 : A22;
+	sa23 : A23;
+	sa24 : A24;
+	sa25 : A25;
+	sa26 : A26;
 END_VAR]]></Declaration>
   </GVL>
 </TcPlcObject>

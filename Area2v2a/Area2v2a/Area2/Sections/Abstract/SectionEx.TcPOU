@@ -168,7 +168,7 @@ VAR_INPUT
 END_VAR
 //returns true conveyorRef is in range of target]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF InRange(conveyorRef - CONSTS.precisionTolerance, conveyorRef + CONSTS.precisionTolerance, target, EXCLUSIVE) THEN
+        <ST><![CDATA[IF WithinTolerance(value:= conveyorRef, target:= target, tolerance:= CONSTS.precisionTolerance) THEN
 	directionCheckAndSet := TRUE;
 	
 ELSIF conveyorRef > target THEN
@@ -521,9 +521,7 @@ the implementation below can be copied to all POUs that use a PackML state machi
 the individual ps_< > methods need to be implemented for the specific application
 *)]]></Declaration>
       <Implementation>
-        <ST><![CDATA[
-
-IF ps_AbortCondition() THEN //abort condition
+        <ST><![CDATA[IF ps_AbortCondition() THEN //abort condition
 	pmlCommand := ePMLCommand_Abort;
 ELSIF ps_StopCondition() THEN //stop condition
 	pmlCommand := ePMLCommand_Stop;
@@ -853,8 +851,6 @@ unload, unstage, etc
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="SectionEx.runPmlStates">
-      <LineId Id="213" Count="0" />
-      <LineId Id="215" Count="0" />
       <LineId Id="31" Count="0" />
       <LineId Id="38" Count="0" />
       <LineId Id="40" Count="1" />

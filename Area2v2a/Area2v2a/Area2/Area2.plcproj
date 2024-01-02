@@ -146,6 +146,9 @@
     <Compile Include="DUTs\Hardware\PMLStackLight.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="DUTs\Hardware\Robots\I_Area2Robot.TcIO">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="DUTs\Hardware\Robots\KukaRobot.TcPOU">
       <SubType>Code</SubType>
     </Compile>
@@ -251,7 +254,13 @@
     <Compile Include="HardwareDistrubution\ConveyorSyncUnit.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="HardwareDistrubution\GenericSubarea.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="PlcTask.TcTTO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\EcNetwork.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\Helper Functions\Document\CreateJsonDocumentManual.TcPOU">
@@ -281,6 +290,9 @@
     <Compile Include="POUs\Helper Functions\General\TimestructToString.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="POUs\Helper Functions\Hardware Modules\CheckEcNetwork.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="POUs\Helper Functions\Hardware Modules\InsertionQuality.TcPOU">
       <SubType>Code</SubType>
     </Compile>
@@ -308,34 +320,34 @@
     <Compile Include="POUs\Helper Functions\Material Functions\MatchesMaterialType.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\Helper Functions\Other\ForceSetLifterConveyors.TcPOU">
+    <Compile Include="POUs\Helper Functions\Data Manipulation\AddToStringArray.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\Helper Functions\Other\SizeCheck.TcPOU">
+    <Compile Include="POUs\Helper Functions\Data Manipulation\ArrayContains.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\Helper Functions\Utility\AddToStringArray.TcPOU">
+    <Compile Include="POUs\Helper Functions\Data Manipulation\DataIsEmpty.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\Helper Functions\Utility\DataIsEmpty.TcPOU">
+    <Compile Include="POUs\Helper Functions\Data Manipulation\CleanStringsArray.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\Helper Functions\Utility\CleanStringsArray.TcPOU">
+    <Compile Include="POUs\Helper Functions\Data Manipulation\IntegerBitAccess.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\Helper Functions\Utility\IntegerBitAccess.TcPOU">
+    <Compile Include="POUs\Helper Functions\Data Manipulation\IntegerToBoolArray.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\Helper Functions\Utility\IntegerToBoolArray.TcPOU">
+    <Compile Include="POUs\Helper Functions\Data Manipulation\JoinStrings.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\Helper Functions\Utility\JoinStrings.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\Helper Functions\Utility\WithinTolerance.TcPOU">
+    <Compile Include="POUs\Helper Functions\Data Manipulation\WithinTolerance.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\MAIN.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\TypeSizeCheck.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Sections\A21a - Chipboard\AOIs\AOI_LoadChipboard.TcPOU">
@@ -416,10 +428,9 @@
     <Folder Include="EventLogging" />
     <Folder Include="HardwareDistrubution" />
     <Folder Include="POUs\Helper Functions\Hardware Modules" />
-    <Folder Include="POUs\Helper Functions\Utility" />
+    <Folder Include="POUs\Helper Functions\Data Manipulation" />
     <Folder Include="Sections\A22 - Cardboard\AOIs" />
     <Folder Include="Sections\Abstract" />
-    <Folder Include="POUs\Helper Functions\Other" />
     <Folder Include="POUs\Helper Functions\General" />
     <Folder Include="POUs\Helper Functions\Document" />
     <Folder Include="Sections" />
@@ -438,6 +449,10 @@
     <PlaceholderReference Include="Tc2_DataExchange">
       <DefaultResolution>Tc2_DataExchange, * (Beckhoff Automation GmbH)</DefaultResolution>
       <Namespace>Tc2_DataExchange</Namespace>
+    </PlaceholderReference>
+    <PlaceholderReference Include="Tc2_EtherCAT">
+      <DefaultResolution>Tc2_EtherCAT, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc2_EtherCAT</Namespace>
     </PlaceholderReference>
     <PlaceholderReference Include="Tc2_MC2">
       <DefaultResolution>Tc2_MC2, * (Beckhoff Automation GmbH)</DefaultResolution>

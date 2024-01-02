@@ -1,12 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
   <POU Name="A26" Id="{df70bd72-3010-4603-acfe-2b41c91cc9fb}" SpecialFunc="None">
-    <Declaration><![CDATA[PROGRAM A26
+    <Declaration><![CDATA[FUNCTION_BLOCK A26 EXTENDS GenericSubarea
 VAR_IN_OUT
 	spacerRecollector : SpacerRecollectionUnit;
 END_VAR
 VAR
-	robot7 : RobotA26; //placeholder, will need another robot definition for A26
+	robot7 : RobotA26;
 	robotSliderA26 : ServoNC;
 END_VAR
 VAR //sensors to detect spacer on transfer conveyors
@@ -18,13 +18,10 @@ VAR //sensors to detect spacer on transfer conveyors
 	spacerPresent_A24_LRC_C12 AT %I* : BOOL;
 END_VAR]]></Declaration>
     <Implementation>
-      <ST><![CDATA[callHardware();
-setupHardware();
-runModules();
-callHardware();]]></ST>
+      <ST><![CDATA[SUPER^();]]></ST>
     </Implementation>
     <Method Name="callHardware" Id="{28545458-26ff-4a6a-af8e-aff99ab2b072}">
-      <Declaration><![CDATA[METHOD PRIVATE callHardware : BOOL
+      <Declaration><![CDATA[METHOD PROTECTED callHardware : BOOL
 VAR_INPUT
 END_VAR
 ]]></Declaration>
@@ -34,7 +31,7 @@ robotSliderA26(bEnable:= TRUE, ready=> , position=> , velocity=> );]]></ST>
       </Implementation>
     </Method>
     <Method Name="runModules" Id="{91fb3897-d479-41a4-ac07-1d36f5ff9718}">
-      <Declaration><![CDATA[METHOD PRIVATE runModules : BOOL
+      <Declaration><![CDATA[METHOD PROTECTED runModules : BOOL
 VAR_INPUT
 END_VAR]]></Declaration>
       <Implementation>
@@ -429,7 +426,7 @@ END_VAR]]></Declaration>
       </Implementation>
     </Method>
     <Method Name="setupHardware" Id="{0b0eb0a5-de16-4ffc-920a-53d441a1c49c}">
-      <Declaration><![CDATA[METHOD PRIVATE setupHardware : BOOL
+      <Declaration><![CDATA[METHOD PROTECTED setupHardware : BOOL
 VAR
 	iCornerGuardSlot : CornerGuard;
 	iCardboardSlot : Cardboard;
@@ -440,9 +437,7 @@ END_VAR]]></Declaration>
       </Implementation>
     </Method>
     <LineIds Name="A26">
-      <LineId Id="5" Count="0" />
-      <LineId Id="36" Count="0" />
-      <LineId Id="38" Count="1" />
+      <LineId Id="39" Count="0" />
     </LineIds>
     <LineIds Name="A26.callHardware">
       <LineId Id="9" Count="0" />

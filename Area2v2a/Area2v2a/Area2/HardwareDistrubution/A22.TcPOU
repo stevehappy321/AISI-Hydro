@@ -1,12 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
   <POU Name="A22" Id="{1b16486c-3037-4854-af07-df0c4a7cb5bc}" SpecialFunc="None">
-    <Declaration><![CDATA[PROGRAM A22
+    <Declaration><![CDATA[FUNCTION_BLOCK A22 EXTENDS GenericSubarea
 VAR_IN_OUT
 	sectionCC : CardboardEx;
-	
-	bundlesQueue : ARRAY[0..CONSTS.maxQueue] OF Bundle;
-	bundlesBypass : ARRAY[0..CONSTS.maxQueue] OF BOOL;
 END_VAR
 VAR
 	robot3, robot4 : RobotA22;
@@ -17,7 +14,8 @@ VAR
 	magazineA22Left, magazineA22Right : SkidMagazine;
 	
 	wrapperA22 : WrapMachine;
-	overhead : STRING;
+	
+	centeringSliderA22 : ServoNC;
 	
 	horizontalDriveA22Left, horizontalDriveA22Right : ServoNC := (
 		limitSensorDefaultState := TRUE);
@@ -54,16 +52,10 @@ VAR //other
 	conveyorsCC : ARRAY[1..3] OF POINTER TO ConveyorSC;
 END_VAR]]></Declaration>
     <Implementation>
-      <ST><![CDATA[callHardware();
-
-setupHardware();
-
-runModules();
-
-callHardware();]]></ST>
+      <ST><![CDATA[SUPER^();]]></ST>
     </Implementation>
     <Method Name="callHardware" Id="{f4d985bb-fe7d-48e1-9a81-baebf0e31a92}">
-      <Declaration><![CDATA[METHOD PRIVATE callHardware : BOOL]]></Declaration>
+      <Declaration><![CDATA[METHOD PROTECTED callHardware : BOOL]]></Declaration>
       <Implementation>
         <ST><![CDATA[skidA22Left(slots := skidHmiA22Left);
 skidA22Right(slots := skidHmiA22Right);
@@ -73,7 +65,7 @@ magazineA22Right(slots := magazineHmiA22Right);
 wrapperA22(extSafety := robot3.wrapSafetyIn AND robot4.wrapSafetyIn);
 
 verticalDriveA22Left(
-	bEnable:= , 
+	bEnable:= TRUE, 
 	pulse=> , 
 	brakeRelease=> , 
 	enable=> , 
@@ -81,7 +73,7 @@ verticalDriveA22Left(
 	B=> , 
 	clear=> );
 verticalDriveA22Right(
-	bEnable:= , 
+	bEnable:= TRUE, 
 	pulse=> , 
 	brakeRelease=> , 
 	enable=> , 
@@ -114,7 +106,7 @@ insertionA22Right(
       </Implementation>
     </Method>
     <Method Name="runModules" Id="{610921f0-756a-4d32-a8a7-bd908cf51f55}">
-      <Declaration><![CDATA[METHOD PRIVATE runModules : BOOL]]></Declaration>
+      <Declaration><![CDATA[METHOD PROTECTED runModules : BOOL]]></Declaration>
       <Implementation>
         <NWL>
           <XmlArchive>
@@ -492,7 +484,7 @@ insertionA22Right(
                           <o>
                             <o n="Operand" t="Operand">
                               <v n="Operand">"bundlesQueue"</v>
-                              <v n="Type">"ARRAY [0..Consts.maxQueue] OF Bundle"</v>
+                              <v n="Type">"ARRAY [0..CONSTS.maxQueue] OF Bundle"</v>
                               <v n="Comment">""</v>
                               <v n="SymbolComment">""</v>
                               <v n="Address">""</v>
@@ -511,7 +503,7 @@ insertionA22Right(
                           <o>
                             <o n="Operand" t="Operand">
                               <v n="Operand">"bundlesBypass"</v>
-                              <v n="Type">"ARRAY [0..Consts.maxQueue] OF BOOL"</v>
+                              <v n="Type">"ARRAY [0..CONSTS.maxQueue] OF BOOL"</v>
                               <v n="Comment">""</v>
                               <v n="SymbolComment">""</v>
                               <v n="Address">""</v>
@@ -991,7 +983,7 @@ insertionA22Right(
       </Implementation>
     </Method>
     <Method Name="setupHardware" Id="{665ab571-9ad5-4fd6-97d1-c6a60483f8fb}">
-      <Declaration><![CDATA[METHOD PRIVATE setupHardware : BOOL
+      <Declaration><![CDATA[METHOD PROTECTED setupHardware : BOOL
 VAR
 	iCornerGuardSlot : CornerGuard;
 	iCardboardSlot : Cardboard;
@@ -1029,12 +1021,6 @@ conveyorsCC[3] := ADR(ConveyorSyncUnit.A22_LSC_C17);]]></ST>
       </Implementation>
     </Method>
     <LineIds Name="A22">
-      <LineId Id="5" Count="0" />
-      <LineId Id="61" Count="0" />
-      <LineId Id="60" Count="0" />
-      <LineId Id="63" Count="0" />
-      <LineId Id="62" Count="0" />
-      <LineId Id="72" Count="0" />
       <LineId Id="71" Count="0" />
     </LineIds>
     <LineIds Name="A22.callHardware">

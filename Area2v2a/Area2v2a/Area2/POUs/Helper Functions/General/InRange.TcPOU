@@ -7,7 +7,7 @@ VAR_INPUT
 	v2 : LREAL;
 	value : LREAL;
 	
-	inclusivity : (INCLUSIVE, EXCLUSIVE);
+	inclusive : BOOL;
 END_VAR
 VAR
 	lower : LREAL;
@@ -17,9 +17,9 @@ END_VAR]]></Declaration>
       <ST><![CDATA[lower := MIN(v1, v2);
 upper := MAX(v1, v2);
 
-IF inclusivity = INCLUSIVE THEN
+IF inclusive THEN
 	InRange := (value >= lower AND value <= upper);
-ELSIF inclusivity = EXCLUSIVE THEN
+ELSE
 	InRange := (value > lower AND value < upper);
 END_IF]]></ST>
     </Implementation>

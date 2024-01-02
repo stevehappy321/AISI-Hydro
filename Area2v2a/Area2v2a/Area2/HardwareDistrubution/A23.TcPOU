@@ -1,17 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
   <POU Name="A23" Id="{1398fc59-7eb8-4b8a-923a-7c8bc34caf55}" SpecialFunc="None">
-    <Declaration><![CDATA[PROGRAM A23
+    <Declaration><![CDATA[FUNCTION_BLOCK A23 EXTENDS GenericSubarea
 VAR
 	//robot5 : RobotA23;
 	//robot6 : RobotA23;
 	wrapperA23 : WrapMachine;
 END_VAR]]></Declaration>
     <Implementation>
-      <ST><![CDATA[]]></ST>
+      <ST><![CDATA[SUPER^();]]></ST>
     </Implementation>
     <Method Name="callHardware" Id="{0cc553bd-e8cb-4e01-bbeb-d162de020df2}">
-      <Declaration><![CDATA[METHOD PRIVATE callHardware : BOOL
+      <Declaration><![CDATA[METHOD PROTECTED callHardware : BOOL
 VAR_INPUT
 END_VAR
 ]]></Declaration>
@@ -20,7 +20,7 @@ END_VAR
       </Implementation>
     </Method>
     <Method Name="runModules" Id="{391bad03-4ba2-4862-b86e-854fa76dcbef}">
-      <Declaration><![CDATA[METHOD PRIVATE runModules : BOOL
+      <Declaration><![CDATA[METHOD PROTECTED runModules : BOOL
 VAR_INPUT
 END_VAR
 ]]></Declaration>
@@ -63,7 +63,7 @@ END_VAR
       </Implementation>
     </Method>
     <Method Name="setupHardware" Id="{a64c747f-a35f-4a39-8af5-03ecfd93413f}">
-      <Declaration><![CDATA[METHOD PRIVATE setupHardware : BOOL
+      <Declaration><![CDATA[METHOD PROTECTED setupHardware : BOOL
 VAR
 	i : INT;
 END_VAR]]></Declaration>

@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="CheckEcNetwork" Id="{86ead90f-47b9-4447-9869-17690333abae}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION CheckEcNetwork : BOOL
+VAR_IN_OUT
+	ecDeviceStates : ARRAY[*] OF ST_EcSlaveState;
+END_VAR
+VAR_INPUT
+	ecIndex0, ecIndex1 : DINT;
+END_VAR
+VAR_OUTPUT
+	errorInit : BOOL;
+	errorPreop : BOOL;
+	errorBootstrap : BOOL;
+	errorSafeop : BOOL;
+	
+	error : BOOL;
+	operational : BOOL;
+END_VAR
+VAR
+	i : DINT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[CheckEcNetwork := 
+	InRange(v1:= 0, v2:= EC_MAX_SLAVES, value:= ecIndex0, inclusive:= TRUE) AND
+	InRange(v1:= 0, v2:= EC_MAX_SLAVES, value:= ecIndex1, inclusive:= TRUE) AND
+	ecIndex0 < ecIndex1;
+
+FOR i:=ecIndex0 TO ecIndex1 BY 1 DO
+	
+	CASE ecDeviceStates[i].deviceState OF
+		EC_DEVICE_STATE_INIT:			errorInit := TRUE;
+		EC_DEVICE_STATE_PREOP:			errorPreop := TRUE;
+		EC_DEVICE_STATE_BOOTSTRAP:		errorBootstrap := TRUE;
+		EC_DEVICE_STATE_SAFEOP:			errorSafeop := TRUE;
+	END_CASE
+	
+END_FOR
+
+error := 
+	errorInit OR 
+	errorPreop OR
+	errorBootstrap OR
+	errorSafeop;
+	
+operational := NOT error;]]></ST>
+    </Implementation>
+    <LineIds Name="CheckEcNetwork">
+      <LineId Id="41" Count="0" />
+      <LineId Id="46" Count="2" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="40" Count="0" />
+      <LineId Id="21" Count="6" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="33" Count="4" />
+      <LineId Id="32" Count="0" />
+      <LineId Id="38" Count="1" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

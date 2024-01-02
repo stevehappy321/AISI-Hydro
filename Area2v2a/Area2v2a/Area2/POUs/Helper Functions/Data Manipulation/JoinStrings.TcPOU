@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="JoinStrings" Id="{b1a99a54-d937-4f0f-910c-7d8c766642fe}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION JoinStrings : STRING
+VAR_INPUT
+	str1, str2, separator : STRING;
+END_VAR
+VAR
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[JoinStrings := CONCAT(str1, separator);
+JoinStrings := CONCAT(JoinStrings, str2);]]></ST>
+    </Implementation>
+    <LineIds Name="JoinStrings">
+      <LineId Id="9" Count="0" />
+      <LineId Id="11" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
