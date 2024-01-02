@@ -35,22 +35,16 @@
     <Compile Include="Comms_TCP\TcpServer1Vision.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Comms_TCP\Types\DUT.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Comms_TCP\Types\TcpData.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Comms_TCP\Types\TcpDataQueue.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="DUTs\Enums\AreaNum.TcDUT">
+    <Compile Include="DUTs\Enums\AreaEnum.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DUTs\Enums\E_PMLCustomUnitMode.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="DUTs\Enums\InsertionDirection.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DUTs\Enums\Materials\Cardboard.TcDUT">
@@ -83,10 +77,16 @@
     <Compile Include="DUTs\Hardware\Big Machines\WrapMachine.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="DUTs\Hardware\ConveyorLSC.TcPOU">
+    <Compile Include="DUTs\Hardware\Conveyors\Conveyor.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="DUTs\Hardware\ConveyorSC.TcPOU">
+    <Compile Include="DUTs\Hardware\Conveyors\ConveyorLSC.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DUTs\Hardware\Conveyors\ConveyorSC.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DUTs\Hardware\Conveyors\ConveyorSC_NC.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DUTs\Hardware\FoldingMachine.TcDUT">
@@ -161,6 +161,9 @@
     <Compile Include="DUTs\Hardware\Robots\RobotA22.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="DUTs\Hardware\ToolStorage.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="DUTs\ONE_BIT.TcDUT">
       <SubType>Code</SubType>
     </Compile>
@@ -188,9 +191,6 @@
     <Compile Include="DUTs\Enums\SectionTask.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="DUTs\Hardware\Conveyor.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="DUTs\Containers\PtrQueue.TcPOU">
       <SubType>Code</SubType>
     </Compile>
@@ -212,7 +212,7 @@
     <Compile Include="DUTs\Enums\EventsEnum.TcTLEO">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="DUTs\Enums\MaterialEnums.TcDUT">
+    <Compile Include="DUTs\Enums\MaterialEnum.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DUTs\Enums\MaterialType.TcDUT">
@@ -251,10 +251,10 @@
       <SubType>Code</SubType>
       <LinkAlways>true</LinkAlways>
     </Compile>
-    <Compile Include="HardwareDistrubution\ConveyorSyncUnit.TcPOU">
+    <Compile Include="HARDWARE_DISTRUBUTION\ConveyorSyncUnit.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareDistrubution\GenericSubarea.TcPOU">
+    <Compile Include="HARDWARE_DISTRUBUTION\GenericSubarea.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="PlcTask.TcTTO">
@@ -388,22 +388,22 @@
     <Compile Include="Sections\Abstract\SectionEx.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareDistrubution\A21.TcPOU">
+    <Compile Include="HARDWARE_DISTRUBUTION\A21.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareDistrubution\A22.TcPOU">
+    <Compile Include="HARDWARE_DISTRUBUTION\A22.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareDistrubution\A23.TcPOU">
+    <Compile Include="HARDWARE_DISTRUBUTION\A23.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareDistrubution\A24.TcPOU">
+    <Compile Include="HARDWARE_DISTRUBUTION\A24.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareDistrubution\A25.TcPOU">
+    <Compile Include="HARDWARE_DISTRUBUTION\A25.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HardwareDistrubution\A26.TcPOU">
+    <Compile Include="HARDWARE_DISTRUBUTION\A26.TcPOU">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
@@ -421,12 +421,13 @@
     <Folder Include="DUTs\Hardware\Insertion Package\Prototypes" />
     <Folder Include="DUTs\Hardware\Material Holders" />
     <Folder Include="DUTs\Hardware\Insertion Package" />
+    <Folder Include="DUTs\Hardware\Conveyors" />
     <Folder Include="DUTs\Hardware\Robots" />
     <Folder Include="GVLs" />
     <Folder Include="Comms_ADS" />
     <Folder Include="Comms_TCP" />
     <Folder Include="EventLogging" />
-    <Folder Include="HardwareDistrubution" />
+    <Folder Include="HARDWARE_DISTRUBUTION" />
     <Folder Include="POUs\Helper Functions\Hardware Modules" />
     <Folder Include="POUs\Helper Functions\Data Manipulation" />
     <Folder Include="Sections\A22 - Cardboard\AOIs" />

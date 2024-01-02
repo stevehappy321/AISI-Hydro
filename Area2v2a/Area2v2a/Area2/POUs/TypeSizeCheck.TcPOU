@@ -13,7 +13,7 @@ END_VAR]]></Declaration>
 adsDataSize := SIZEOF(AdsData);
 tcpDataSize := SIZEOF(TcpData);
 
-allSectionSize := SIZEOF(SectionEx) * 5;]]></ST>
+allSectionSize := SIZEOF(WoodBunkEx) + SIZEOF(ChipboardEx) + SIZEOF(SpacerRecollectionUnit);]]></ST>
     </Implementation>
     <LineIds Name="TypeSizeCheck">
       <LineId Id="5" Count="0" />

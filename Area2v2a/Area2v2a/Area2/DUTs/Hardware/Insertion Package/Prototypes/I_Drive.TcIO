@@ -10,17 +10,10 @@ PROPERTY Active : BOOL]]></Declaration>
         <Declaration><![CDATA[]]></Declaration>
       </Get>
     </Property>
-    <Property Name="AtHome" Id="{c6a17622-f630-40a9-99aa-ef48eaf03c6a}">
+    <Property Name="AtHome" Id="{7daf1920-cf94-4627-a143-34e8d647584b}">
       <Declaration><![CDATA[{attribute 'monitoring':='call'}
 PROPERTY AtHome : BOOL]]></Declaration>
-      <Get Name="Get" Id="{a8ebae59-68e5-4b36-96cd-09b1d2de6c66}">
-        <Declaration><![CDATA[]]></Declaration>
-      </Get>
-    </Property>
-    <Property Name="AtInnerLimit" Id="{62046dd2-2bc3-4e44-8062-4be2ad53fc82}">
-      <Declaration><![CDATA[{attribute 'monitoring':='call'}
-PROPERTY AtInnerLimit : BOOL]]></Declaration>
-      <Get Name="Get" Id="{ebbe29db-7268-47d3-84c5-e6d666063270}">
+      <Get Name="Get" Id="{64157261-96dd-416a-9a58-3b0ce5cc71a5}">
         <Declaration><![CDATA[]]></Declaration>
       </Get>
     </Property>

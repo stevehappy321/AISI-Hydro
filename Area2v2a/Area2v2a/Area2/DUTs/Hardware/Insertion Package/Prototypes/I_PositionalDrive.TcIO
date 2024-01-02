@@ -4,13 +4,6 @@
     <Declaration><![CDATA[INTERFACE I_PositionalDrive EXTENDS I_Drive
 ]]></Declaration>
     <Folder Name="Properties" Id="{9fdc7af2-f2cc-46a5-9f69-d70ee615a965}" />
-    <Property Name="AtOuterLimit" Id="{1f4561d8-1649-4c35-95ef-69e99e9cfee1}" FolderPath="Properties\">
-      <Declaration><![CDATA[{attribute 'monitoring':='call'}
-PROPERTY AtOuterLimit : BOOL]]></Declaration>
-      <Get Name="Get" Id="{8f6a493f-f971-4817-9741-bc376f861101}">
-        <Declaration><![CDATA[]]></Declaration>
-      </Get>
-    </Property>
     <Property Name="CurrentPosition" Id="{7bb2ba01-3d78-4401-8f5b-3022e94c3d56}" FolderPath="Properties\">
       <Declaration><![CDATA[PROPERTY CurrentPosition : LREAL]]></Declaration>
       <Get Name="Get" Id="{1b8d0303-30f3-4b27-838f-974d7c0d43e7}">

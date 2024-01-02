@@ -14,7 +14,7 @@ VAR_OUTPUT //from outputs array
 	strapSafetyOut : BOOL;
 END_VAR
 VAR_OUTPUT //from inputs array
-	tool : SectionEnum := SectionEnum.WOOD_BUNK;
+	tool : SectionEnum := SectionEnum.SPACER_RECOLLECTOR;
 	suspendedMaterial : STRING;
 	
 	completedTask : TaskA26;

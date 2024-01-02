@@ -1,0 +1,89 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="GenericSubarea" Id="{b8afc32a-0b49-49f1-91d4-4409bf7ce05b}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK ABSTRACT GenericSubarea
+VAR_IN_OUT
+	bundlesQueue : ARRAY[*] OF Bundle;
+	bundlesBypass : ARRAY[*] OF BOOL;
+	
+	//ecDevices : ARRAY[0..EC_MAX_SLAVES] OF ST_EcSlaveConfigData; //devices
+	ecDeviceStates : ARRAY[*] OF ST_EcSlaveState; //device states
+END_VAR
+VAR_INPUT
+	ecIndex0, ecIndex1 : DINT;
+END_VAR
+VAR_OUTPUT //controls
+	stop AT %I* : BOOL;
+	
+	ready : BOOL;
+	active : BOOL;
+	error : BOOL;
+	
+	ecNetworkError : BOOL;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[CheckEcNetwork(
+	ecDeviceStates:= ecDeviceStates, 
+	ecIndex0:= ecIndex0, 
+	ecIndex1:= ecIndex1, 
+	errorInit=> , 
+	errorPreop=> , 
+	errorBootstrap=> , 
+	errorSafeop=> , 
+	error=> ecNetworkError, 
+	operational=> );
+	
+callHardware();
+
+setupHardware();
+
+runModules();
+
+callHardware();]]></ST>
+    </Implementation>
+    <Folder Name="Abstract" Id="{025764d4-c739-47cc-a99c-055f76ffc6c8}" />
+    <Method Name="callHardware" Id="{842b4e14-ad00-4a54-ad2e-783f2d1be972}" FolderPath="Abstract\">
+      <Declaration><![CDATA[METHOD PROTECTED ABSTRACT callHardware : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="runModules" Id="{7a7ff579-c078-4df6-bea2-4df6e9ceeed4}" FolderPath="Abstract\">
+      <Declaration><![CDATA[METHOD PROTECTED ABSTRACT runModules : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="setupHardware" Id="{632a9403-7ef3-48d3-bc64-595606118f92}" FolderPath="Abstract\">
+      <Declaration><![CDATA[METHOD PROTECTED ABSTRACT setupHardware : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="GenericSubarea">
+      <LineId Id="27" Count="8" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="39" Count="0" />
+      <LineId Id="41" Count="5" />
+      <LineId Id="40" Count="0" />
+    </LineIds>
+    <LineIds Name="GenericSubarea.callHardware">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="GenericSubarea.runModules">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="GenericSubarea.setupHardware">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

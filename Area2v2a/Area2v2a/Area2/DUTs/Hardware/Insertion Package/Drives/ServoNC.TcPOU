@@ -10,12 +10,12 @@ END_VAR
 VAR
 	axis : AXIS_REF;
 	
-	mcReadPosition : MC_ReadActualPosition;
+	mcReadPosition : MC_ReadActualPosition; //continuous enable FBs
 	mcReadVelocity : MC_ReadActualVelocity;
 	mcReadError : MC_ReadAxisError;
-	mcReset : MC_Reset;
-	
 	mcPower : MC_Power;
+	
+	mcReset : MC_Reset; //rising edge FBs
 	mcMoveAbsolute : MC_MoveAbsolute;
 	mcMoveRelative : MC_MoveRelative;
 	mcMoveVelocity : MC_MoveVelocity;

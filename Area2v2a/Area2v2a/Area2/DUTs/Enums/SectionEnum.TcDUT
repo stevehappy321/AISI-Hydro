@@ -2,14 +2,18 @@
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
   <DUT Name="SectionEnum" Id="{ce069944-4100-460e-8745-53f394723540}">
     <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'to_string'}
 TYPE SectionEnum :
 (
-	NULL_SECTION := -1,
+	NULL_SECTION,
+	
 	PAPER,
 	CARDBOARD_CORNERGUARD,
 	CHIPBOARD,
 	WOOD_BUNK,
 	OUTPUT,
+	
+	SPACER_RECOLLECTOR,
 	
 	size
 );

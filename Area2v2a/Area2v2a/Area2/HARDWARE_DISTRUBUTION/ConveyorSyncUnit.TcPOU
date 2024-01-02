@@ -1,0 +1,238 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="ConveyorSyncUnit" Id="{d2813101-76bc-4755-905c-5accc464218e}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM ConveyorSyncUnit
+VAR_OUTPUT
+	A24_LRC_C02 	: Conveyor; //these conveyoors move bundles from A2.7 to A2.4
+	A24_LRC_C04 	: Conveyor;
+	A24_LRC_C06	 	: Conveyor;
+	A24_LRC_C08 	: Conveyor;
+	A24_LRC_C10 	: Conveyor;
+	A24_LRC_C12 	: Conveyor;
+	
+	A24_SC_C01 		: ConveyorSC; //these conveyors move bundles on A2.4 forward down the cell
+	A24_SC_C03 		: ConveyorSC;
+	A24_SC_C05 		: ConveyorSC;
+	A24_SC_C07 		: ConveyorSC;
+	A24_SC_C09 		: ConveyorSC;
+	A24_SC_C11 		: ConveyorSC;
+	A24_SC_C13 		: ConveyorSC;
+	
+	A23_LSC_C14 	: ConveyorLSC;
+	
+	A22_SC_C15 		: ConveyorSC;
+	A22_LSC_C16 	: ConveyorLSC;
+	A22_LSC_C17 	: ConveyorLSC;
+	
+	A21_SC_C18 		: ConveyorSC;
+	A21_LSC_C19 	: ConveyorLSC;
+	A21_LSC_C20 	: ConveyorLSC;
+	A21_LSC_C21 	: ConveyorLSC;
+	
+	A25_SC_C22 		: ConveyorSC;
+	A25_SC_C24 		: ConveyorSC;
+	A25_SC_C26 		: ConveyorSC;
+	A25_SC_C28 		: ConveyorSC;
+	A25_SC_C30 		: ConveyorSC;
+	
+	A25_LSC_C23 	: ConveyorLSC; //these conveyors move the bundle sideways onto the output buffers
+	A25_LSLCC_C25 	: ConveyorLSC;
+	A25_LSLCC_C27 	: ConveyorLSC;
+	A25_LSC_C29 	: ConveyorLSC;
+	A25_SC_C31 		: ConveyorSC;
+	A25_SC_C32 		: ConveyorSC;
+	A25_SC_C33 		: ConveyorSC;
+	A25_SC_C34 		: ConveyorSC;
+	A25_SC_C35 		: ConveyorSC;
+	A25_SC_C36 		: ConveyorSC;
+	A25_SC_C37 		: ConveyorSC;
+	A25_SC_C38 		: ConveyorSC;
+END_VAR
+VAR
+	cellConveyors : ARRAY[1..20] OF POINTER TO ConveyorSC;
+	receiverConveyors : ARRAY[1..6] OF POINTER TO ConveyorSC;
+	outputConveyors : ARRAY[1..12] OF POINTER TO ConveyorSC;
+	
+	spoolTimer : TON;
+	i : DINT := 1;
+END_VAR
+VAR CONSTANT
+	spoolSpacing : TIME := T#100MS;
+	
+	numTotalConveyors : INT := 38;
+	
+	numCellConveyors : INT := 20;
+	
+	numReceiverConveyors : INT := 6;
+	numOutputConveyors : INT := 12;
+END_VAR
+(*
+this module contains all conveyors to be distributed to subareas as needed
+by not tying conveyors to any particular subarea, any subarea will have some access to any conveyor
+*)]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[fillCellConveyors();
+fillReceiverConveyors();
+fillOutputConveyors();
+
+computeCellLinks();
+
+spoolTimer(IN:= , PT:= spoolSpacing, Q=> , ET=> );
+spoolTimer.IN := TRUE;
+
+IF
+	(cellConveyors[i]^.requestedMode = ConveyorMode.FORWARD OR cellConveyors[i]^.requestedMode = ConveyorMode.BACKWARD) AND //conveyor requests motion
+	cellConveyors[i]^.requestedMode <> cellConveyors[i]^.trueMode AND //conveyor request differs from current operation
+	spoolTimer.Q //ready to spool
+THEN
+	//spool up conveyor
+	i := (i + 1) MOD (numCellConveyors + 1) + 1;
+	spoolTimer.IN := FALSE;
+END_IF]]></ST>
+    </Implementation>
+    <Method Name="computeCellLinks" Id="{21ed5267-d31d-4796-a487-2f0b78f4de81}">
+      <Declaration><![CDATA[METHOD PRIVATE computeCellLinks : BOOL
+VAR
+	i : DINT;
+	j : DINT;
+	
+	linkStart : DINT := -1;
+	linkEnd : DINT := -1;
+	
+	priorityInLink : ConveyorMode;
+END_VAR
+(*
+link interation method 
+slower, but will correctly set all operations every cycle
+*)]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i:=1 TO numCellConveyors BY 1 DO
+	IF cellConveyors[i]^.IsOccupied THEN
+		
+		IF linkStart = -1 THEN
+			linkStart := i;
+		END_IF
+		
+		priorityInLink := MAX(priorityInLink, cellConveyors[i]^.requestedMode);
+		linkEnd := i;
+		
+	ELSIF linkStart <> -1 AND linkEnd <> -1 THEN //set all conveyor operations to priorityInLink
+		linkEnd := i-1;
+		
+		FOR j:=linkStart TO linkEnd BY 1 DO
+			cellConveyors[j]^.setMode(priorityInLink);
+		END_FOR
+		
+		linkStart := -1;
+		linkEnd := -1;
+		priorityInLink := ConveyorMode.IDLE;
+		
+		CONTINUE;
+	END_IF
+	
+END_FOR
+
+IF linkStart > -1 AND linkEnd > -1 THEN
+	FOR j:=linkStart TO linkEnd BY 1 DO
+		cellConveyors[j]^.setMode(priorityInLink);
+	END_FOR
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="fillCellConveyors" Id="{c8e5e122-eb7d-4582-976d-beac3ca092df}">
+      <Declaration><![CDATA[METHOD PRIVATE fillCellConveyors : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[{warning disable C0371}
+cellConveyors[1] := ADR(A24_SC_C01);
+cellConveyors[2] := ADR(A24_SC_C03);
+cellConveyors[3] := ADR(A24_SC_C05);
+cellConveyors[4] := ADR(A24_SC_C07);
+cellConveyors[5] := ADR(A24_SC_C09);
+cellConveyors[6] := ADR(A24_SC_C11);
+cellConveyors[7] := ADR(A24_SC_C13);
+
+cellConveyors[8] := ADR(A23_LSC_C14);
+
+cellConveyors[9] := ADR(A22_SC_C15);
+cellConveyors[10] := ADR(A22_LSC_C16);
+cellConveyors[11] := ADR(A22_LSC_C17);
+
+cellConveyors[12] := ADR(A21_SC_C18);
+cellConveyors[13] := ADR(A21_LSC_C19);
+cellConveyors[14] := ADR(A21_LSC_C20);
+cellConveyors[15] := ADR(A21_LSC_C21);
+
+cellConveyors[16] := ADR(A25_SC_C22);
+cellConveyors[17] := ADR(A25_SC_C24);
+cellConveyors[18] := ADR(A25_SC_C26);
+cellConveyors[19] := ADR(A25_SC_C28);
+cellConveyors[20] := ADR(A25_SC_C30);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="fillOutputConveyors" Id="{3a9ab3cd-2441-4119-8faf-41a6bbc30f88}">
+      <Declaration><![CDATA[METHOD PRIVATE fillOutputConveyors : BOOL
+VAR_INPUT
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[outputConveyors[1] := ADR(A25_LSC_C23);
+outputConveyors[2] := ADR(A25_LSLCC_C25);
+outputConveyors[3] := ADR(A25_LSLCC_C27);
+outputConveyors[4] := ADR(A25_LSC_C29);
+outputConveyors[5] := ADR(A25_SC_C31);
+outputConveyors[6] := ADR(A25_SC_C32);
+outputConveyors[7] := ADR(A25_SC_C33);
+outputConveyors[8] := ADR(A25_SC_C34);
+outputConveyors[9] := ADR(A25_SC_C35);
+outputConveyors[10] := ADR(A25_SC_C36);
+outputConveyors[11] := ADR(A25_SC_C37);
+outputConveyors[12] := ADR(A25_SC_C38);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="fillReceiverConveyors" Id="{7bad2dd5-10db-4692-8de0-4f544fe3deef}">
+      <Declaration><![CDATA[METHOD PRIVATE fillReceiverConveyors : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[receiverConveyors[1] := ADR(A24_LRC_C02);
+receiverConveyors[2] := ADR(A24_LRC_C04);
+receiverConveyors[3] := ADR(A24_LRC_C06);
+receiverConveyors[4] := ADR(A24_LRC_C08);
+receiverConveyors[5] := ADR(A24_LRC_C10);
+receiverConveyors[6] := ADR(A24_LRC_C12);]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="ConveyorSyncUnit">
+      <LineId Id="448" Count="16" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="ConveyorSyncUnit.computeCellLinks">
+      <LineId Id="6" Count="0" />
+      <LineId Id="127" Count="20" />
+      <LineId Id="28" Count="7" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="ConveyorSyncUnit.fillCellConveyors">
+      <LineId Id="48" Count="0" />
+      <LineId Id="6" Count="0" />
+      <LineId Id="8" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="14" Count="0" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="18" Count="13" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="35" Count="0" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="39" Count="0" />
+    </LineIds>
+    <LineIds Name="ConveyorSyncUnit.fillOutputConveyors">
+      <LineId Id="5" Count="0" />
+      <LineId Id="17" Count="10" />
+    </LineIds>
+    <LineIds Name="ConveyorSyncUnit.fillReceiverConveyors">
+      <LineId Id="15" Count="3" />
+      <LineId Id="20" Count="1" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

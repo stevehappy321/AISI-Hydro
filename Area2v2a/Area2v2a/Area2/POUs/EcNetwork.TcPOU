@@ -21,6 +21,7 @@ END_VAR
 VAR_OUTPUT
 	numSlaves : DINT; //nSlaves must be cast from UINT to DINT in order to end iteration at -1 if there are no slaves
 	
+	diagnosticsError : BOOL;
 	errorInit : BOOL;
 	errorPreop : BOOL;
 	errorBootstrap : BOOL;
@@ -37,6 +38,7 @@ END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[blocks();
 
+diagnosticsError := fbEcGetAllSlaveStates.bError OR fbEcGetConfiguredSlaves.bError;
 errorInit := FALSE;
 errorPreop := FALSE;
 errorBootstrap := FALSE;
@@ -96,7 +98,7 @@ distributeIndexes(slavePrefix:= 'A26', firstIndex=> deviceIndexesA26[0], lastInd
                           <v n="LValue">false</v>
                           <v n="Boolean">false</v>
                           <v n="IsInstance">true</v>
-                          <v n="Id">36L</v>
+                          <v n="Id">82L</v>
                         </o>
                         <o n="OutputItems" t="OutputItemList">
                           <l2 n="OutputItems" cet="Operand">
@@ -115,7 +117,7 @@ distributeIndexes(slavePrefix:= 'A26', firstIndex=> deviceIndexesA26[0], lastInd
                               <v n="LValue">true</v>
                               <v n="Boolean">false</v>
                               <v n="IsInstance">false</v>
-                              <v n="Id">38L</v>
+                              <v n="Id">84L</v>
                             </o>
                           </l2>
                         </o>
@@ -392,9 +394,9 @@ distributeIndexes(slavePrefix:= 'A26', firstIndex=> deviceIndexesA26[0], lastInd
                               <v n="LValue">false</v>
                               <v n="Boolean">false</v>
                               <v n="IsInstance">false</v>
-                              <v n="Id">58L</v>
+                              <v n="Id">86L</v>
                             </o>
-                            <v n="Id">57L</v>
+                            <v n="Id">85L</v>
                           </o>
                         </l2>
                         <o n="InputParam" t="ParamList">
@@ -421,7 +423,7 @@ distributeIndexes(slavePrefix:= 'A26', firstIndex=> deviceIndexesA26[0], lastInd
                         <n n="STSnippet" />
                         <v n="ContainsExtensibleInputs">false</v>
                         <v n="ProvidesSTSnippet">false</v>
-                        <v n="Id">37L</v>
+                        <v n="Id">83L</v>
                       </o>
                     </l2>
                     <l2 n="Connectors" />
@@ -838,7 +840,9 @@ END_FOR]]></ST>
       </Implementation>
     </Method>
     <LineIds Name="EcNetwork">
-      <LineId Id="854" Count="22" />
+      <LineId Id="854" Count="0" />
+      <LineId Id="915" Count="0" />
+      <LineId Id="855" Count="21" />
       <LineId Id="289" Count="0" />
     </LineIds>
     <LineIds Name="EcNetwork.distributeIndexes">

@@ -49,7 +49,7 @@ END_VAR
 VAR_STAT
 	fbGetLocalAmsNetId : FB_GetLocalAmsNetId;
 	
-	localPrgName : STRING := TO_STRING(AreaNum.AREA_2);
+	localPrgName : STRING := TO_STRING(AreaEnum.AREA_2);
 	localAmsNetId : T_AmsNetId := '';
 	localAmsPort : T_AmsPort := 851;
 	

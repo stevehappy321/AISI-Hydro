@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="AreaEnum" Id="{5c187339-aeee-4b43-b8e1-dd54577c01aa}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'to_string'}
+TYPE AreaEnum :
+(
+	NULL_AREA,
+	
+	AREA_1,
+	AREA_2,
+	AREA_3,
+	AREA_4,
+	AREA_5,
+	AREA_6,
+	
+	size
+	
+);
+END_TYPE
+(*
+when generating AdsMessage types, use TO_STRING to convert these enums to a recipient string
+*)]]></Declaration>
+  </DUT>
+</TcPlcObject>

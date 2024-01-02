@@ -1599,7 +1599,7 @@ External Setpoint Generation:
 		</Motion>
 		<Plc>
 			<Project GUID="{E4C31D2B-679A-4B63-A160-76D77225E648}" Name="Area2" PrjFilePath="Area2\Area2.plcproj" TmcFilePath="Area2\Area2.tmc" ReloadTmc="true" AmsPort="851" FileArchiveSettings="#x000e" SymbolicMapping="true">
-				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcPath="Area2\Area2.tmc" TmcHash="{2E1FDE55-79D1-CB6C-2550-EC79DBC1CCE3}">
+				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcPath="Area2\Area2.tmc" TmcHash="{30F706D5-E63E-E0C2-ED59-952E44CBB2E8}">
 					<Name>Area2 Instance</Name>
 					<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
 					<Vars VarGrpType="1">
@@ -2886,41 +2886,6 @@ External Setpoint Generation:
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
-							<Name>GVL.sa23.stop</Name>
-							<Comment><![CDATA[controls]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>GVL.sa23.wrapperA23.error</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>GVL.sa23.wrapperA23.ready</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>GVL.sa23.wrapperA23.busy</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>GVL.sa23.wrapperA23.home</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>GVL.sa23.wrapperA23.trayOccupied</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>GVL.sa24.stop</Name>
-							<Comment><![CDATA[controls]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>GVL.sa25.stop</Name>
-							<Comment><![CDATA[controls]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
 							<Name>GVL.sa22.stop</Name>
 							<Comment><![CDATA[controls]]></Comment>
 							<Type>BOOL</Type>
@@ -3162,6 +3127,41 @@ External Setpoint Generation:
 						</Var>
 						<Var>
 							<Name>GVL.sa22.suctionA22Bottom[2].occupied</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>GVL.sa23.stop</Name>
+							<Comment><![CDATA[controls]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>GVL.sa23.wrapperA23.error</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>GVL.sa23.wrapperA23.ready</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>GVL.sa23.wrapperA23.busy</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>GVL.sa23.wrapperA23.home</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>GVL.sa23.wrapperA23.trayOccupied</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>GVL.sa24.stop</Name>
+							<Comment><![CDATA[controls]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>GVL.sa25.stop</Name>
+							<Comment><![CDATA[controls]]></Comment>
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
@@ -4271,22 +4271,6 @@ External Setpoint Generation:
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
-							<Name>GVL.sa23.wrapperA23.rotations</Name>
-							<Type>INT</Type>
-						</Var>
-						<Var>
-							<Name>GVL.sa23.wrapperA23.execute</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>GVL.sa23.wrapperA23.enable</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>GVL.sa23.wrapperA23.reset</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
 							<Name>GVL.sa22.robot3.outputs</Name>
 							<Type GUID="{0CC845D8-9BA1-18CF-F192-2496916AED96}">ARRAY [1..20] OF WORD</Type>
 						</Var>
@@ -4420,6 +4404,22 @@ External Setpoint Generation:
 						</Var>
 						<Var>
 							<Name>GVL.sa22.suctionA22Bottom[2].enable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>GVL.sa23.wrapperA23.rotations</Name>
+							<Type>INT</Type>
+						</Var>
+						<Var>
+							<Name>GVL.sa23.wrapperA23.execute</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>GVL.sa23.wrapperA23.enable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>GVL.sa23.wrapperA23.reset</Name>
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
