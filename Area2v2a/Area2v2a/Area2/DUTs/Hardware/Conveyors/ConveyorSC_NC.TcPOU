@@ -7,7 +7,7 @@ VAR_INPUT
 END_VAR
 VAR_OUTPUT
 	sensorEntry AT %I* : BOOL := TRUE;
-	sensorExit AT %I* : BOOL;
+	sensorExit AT %I* : BOOL := TRUE;
 	
 	trueMode : ConveyorMode;
 	requestedMode : ConveyorMode;
@@ -15,7 +15,6 @@ VAR_OUTPUT
 	position : LREAL;
 	velocity : LREAL;
 	ready : BOOL;
-	error : BOOL;
 END_VAR
 VAR
 	axis : AXIS_REF;
@@ -35,14 +34,35 @@ VAR
 END_VAR
 VAR_STAT CONSTANT
 	targetingVelocity : INT := 500;
-	continuousVelocity : INT := 100;
+	continuousVelocity : INT := 500;
 END_VAR
 (*
-standard slat conveyor - no lifter
-compliant with PLCopen motion control
+this FB represents a standard slat conveyor with no lifter
+	compliant with PLCopen motion control
+
+unlike standalone servos,
+	conveyors need to coordinate (not slave) their motion with other conveyors
+	and be able to set their current position to any value as required by the system
+	
+moveAbsolute is provided for now but should not be used for position targetting and may be protected/privated later
+instead, request/set the operation mode and the motion will follow
 *)]]></Declaration>
     <Implementation>
-      <ST><![CDATA[blocks();
+      <ST><![CDATA[IF error THEN
+	stop();
+	reset();
+	
+ELSE
+	CASE trueMode OF
+		ConveyorMode.IDLE:			stop();	
+		ConveyorMode.FORWARD:		moveContinuous(direction:= MC_Positive_Direction);
+		ConveyorMode.BACKWARD:		moveContinuous(direction:= MC_Negative_Direction);
+		ConveyorMode.STOP:			stop();
+	END_CASE
+	
+END_IF
+
+blocks();
 
 mcReset.Execute := FALSE;
 mcMoveAbsolute.Execute := FALSE;
@@ -102,15 +122,7 @@ mcReadError(
 	Error=> , 
 	ErrorID=> , 
 	AxisErrorID=> );
-
-mcReset(
-	Axis:= axis, 
-	Execute:= , 
-	Done=> , 
-	Busy=> , 
-	Error=> , 
-	ErrorID=> );
-
+	
 mcPower(
 	Axis:= axis, 
 	Enable:= bEnable, 
@@ -122,6 +134,14 @@ mcPower(
 	Status=> , 
 	Busy=> , 
 	Active=> , 
+	Error=> , 
+	ErrorID=> );
+
+mcReset(
+	Axis:= axis, 
+	Execute:= , 
+	Done=> , 
+	Busy=> , 
 	Error=> , 
 	ErrorID=> );
 
@@ -220,6 +240,24 @@ END_VAR
         </Implementation>
       </Set>
     </Property>
+    <Property Name="Error" Id="{17949c08-c0bf-41ef-bbc6-5c7512a312ee}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY Error : BOOL]]></Declaration>
+      <Get Name="Get" Id="{05305283-5e7a-42ce-9f39-02b3a802344d}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[error := 
+	mcMoveAbsolute.Error OR 
+	mcMoveRelative.Error OR 
+	mcMoveVelocity.Error OR 
+	mcSetPosition.Error OR 
+	mcReset.Error OR 
+	mcStop.Error OR
+	mcReadError.AxisErrorID > 0;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
     <Property Name="IsOccupied" Id="{ba8708dd-a466-428c-915c-8331ed048fb6}" FolderPath="Properties\">
       <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
 PROPERTY IsOccupied : BOOL]]></Declaration>
@@ -239,13 +277,29 @@ VAR_INPUT
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT Active AND NOT error THEN
-	mcMoveAbsolute.Position := newTarget;
+        <ST><![CDATA[mcMoveAbsolute.Position := newTarget;
+
+IF NOT Active AND NOT error THEN
 	mcMoveAbsolute.Execute := TRUE;
 END_IF
 
-moveAbsolute := (*mcMoveAbsolute.Done AND mcMoveAbsolute.Active;*)
-	position = newTarget;]]></ST>
+moveAbsolute := 
+	//mcMoveAbsolute.Done;
+	CurrentPosition = TargetPosition;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="moveContinuous" Id="{478a39e7-1e41-4b59-bc73-67d5f0d90925}">
+      <Declaration><![CDATA[METHOD moveContinuous : BOOL
+VAR_INPUT
+	direction : MC_Direction;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[mcMoveVelocity.Direction := direction;
+
+IF NOT Active AND NOT error THEN
+	mcMoveVelocity.Execute := TRUE;
+	moveContinuous := TRUE;
+END_IF]]></ST>
       </Implementation>
     </Method>
     <Method Name="reset" Id="{6111573b-0260-4437-99d7-85339ca8130a}">
@@ -277,6 +331,19 @@ END_VAR
         <ST><![CDATA[requestedMode := newRequest;]]></ST>
       </Implementation>
     </Method>
+    <Method Name="stop" Id="{2153e19f-9e1a-430b-9392-9f8b157e93fb}">
+      <Declaration><![CDATA[METHOD stop : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[mcStop.Execute := TRUE;
+
+mcMoveAbsolute.Execute := FALSE;
+mcMoveRelative.Execute := FALSE;
+mcMoveVelocity.Execute := FALSE;]]></ST>
+      </Implementation>
+    </Method>
     <Property Name="TargetPosition" Id="{3cbbc18b-4e14-46ed-9728-52834e89fa82}" FolderPath="Properties\">
       <Declaration><![CDATA[PROPERTY TargetPosition : LREAL]]></Declaration>
       <Get Name="Get" Id="{7b0ae11d-e011-483c-83ff-400bf13fdcc9}">
@@ -297,7 +364,20 @@ END_VAR
       </Set>
     </Property>
     <LineIds Name="ConveyorSC_NC">
-      <LineId Id="736" Count="8" />
+      <LineId Id="827" Count="2" />
+      <LineId Id="834" Count="0" />
+      <LineId Id="826" Count="0" />
+      <LineId Id="831" Count="1" />
+      <LineId Id="790" Count="0" />
+      <LineId Id="792" Count="0" />
+      <LineId Id="794" Count="0" />
+      <LineId Id="788" Count="0" />
+      <LineId Id="835" Count="0" />
+      <LineId Id="786" Count="0" />
+      <LineId Id="833" Count="0" />
+      <LineId Id="736" Count="1" />
+      <LineId Id="813" Count="4" />
+      <LineId Id="743" Count="1" />
       <LineId Id="352" Count="0" />
     </LineIds>
     <LineIds Name="ConveyorSC_NC.Active.Get">
@@ -311,10 +391,12 @@ END_VAR
       <LineId Id="146" Count="0" />
       <LineId Id="148" Count="6" />
       <LineId Id="147" Count="0" />
+      <LineId Id="155" Count="0" />
+      <LineId Id="157" Count="11" />
+      <LineId Id="156" Count="0" />
       <LineId Id="94" Count="6" />
-      <LineId Id="21" Count="1" />
-      <LineId Id="101" Count="11" />
-      <LineId Id="35" Count="50" />
+      <LineId Id="21" Count="0" />
+      <LineId Id="36" Count="49" />
       <LineId Id="5" Count="0" />
       <LineId Id="113" Count="0" />
       <LineId Id="115" Count="8" />
@@ -329,12 +411,26 @@ END_VAR
     <LineIds Name="ConveyorSC_NC.CurrentPosition.Set">
       <LineId Id="2" Count="0" />
     </LineIds>
+    <LineIds Name="ConveyorSC_NC.Error.Get">
+      <LineId Id="2" Count="0" />
+      <LineId Id="5" Count="5" />
+      <LineId Id="13" Count="0" />
+    </LineIds>
     <LineIds Name="ConveyorSC_NC.IsOccupied.Get">
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="ConveyorSC_NC.moveAbsolute">
-      <LineId Id="10" Count="5" />
-      <LineId Id="5" Count="0" />
+      <LineId Id="20" Count="1" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="22" Count="4" />
+    </LineIds>
+    <LineIds Name="ConveyorSC_NC.moveContinuous">
+      <LineId Id="39" Count="1" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="24" Count="0" />
+      <LineId Id="26" Count="0" />
+      <LineId Id="25" Count="0" />
     </LineIds>
     <LineIds Name="ConveyorSC_NC.reset">
       <LineId Id="9" Count="1" />
@@ -345,6 +441,11 @@ END_VAR
     </LineIds>
     <LineIds Name="ConveyorSC_NC.setRequest">
       <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="ConveyorSC_NC.stop">
+      <LineId Id="9" Count="0" />
+      <LineId Id="14" Count="2" />
+      <LineId Id="13" Count="0" />
     </LineIds>
     <LineIds Name="ConveyorSC_NC.TargetPosition.Get">
       <LineId Id="2" Count="0" />

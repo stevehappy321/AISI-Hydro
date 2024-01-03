@@ -53,6 +53,8 @@ STRUCT
 	cardboard_over_cornerGuard : BOOL;
 	
 	//for production log database
+	bypass : BOOL;
+	
 	timeStart : TIMESTRUCT;
 	timeDone : TIMESTRUCT;
 END_STRUCT

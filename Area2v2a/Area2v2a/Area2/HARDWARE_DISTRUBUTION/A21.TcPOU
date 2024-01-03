@@ -186,7 +186,7 @@ END_VAR
                           <v n="LValue">false</v>
                           <v n="Boolean">false</v>
                           <v n="IsInstance">true</v>
-                          <v n="Id">188L</v>
+                          <v n="Id">195L</v>
                         </o>
                         <o n="OutputItems" t="OutputItemList">
                           <l2 n="OutputItems" cet="Operand">
@@ -205,7 +205,7 @@ END_VAR
                               <v n="LValue">true</v>
                               <v n="Boolean">false</v>
                               <v n="IsInstance">false</v>
-                              <v n="Id">116L</v>
+                              <v n="Id">197L</v>
                             </o>
                             <o>
                               <v n="Operand">""</v>
@@ -254,22 +254,6 @@ END_VAR
                               <v n="Boolean">false</v>
                               <v n="IsInstance">false</v>
                               <v n="Id">118L</v>
-                            </o>
-                            <o>
-                              <v n="Operand">""</v>
-                              <v n="Type">"STRING"</v>
-                              <v n="Comment">""</v>
-                              <v n="SymbolComment">""</v>
-                              <v n="Address">""</v>
-                              <o n="Flags" t="Flags">
-                                <v n="Flags">0</v>
-                                <v n="Fixed">false</v>
-                                <v n="Extensible">false</v>
-                              </o>
-                              <v n="LValue">true</v>
-                              <v n="Boolean">false</v>
-                              <v n="IsInstance">false</v>
-                              <v n="Id">119L</v>
                             </o>
                             <o>
                               <v n="Operand">""</v>
@@ -624,7 +608,7 @@ END_VAR
                           <o t="BoxTreeOperand">
                             <o n="Operand" t="Operand">
                               <v n="Operand">"bundlesQueue"</v>
-                              <v n="Type">"ARRAY [0..CONSTS.maxQueue] OF Bundle"</v>
+                              <v n="Type">"POINTER TO Bundle"</v>
                               <v n="Comment">""</v>
                               <v n="SymbolComment">""</v>
                               <v n="Address">""</v>
@@ -639,25 +623,6 @@ END_VAR
                               <v n="Id">129L</v>
                             </o>
                             <v n="Id">128L</v>
-                          </o>
-                          <o t="BoxTreeOperand">
-                            <o n="Operand" t="Operand">
-                              <v n="Operand">"bundlesBypass"</v>
-                              <v n="Type">"ARRAY [0..CONSTS.maxQueue] OF BOOL"</v>
-                              <v n="Comment">""</v>
-                              <v n="SymbolComment">""</v>
-                              <v n="Address">""</v>
-                              <o n="Flags" t="Flags">
-                                <v n="Flags">0</v>
-                                <v n="Fixed">false</v>
-                                <v n="Extensible">false</v>
-                              </o>
-                              <v n="LValue">false</v>
-                              <v n="Boolean">false</v>
-                              <v n="IsInstance">false</v>
-                              <v n="Id">131L</v>
-                            </o>
-                            <v n="Id">130L</v>
                           </o>
                           <o t="BoxTreeOperand">
                             <o n="Operand" t="Operand">
@@ -856,7 +821,6 @@ END_VAR
                             <v>enable</v>
                             <v>sectionID</v>
                             <v>bundlesQueue</v>
-                            <v>bundlesBypass</v>
                             <v>conveyorsArr</v>
                             <v>A21_SC_C18</v>
                             <v>A21_LSC_C19</v>
@@ -873,7 +837,6 @@ END_VAR
                             <v>BOOL</v>
                             <v>SectionEnum</v>
                             <v>POINTER TO Bundle</v>
-                            <v>POINTER TO BOOL</v>
                             <v>POINTER TO POINTER TO ConveyorSC</v>
                             <v>ConveyorSC[REF]</v>
                             <v>ConveyorLSC[REF]</v>
@@ -889,11 +852,10 @@ END_VAR
                         <o n="OutputParam" t="ParamList">
                           <l2 n="Names" cet="String">
                             <v>ENO</v>
-                            <v>bundleOut</v>
+                            <v>activeBundle</v>
                             <v>bypass</v>
                             <v>run</v>
                             <v>stop</v>
-                            <v>execute</v>
                             <v>hold</v>
                             <v>reset</v>
                             <v>ready</v>
@@ -919,7 +881,6 @@ END_VAR
                             <v>BOOL</v>
                             <v>BOOL</v>
                             <v>BOOL</v>
-                            <v>BOOL</v>
                             <v>STRING</v>
                             <v>STRING</v>
                             <v>E_PMLState</v>
@@ -934,7 +895,7 @@ END_VAR
                         <n n="STSnippet" />
                         <v n="ContainsExtensibleInputs">false</v>
                         <v n="ProvidesSTSnippet">false</v>
-                        <v n="Id">189L</v>
+                        <v n="Id">196L</v>
                       </o>
                     </l2>
                     <l2 n="Connectors" />
@@ -966,7 +927,7 @@ END_VAR
                           <v n="LValue">false</v>
                           <v n="Boolean">false</v>
                           <v n="IsInstance">true</v>
-                          <v n="Id">190L</v>
+                          <v n="Id">198L</v>
                         </o>
                         <o n="OutputItems" t="OutputItemList">
                           <l2 n="OutputItems" cet="Operand">
@@ -985,7 +946,7 @@ END_VAR
                               <v n="LValue">true</v>
                               <v n="Boolean">false</v>
                               <v n="IsInstance">false</v>
-                              <v n="Id">36L</v>
+                              <v n="Id">200L</v>
                             </o>
                             <o>
                               <v n="Operand">""</v>
@@ -1034,22 +995,6 @@ END_VAR
                               <v n="Boolean">false</v>
                               <v n="IsInstance">false</v>
                               <v n="Id">38L</v>
-                            </o>
-                            <o>
-                              <v n="Operand">""</v>
-                              <v n="Type">"STRING"</v>
-                              <v n="Comment">""</v>
-                              <v n="SymbolComment">""</v>
-                              <v n="Address">""</v>
-                              <o n="Flags" t="Flags">
-                                <v n="Flags">0</v>
-                                <v n="Fixed">false</v>
-                                <v n="Extensible">false</v>
-                              </o>
-                              <v n="LValue">true</v>
-                              <v n="Boolean">false</v>
-                              <v n="IsInstance">false</v>
-                              <v n="Id">39L</v>
                             </o>
                             <o>
                               <v n="Operand">""</v>
@@ -1404,7 +1349,7 @@ END_VAR
                           <o t="BoxTreeOperand">
                             <o n="Operand" t="Operand">
                               <v n="Operand">"bundlesQueue"</v>
-                              <v n="Type">"ARRAY [0..CONSTS.maxQueue] OF Bundle"</v>
+                              <v n="Type">"POINTER TO Bundle"</v>
                               <v n="Comment">""</v>
                               <v n="SymbolComment">""</v>
                               <v n="Address">""</v>
@@ -1419,25 +1364,6 @@ END_VAR
                               <v n="Id">62L</v>
                             </o>
                             <v n="Id">61L</v>
-                          </o>
-                          <o t="BoxTreeOperand">
-                            <o n="Operand" t="Operand">
-                              <v n="Operand">"bundlesBypass"</v>
-                              <v n="Type">"ARRAY [0..CONSTS.maxQueue] OF BOOL"</v>
-                              <v n="Comment">""</v>
-                              <v n="SymbolComment">""</v>
-                              <v n="Address">""</v>
-                              <o n="Flags" t="Flags">
-                                <v n="Flags">0</v>
-                                <v n="Fixed">false</v>
-                                <v n="Extensible">false</v>
-                              </o>
-                              <v n="LValue">false</v>
-                              <v n="Boolean">false</v>
-                              <v n="IsInstance">false</v>
-                              <v n="Id">64L</v>
-                            </o>
-                            <v n="Id">63L</v>
                           </o>
                           <o t="BoxTreeOperand">
                             <o n="Operand" t="Operand">
@@ -1788,7 +1714,6 @@ END_VAR
                             <v>enable</v>
                             <v>sectionID</v>
                             <v>bundlesQueue</v>
-                            <v>bundlesBypass</v>
                             <v>conveyorsArr</v>
                             <v>A21_LSC_C21</v>
                             <v>robotLeft</v>
@@ -1813,7 +1738,6 @@ END_VAR
                             <v>BOOL</v>
                             <v>SectionEnum</v>
                             <v>POINTER TO Bundle</v>
-                            <v>POINTER TO BOOL</v>
                             <v>POINTER TO POINTER TO ConveyorSC</v>
                             <v>ConveyorLSC[REF]</v>
                             <v>RobotA21[REF]</v>
@@ -1837,11 +1761,10 @@ END_VAR
                         <o n="OutputParam" t="ParamList">
                           <l2 n="Names" cet="String">
                             <v>ENO</v>
-                            <v>bundleOut</v>
+                            <v>activeBundle</v>
                             <v>bypass</v>
                             <v>run</v>
                             <v>stop</v>
-                            <v>execute</v>
                             <v>hold</v>
                             <v>reset</v>
                             <v>ready</v>
@@ -1867,7 +1790,6 @@ END_VAR
                             <v>BOOL</v>
                             <v>BOOL</v>
                             <v>BOOL</v>
-                            <v>BOOL</v>
                             <v>STRING</v>
                             <v>STRING</v>
                             <v>E_PMLState</v>
@@ -1882,7 +1804,7 @@ END_VAR
                         <n n="STSnippet" />
                         <v n="ContainsExtensibleInputs">false</v>
                         <v n="ProvidesSTSnippet">false</v>
-                        <v n="Id">191L</v>
+                        <v n="Id">199L</v>
                       </o>
                     </l2>
                     <l2 n="Connectors" />

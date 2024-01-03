@@ -64,7 +64,10 @@ VAR_INPUT
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[screw.moveContinuous(direction := MC_Negative_Direction);]]></ST>
+        <ST><![CDATA[IF NOT contact THEN
+	screw.moveContinuous(direction := MC_Negative_Direction);
+END_IF
+]]></ST>
       </Implementation>
     </Method>
     <Method Name="release" Id="{d3f7db45-c06b-4487-9cbc-71279ff85623}">
@@ -133,6 +136,7 @@ END_VAR]]></Declaration>
       <LineId Id="15" Count="0" />
     </LineIds>
     <LineIds Name="Insertion.press">
+      <LineId Id="9" Count="2" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="Insertion.release">

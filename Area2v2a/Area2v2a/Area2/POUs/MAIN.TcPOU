@@ -127,8 +127,8 @@ END_IF
 dbLogger();
 
 masterProfiler(START:= FALSE, RESET:= , BUSY=> , DATA=> );
-(*cycleTime := *)masterProfiler.DATA.LastExecTime;
-(*maxCycle := *)masterProfiler.DATA.MaxExecTime;]]></ST>
+cycleTime := masterProfiler.DATA.LastExecTime;
+maxCycle := masterProfiler.DATA.MaxExecTime;]]></ST>
     </Implementation>
     <Folder Name="PML Conditions" Id="{c04cfa90-34d0-4dce-a54d-25d4cc1b429e}" />
     <Folder Name="PML States" Id="{6ef5f588-dba8-43b6-aecd-30cae96b064d}" />

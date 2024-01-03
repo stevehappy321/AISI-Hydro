@@ -154,7 +154,7 @@ insertionA22Right(
                           <v n="LValue">false</v>
                           <v n="Boolean">false</v>
                           <v n="IsInstance">true</v>
-                          <v n="Id">72L</v>
+                          <v n="Id">74L</v>
                         </o>
                         <o n="OutputItems" t="OutputItemList">
                           <l2 n="OutputItems" cet="Operand">
@@ -173,7 +173,7 @@ insertionA22Right(
                               <v n="LValue">true</v>
                               <v n="Boolean">false</v>
                               <v n="IsInstance">false</v>
-                              <v n="Id">10L</v>
+                              <v n="Id">76L</v>
                             </o>
                             <o>
                               <v n="Operand">""</v>
@@ -205,7 +205,7 @@ insertionA22Right(
                               <v n="LValue">true</v>
                               <v n="Boolean">false</v>
                               <v n="IsInstance">false</v>
-                              <v n="Id">20L</v>
+                              <v n="Id">77L</v>
                             </o>
                             <o>
                               <v n="Operand">""</v>
@@ -221,7 +221,7 @@ insertionA22Right(
                               <v n="LValue">true</v>
                               <v n="Boolean">false</v>
                               <v n="IsInstance">false</v>
-                              <v n="Id">21L</v>
+                              <v n="Id">20L</v>
                             </o>
                             <o>
                               <v n="Operand">""</v>
@@ -484,7 +484,7 @@ insertionA22Right(
                           <o>
                             <o n="Operand" t="Operand">
                               <v n="Operand">"bundlesQueue"</v>
-                              <v n="Type">"ARRAY [0..CONSTS.maxQueue] OF Bundle"</v>
+                              <v n="Type">"POINTER TO Bundle"</v>
                               <v n="Comment">""</v>
                               <v n="SymbolComment">""</v>
                               <v n="Address">""</v>
@@ -499,25 +499,6 @@ insertionA22Right(
                               <v n="Id">35L</v>
                             </o>
                             <v n="Id">34L</v>
-                          </o>
-                          <o>
-                            <o n="Operand" t="Operand">
-                              <v n="Operand">"bundlesBypass"</v>
-                              <v n="Type">"ARRAY [0..CONSTS.maxQueue] OF BOOL"</v>
-                              <v n="Comment">""</v>
-                              <v n="SymbolComment">""</v>
-                              <v n="Address">""</v>
-                              <o n="Flags" t="Flags">
-                                <v n="Flags">0</v>
-                                <v n="Fixed">false</v>
-                                <v n="Extensible">false</v>
-                              </o>
-                              <v n="LValue">false</v>
-                              <v n="Boolean">false</v>
-                              <v n="IsInstance">false</v>
-                              <v n="Id">37L</v>
-                            </o>
-                            <v n="Id">36L</v>
                           </o>
                           <o>
                             <o n="Operand" t="Operand">
@@ -849,7 +830,6 @@ insertionA22Right(
                             <v>enable</v>
                             <v>sectionID</v>
                             <v>bundlesQueue</v>
-                            <v>bundlesBypass</v>
                             <v>conveyorsArr</v>
                             <v>benderLeft</v>
                             <v>robotLeft</v>
@@ -873,7 +853,6 @@ insertionA22Right(
                             <v>BOOL</v>
                             <v>SectionEnum</v>
                             <v>POINTER TO Bundle</v>
-                            <v>POINTER TO BOOL</v>
                             <v>POINTER TO POINTER TO ConveyorSC</v>
                             <v>FoldingMachine[REF]</v>
                             <v>RobotA22[REF]</v>
@@ -896,10 +875,10 @@ insertionA22Right(
                         <o n="OutputParam" t="ParamList">
                           <l2 n="Names" cet="String">
                             <v>ENO</v>
-                            <v>bundleOut</v>
+                            <v>activeBundle</v>
                             <v>bypass</v>
+                            <v>run</v>
                             <v>stop</v>
-                            <v>execute</v>
                             <v>hold</v>
                             <v>reset</v>
                             <v>ready</v>
@@ -939,7 +918,7 @@ insertionA22Right(
                         <n n="STSnippet" />
                         <v n="ContainsExtensibleInputs">false</v>
                         <v n="ProvidesSTSnippet">false</v>
-                        <v n="Id">73L</v>
+                        <v n="Id">75L</v>
                       </o>
                     </l2>
                     <l2 n="Connectors" />

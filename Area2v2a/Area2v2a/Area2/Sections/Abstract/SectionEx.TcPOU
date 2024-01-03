@@ -8,19 +8,16 @@ VAR_INPUT
 END_VAR
 VAR_IN_OUT
 	bundlesQueue : ARRAY[*] OF Bundle;
-	bundlesBypass : ARRAY[*] OF BOOL; //if true, then bypass current bundle
-	
 	conveyorsArr : ARRAY[*] OF POINTER TO ConveyorSC;
 	//in addition to the conveyos array, each section must receive references to the origial conveyors the array elements point to
 END_VAR
 VAR_OUTPUT
-	bundleOut : Bundle; //assigned if there is a bundle to target
+	activeBundle : Bundle; //assigned if there is a bundle to target
 	bypass : BOOL; //assigned once the bundle head passes the section (status >= ACTIVE)
 END_VAR
 VAR_OUTPUT //PackML states + controls
 	run : BOOL;
 	stop : BOOL;
-	execute : BOOL;
 	hold : BOOL;
 	reset : BOOL;
 	
@@ -47,21 +44,19 @@ VAR //PackML types
 	pmlSemiAutoConfig : PML_UnitModeConfig;
 END_VAR
 VAR
+	execute AT %M* : BOOL; //change to %I* depending on needs
+	trigger : R_TRIG;
+	
 	currentBundle : REFERENCE TO Bundle;
-	currentBypass : REFERENCE TO BOOL;
-	
-	loaded : BOOL;
 	loadedMaterials : ARRAY[Surface.TOP..Surface.BOTTOM_RIGHT] OF STRING;
-	
-	entryRefPos : (*REFERENCE TO*) REAL;
-	exitRefPos : (*REFERENCE TO*) REAL;
-	
+
 	requestedConveyorMode : ConveyorMode;
+	conveyorPos : REAL;
 	
 	nextSection : POINTER TO SectionEx;
 	prevSection : POINTER TO SectionEx;
 	
-	occupied : BOOL; //may need to move this to Hardware GVL since this is a sensor
+	occupied : BOOL; //may be a dedicated sensor or a conveyor sensor
 	
 	status : SectionTask; //section status
 END_VAR
@@ -74,8 +69,7 @@ VAR_STAT CONSTANT
 END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[currentBundle REF= bundlesQueue[iBundle];
-currentBypass REF= bundlesBypass[iBundle];
-bypass := currentBypass;
+bypass := currentBundle.bypass;
 
 ready := status = 0;
 busy := status > 0;
@@ -83,9 +77,140 @@ done := done;
 error := error;
 
 blocks();
-
 configPmlModes();
-runPmlStates();]]></ST>
+
+trigger(CLK:= execute, Q=> );
+
+(*
+PackML
+	state machine for packaging applications - see Tc3_PackML_V2 library on InfoSys
+	
+	final states - wait for an input or condition and command to new state
+	intermediate states - complete a task and call pmlStateMachine.M_StateComplete() to advance to next state
+	
+the following states currently use the same logic (albeit in different methods), implementation may change later
+	ps_Stopping() and ps_Aborting()
+	ps_Resetting() and ps_Clearing()
+	
+STOP - controlled stop **with intent to shutdown or vacate for extended time** induced by operator/HMI - otherwise use HOLD
+ABORT - emergency stop due to machine errors
+
+HOLD - minor local issues
+SUSPEND - external issues
+
+EXECUTE - major control logic
+	different modes may require different tasks
+	create methods as required for different modes, then call the correct method in ps_Completing()
+	can be commanded to STOP, ABORT, HOLD, or SUSPEND at any point
+COMPLETING - process complete, move product out of system and finish transition to COMPLETED
+
+the implementation below can be copied to all POUs that use a PackML state machine
+the individual ps_< > methods need to be implemented for the specific application
+*)
+
+IF ps_AbortCondition() THEN //abort condition
+	pmlCommand := ePMLCommand_Abort;
+ELSIF ps_StopCondition() THEN //stop condition
+	pmlCommand := ePMLCommand_Stop;
+END_IF
+
+CASE pmlState OF
+	0 (*ePMLState_Undefined*): //default state on startup
+		pmlCommand := ePMLCommand_Stop;
+		
+	ePMLState_Stopping:
+		IF ps_Stopping() THEN
+			pmlStateMachine.M_StateComplete();
+		END_IF
+		
+	ePMLState_Stopped:
+		IF ps_Stopped() THEN
+			pmlCommand := ePMLCommand_Reset;
+		END_IF
+	
+    ePMLState_Resetting:
+		IF ps_Resetting() THEN
+			pmlStateMachine.M_StateComplete();
+		END_IF
+		
+	ePMLState_Idle:
+		IF ps_Idle() THEN
+			pmlCommand := ePMLCommand_Start;
+		END_IF		
+	
+	ePMLState_Starting:
+		IF ps_Starting() THEN
+			pmlStateMachine.M_StateComplete();
+		END_IF
+	
+	ePMLState_Execute: //check the conditions in order of their priority, currently HOLD has the highest priority
+		IF ps_HoldCondition() THEN
+			pmlCommand := ePMLCommand_Hold;
+			
+		ELSIF ps_SuspendCondition() THEN
+			pmlCommand := ePMLCommand_Suspend;			
+		
+		ELSIF ps_Execute(error => error) THEN //ps_Execute.error => THIS^.error
+			pmlStateMachine.M_StateComplete();
+			pmlCommand := ePMLCommand_Complete;
+		END_IF
+		
+	ePMLState_Completing:
+		IF ps_Completing() THEN
+			pmlStateMachine.M_StateComplete();
+		END_IF
+	
+	ePMLState_Complete:
+		IF ps_Complete() THEN
+			pmlCommand := ePMLCommand_Reset;
+		END_IF
+	
+	ePMLState_Holding:
+		IF ps_Holding() THEN
+			pmlStateMachine.M_StateComplete();
+		END_IF
+	
+	ePMLState_Held:
+		IF NOT hold THEN
+			pmlCommand := ePMLCommand_Unhold;
+		END_IF
+	
+	ePMLState_Unholding:
+		IF ps_Unholding() THEN
+			pmlStateMachine.M_StateComplete(); //release all pause commands and IO
+		END_IF
+		
+	ePMLState_Suspending: //based on next section conditions
+		IF ps_Suspending() THEN
+			pmlStateMachine.M_StateComplete();
+		END_IF
+		
+	ePMLState_Suspended: //based on next section conditions
+		IF ps_Suspended() THEN
+			pmlCommand := ePMLCommand_Unsuspend;
+		END_IF
+	
+	ePMLState_Unsuspending: //based on next section conditions
+		IF ps_Unsuspending() THEN
+			pmlStateMachine.M_StateComplete();
+		END_IF
+	
+	ePMLState_Aborting:
+		IF ps_Aborting() THEN
+			pmlStateMachine.M_StateComplete();
+		END_IF
+	
+	ePMLState_Aborted:
+		IF ps_Aborted() THEN
+			pmlCommand := ePMLCommand_Clear;
+		END_IF
+	
+	ePMLState_Clearing:
+		IF ps_Clearing() THEN
+			pmlStateMachine.M_StateComplete();
+		END_IF
+	
+END_CASE]]></ST>
     </Implementation>
     <Folder Name="Abstract" Id="{931032f8-8fbc-437e-9feb-8dfcf4d8fa11}" />
     <Folder Name="PML Conditions" Id="{8f6247d2-5ca2-410c-b633-82ec4b58b07b}" />
@@ -239,7 +364,7 @@ FOR i:=LOWER_BOUND(conveyorsArr, 1) TO UPPER_BOUND(conveyorsArr, 1) BY 1 DO
 			//all conveyors requested to same mode
 			conveyorsArr[i]^.setRequest(requestedConveyorMode);
 			
-		SectionTask.ACTIVE, SectionTask.CLEARING:
+		SectionTask.ACTIVE, SectionTask.DISCHARGE:
 			//once previous bundle catches up, the conveyor that bundle sits on must be linked to this section
 			//a conveyor control module will handle linking
 			
@@ -326,7 +451,7 @@ END_VAR
       </Implementation>
     </Method>
     <Method Name="ps_Execute" Id="{73635fe5-de92-40d6-ba2e-8b3bfdfdbb4e}" FolderPath="PML States\">
-      <Declaration><![CDATA[METHOD PROTECTED ps_Execute : BOOL
+      <Declaration><![CDATA[METHOD PROTECTED FINAL ps_Execute : BOOL
 VAR_INPUT
 END_VAR
 VAR_OUTPUT
@@ -370,16 +495,12 @@ END_VAR
       </Implementation>
     </Method>
     <Method Name="ps_Idle" Id="{ff5dce02-ada7-431d-9ee9-3e17c3a65b4e}" FolderPath="PML States\">
-      <Declaration><![CDATA[METHOD PROTECTED (*ABSTRACT*) ps_Idle : BOOL
+      <Declaration><![CDATA[METHOD PROTECTED FINAL ps_Idle : BOOL
 VAR_INPUT
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[ps_Idle := run OR execute; (*start section input*)
-
-IF execute THEN
-	run := TRUE;
-END_IF]]></ST>
+        <ST><![CDATA[ps_Idle := run := run OR trigger.Q; (*start section input*)]]></ST>
       </Implementation>
     </Method>
     <Method Name="ps_Resetting" Id="{cb59b9e4-db36-4a6b-b9fd-e8381e0607d8}" FolderPath="PML States\">
@@ -472,160 +593,6 @@ END_VAR
         <ST><![CDATA[]]></ST>
       </Implementation>
     </Method>
-    <Property Name="pStatus" Id="{2fc2840f-258c-4643-bc3e-979cfdbf23f2}" FolderPath="Properties\">
-      <Declaration><![CDATA[PROPERTY PROTECTED pStatus : SectionTask]]></Declaration>
-      <Get Name="Get" Id="{b7542eca-dbd5-4cb3-9aab-eccd028bb0c7}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[pStatus := status;]]></ST>
-        </Implementation>
-      </Get>
-      <Set Name="Set" Id="{82f7bd0c-e305-45fe-8dbc-8fb426ee0813}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[status := pStatus;]]></ST>
-        </Implementation>
-      </Set>
-    </Property>
-    <Method Name="runPmlStates" Id="{cc8dcd6f-b841-4037-adba-e94e1c4ef5d7}">
-      <Declaration><![CDATA[METHOD PROTECTED runPmlStates : BOOL
-(*
-PackML
-	state machine for packaging applications - see Tc3_PackML_V2 library on InfoSys
-	
-	final states - wait for an input or condition and command to new state
-	intermediate states - complete a task and call pmlStateMachine.M_StateComplete() to advance to next state
-	
-the following states currently use the same logic (albeit in different methods), implementation may change later
-	ps_Stopping() and ps_Aborting()
-	ps_Resetting() and ps_Clearing()
-	
-STOP - controlled stop **with intent to shutdown or vacate for extended time** induced by operator/HMI - otherwise use HOLD
-ABORT - emergency stop due to machine errors
-
-
-HOLD - minor local issues
-SUSPEND - external issues
-
-EXECUTE - major control logic
-	different modes may require different tasks
-	create methods as required for different modes, then call the correct method in ps_Completing()
-	can be commanded to STOP, ABORT, HOLD, or SUSPEND at any point
-COMPLETING - process complete, move product out of system and finish transition to COMPLETED
-
-the implementation below can be copied to all POUs that use a PackML state machine
-the individual ps_< > methods need to be implemented for the specific application
-*)]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[IF ps_AbortCondition() THEN //abort condition
-	pmlCommand := ePMLCommand_Abort;
-ELSIF ps_StopCondition() THEN //stop condition
-	pmlCommand := ePMLCommand_Stop;
-END_IF
-
-CASE pmlState OF
-	0 (*ePMLState_Undefined*): //default state on startup
-		pmlCommand := ePMLCommand_Stop;
-		
-	ePMLState_Stopping:
-		IF ps_Stopping() THEN
-			pmlStateMachine.M_StateComplete();
-		END_IF
-		
-	ePMLState_Stopped:
-		IF ps_Stopped() THEN
-			pmlCommand := ePMLCommand_Reset;
-		END_IF
-	
-    ePMLState_Resetting:
-		IF ps_Resetting() THEN
-			pmlStateMachine.M_StateComplete();
-		END_IF
-		
-	ePMLState_Idle:
-		IF ps_Idle() THEN
-			pmlCommand := ePMLCommand_Start;
-		END_IF		
-	
-	ePMLState_Starting:
-		IF ps_Starting() THEN
-			pmlStateMachine.M_StateComplete();
-		END_IF
-	
-	ePMLState_Execute: //check the conditions in order of their priority, currently HOLD has the highest priority
-		IF ps_HoldCondition() THEN
-			pmlCommand := ePMLCommand_Hold;
-			
-		ELSIF ps_SuspendCondition() THEN
-			pmlCommand := ePMLCommand_Suspend;			
-		
-		ELSIF ps_Execute(error => error) THEN //ps_Execute.error => THIS^.error
-			pmlStateMachine.M_StateComplete();
-			pmlCommand := ePMLCommand_Complete;
-		END_IF
-		
-	ePMLState_Completing:
-		IF ps_Completing() THEN
-			pmlStateMachine.M_StateComplete();
-		END_IF
-	
-	ePMLState_Complete:
-		IF ps_Complete() THEN
-			pmlCommand := ePMLCommand_Reset;
-		END_IF
-	
-	ePMLState_Holding:
-		IF ps_Holding() THEN
-			pmlStateMachine.M_StateComplete();
-		END_IF
-	
-	ePMLState_Held:
-		IF NOT hold THEN
-			pmlCommand := ePMLCommand_Unhold;
-		END_IF
-	
-	ePMLState_Unholding:
-		IF ps_Unholding() THEN
-			pmlStateMachine.M_StateComplete(); //release all pause commands and IO
-		END_IF
-		
-	ePMLState_Suspending: //based on next section conditions
-		IF ps_Suspending() THEN
-			pmlStateMachine.M_StateComplete();
-		END_IF
-		
-	ePMLState_Suspended: //based on next section conditions
-		IF ps_Suspended() THEN
-			pmlCommand := ePMLCommand_Unsuspend;
-		END_IF
-	
-	ePMLState_Unsuspending: //based on next section conditions
-		IF ps_Unsuspending() THEN
-			pmlStateMachine.M_StateComplete();
-		END_IF
-	
-	ePMLState_Aborting:
-		IF ps_Aborting() THEN
-			pmlStateMachine.M_StateComplete();
-		END_IF
-	
-	ePMLState_Aborted:
-		IF ps_Aborted() THEN
-			pmlCommand := ePMLCommand_Clear;
-		END_IF
-	
-	ePMLState_Clearing:
-		IF ps_Clearing() THEN
-			pmlStateMachine.M_StateComplete();
-		END_IF
-	
-END_CASE]]></ST>
-      </Implementation>
-    </Method>
     <Method Name="runSectionTasks" Id="{ff600a76-8305-47bd-9f4f-604426e1af1d}">
       <Declaration><![CDATA[METHOD PROTECTED runSectionTasks : BOOL
 VAR_INPUT
@@ -645,52 +612,56 @@ END_VAR]]></Declaration>
 	SectionTask.ALIGNING:		
 		pConveyorMode := ConveyorMode.FORWARD;
 		
-		IF 
-			occupied AND
-			nextSection <> 0 AND
-			nextSection^.pConveyorMode = ConveyorMode.BACKWARD
-		THEN //section occupied by next section backing up into this section
-			status := -100;
+		IF occupied THEN
+			(*
+			from here, there are 2 possible events:
+				the expected bundle has arrived - proceed as normal
+				a previously completed bundle backed up into this section - store the current position as 0 and go to STATUS -100
+			*)
+			pConveyorMode := ConveyorMode.STOP;
 			
-		ELSIF occupied THEN //section occupied by correct bundle
-			//stop and zero the conveyors
-			IF NOT auto OR_ELSE execute THEN
+			IF nextSection <> 0 AND_THEN nextSection^.pConveyorMode = ConveyorMode.BACKWARD THEN
+				status := -100;
+				
+			ELSIF NOT auto OR_ELSE trigger.Q THEN
+				//zero the conveyors again
 				status := SectionTask.ACTIVE;
+				
 			END_IF
 		END_IF
 		
 	SectionTask.ACTIVE:
-		bundleOut := currentBundle;
+		activeBundle := currentBundle;
 		
 		IF NOT enable THEN
 			iPair := 0;
-			status := SectionTask.CLEARING;
+			status := SectionTask.DISCHARGE;
 			
-		ELSIF currentBypass (*AND_THEN discharge()*) THEN //bundle failed in previous section, discharge this section's materials
+		ELSIF currentBundle.bypass (*AND_THEN discharge()*) THEN //bundle failed in previous section, discharge this section's materials
 			IF unload() THEN
 				iPair := 0;
-				status := SectionTask.CLEARING;
+				status := SectionTask.DISCHARGE;
 			END_IF
 			
 		ELSIF process(auto := auto, error => error) THEN //bundle recipe completed normally
-			IF NOT auto OR_ELSE execute THEN
+			IF NOT auto OR_ELSE trigger.Q THEN
 				iPair := 0;
-				status := SectionTask.CLEARING;
+				status := SectionTask.DISCHARGE;
 			END_IF			
 		END_IF
 		
-	SectionTask.CLEARING:
-		bundleOut := currentBundle;
+	SectionTask.DISCHARGE:
+		activeBundle := currentBundle;
 		pConveyorMode := ConveyorMode.FORWARD;
 		
-		IF exitRefPos >= currentBundle.length AND NOT occupied THEN //rear of bundle has cleared the area
+		IF conveyorPos >= currentBundle.length AND NOT occupied THEN //rear of bundle has cleared the area
 			status := SectionTask.COMPLETE;
 		END_IF
 		
 	SectionTask.COMPLETE:	
 		iBundle := iBundle + 1;
 		//bundleOut := GVL.nullBundle;
-		MEMSET(ADR(bundleOut), 0, SIZEOF(bundleOut));
+		MEMSET(ADR(activeBundle), 0, SIZEOF(activeBundle));
 		
 		status := SectionTask.IDLE;
 		
@@ -699,7 +670,7 @@ END_VAR]]></Declaration>
 	-100: //previously completed bundle reversed into this section		
 		pConveyorMode := ConveyorMode.FORWARD;
 		
-		IF NOT occupied THEN
+		IF NOT occupied AND conveyorPos = 0 THEN
 			status := SectionTask.ALIGNING;
 		END_IF
 		
@@ -725,8 +696,9 @@ unload, unstage, etc
       </Implementation>
     </Method>
     <LineIds Name="SectionEx">
-      <LineId Id="3844" Count="11" />
-      <LineId Id="3587" Count="0" />
+      <LineId Id="4141" Count="0" />
+      <LineId Id="4143" Count="140" />
+      <LineId Id="3926" Count="0" />
     </LineIds>
     <LineIds Name="SectionEx.blocks">
       <LineId Id="6" Count="17" />
@@ -810,9 +782,6 @@ unload, unstage, etc
     </LineIds>
     <LineIds Name="SectionEx.ps_Idle">
       <LineId Id="18" Count="0" />
-      <LineId Id="23" Count="0" />
-      <LineId Id="22" Count="0" />
-      <LineId Id="24" Count="1" />
     </LineIds>
     <LineIds Name="SectionEx.ps_Resetting">
       <LineId Id="6" Count="0" />
@@ -844,48 +813,24 @@ unload, unstage, etc
     <LineIds Name="SectionEx.ps_Unsuspending">
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="SectionEx.pStatus.Get">
-      <LineId Id="2" Count="0" />
-    </LineIds>
-    <LineIds Name="SectionEx.pStatus.Set">
-      <LineId Id="2" Count="0" />
-    </LineIds>
-    <LineIds Name="SectionEx.runPmlStates">
-      <LineId Id="31" Count="0" />
-      <LineId Id="38" Count="0" />
-      <LineId Id="40" Count="1" />
-      <LineId Id="45" Count="0" />
-      <LineId Id="47" Count="10" />
-      <LineId Id="150" Count="2" />
-      <LineId Id="59" Count="2" />
-      <LineId Id="63" Count="4" />
-      <LineId Id="69" Count="10" />
-      <LineId Id="185" Count="0" />
-      <LineId Id="168" Count="0" />
-      <LineId Id="171" Count="0" />
-      <LineId Id="184" Count="0" />
-      <LineId Id="82" Count="5" />
-      <LineId Id="154" Count="2" />
-      <LineId Id="89" Count="1" />
-      <LineId Id="157" Count="2" />
-      <LineId Id="92" Count="11" />
-      <LineId Id="160" Count="2" />
-      <LineId Id="166" Count="1" />
-      <LineId Id="172" Count="2" />
-      <LineId Id="104" Count="0" />
-      <LineId Id="106" Count="0" />
-      <LineId Id="163" Count="2" />
-      <LineId Id="107" Count="1" />
-      <LineId Id="175" Count="2" />
-      <LineId Id="109" Count="6" />
-      <LineId Id="178" Count="2" />
-      <LineId Id="117" Count="5" />
-      <LineId Id="5" Count="0" />
-    </LineIds>
     <LineIds Name="SectionEx.runSectionTasks">
-      <LineId Id="473" Count="0" />
-      <LineId Id="402" Count="29" />
-      <LineId Id="436" Count="36" />
+      <LineId Id="480" Count="8" />
+      <LineId Id="549" Count="1" />
+      <LineId Id="571" Count="0" />
+      <LineId Id="575" Count="2" />
+      <LineId Id="574" Count="0" />
+      <LineId Id="572" Count="0" />
+      <LineId Id="578" Count="0" />
+      <LineId Id="551" Count="0" />
+      <LineId Id="553" Count="0" />
+      <LineId Id="566" Count="0" />
+      <LineId Id="554" Count="0" />
+      <LineId Id="570" Count="0" />
+      <LineId Id="565" Count="0" />
+      <LineId Id="567" Count="0" />
+      <LineId Id="555" Count="0" />
+      <LineId Id="552" Count="0" />
+      <LineId Id="503" Count="44" />
       <LineId Id="373" Count="0" />
     </LineIds>
     <LineIds Name="SectionEx.shiftIterator">

@@ -83,6 +83,9 @@
     <Compile Include="DUTs\Hardware\Conveyors\ConveyorLSC.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="DUTs\Hardware\Conveyors\ConveyorMode.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="DUTs\Hardware\Conveyors\ConveyorSC.TcPOU">
       <SubType>Code</SubType>
     </Compile>
@@ -201,9 +204,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DUTs\Containers\StringQueue.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="DUTs\Enums\ConveyorMode.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DUTs\Enums\Cover.TcDUT">

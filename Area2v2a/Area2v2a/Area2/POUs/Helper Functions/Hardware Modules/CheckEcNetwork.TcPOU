@@ -41,7 +41,8 @@ error :=
 	errorInit OR 
 	errorPreop OR
 	errorBootstrap OR
-	errorSafeop;
+	errorSafeop OR
+	NOT CheckEcNetwork;
 	
 operational := NOT error;]]></ST>
     </Implementation>
@@ -55,6 +56,7 @@ operational := NOT error;]]></ST>
       <LineId Id="7" Count="0" />
       <LineId Id="33" Count="4" />
       <LineId Id="32" Count="0" />
+      <LineId Id="67" Count="0" />
       <LineId Id="38" Count="1" />
     </LineIds>
   </POU>

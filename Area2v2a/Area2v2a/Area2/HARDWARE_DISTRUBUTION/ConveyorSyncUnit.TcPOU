@@ -49,9 +49,9 @@ VAR_OUTPUT
 	A25_SC_C38 		: ConveyorSC;
 END_VAR
 VAR
-	cellConveyors : ARRAY[1..20] OF POINTER TO ConveyorSC;
-	receiverConveyors : ARRAY[1..6] OF POINTER TO ConveyorSC;
-	outputConveyors : ARRAY[1..12] OF POINTER TO ConveyorSC;
+	cellConveyors : ARRAY[1..numCellConveyors] OF POINTER TO ConveyorSC;
+	receiverConveyors : ARRAY[1..numReceiverConveyors] OF POINTER TO ConveyorSC;
+	outputConveyors : ARRAY[1..numOutputConveyors] OF POINTER TO ConveyorSC;
 	
 	spoolTimer : TON;
 	i : DINT := 1;
@@ -81,7 +81,10 @@ spoolTimer(IN:= , PT:= spoolSpacing, Q=> , ET=> );
 spoolTimer.IN := TRUE;
 
 IF
-	(cellConveyors[i]^.requestedMode = ConveyorMode.FORWARD OR cellConveyors[i]^.requestedMode = ConveyorMode.BACKWARD) AND //conveyor requests motion
+	( //conveyor requests motion
+		cellConveyors[i]^.requestedMode = ConveyorMode.FORWARD OR 
+		cellConveyors[i]^.requestedMode = ConveyorMode.BACKWARD
+	) AND
 	cellConveyors[i]^.requestedMode <> cellConveyors[i]^.trueMode AND //conveyor request differs from current operation
 	spoolTimer.Q //ready to spool
 THEN
@@ -103,7 +106,7 @@ VAR
 END_VAR
 (*
 link interation method 
-slower, but will correctly set all operations every cycle
+will correctly set all operations every cycle
 *)]]></Declaration>
       <Implementation>
         <ST><![CDATA[FOR i:=1 TO numCellConveyors BY 1 DO
@@ -132,6 +135,8 @@ slower, but will correctly set all operations every cycle
 	
 END_FOR
 
+
+//final link
 IF linkStart > -1 AND linkEnd > -1 THEN
 	FOR j:=linkStart TO linkEnd BY 1 DO
 		cellConveyors[j]^.setMode(priorityInLink);
@@ -203,13 +208,17 @@ receiverConveyors[6] := ADR(A24_LRC_C12);]]></ST>
       </Implementation>
     </Method>
     <LineIds Name="ConveyorSyncUnit">
-      <LineId Id="448" Count="16" />
+      <LineId Id="448" Count="10" />
+      <LineId Id="535" Count="2" />
+      <LineId Id="459" Count="5" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="ConveyorSyncUnit.computeCellLinks">
       <LineId Id="6" Count="0" />
       <LineId Id="127" Count="20" />
-      <LineId Id="28" Count="7" />
+      <LineId Id="28" Count="2" />
+      <LineId Id="166" Count="1" />
+      <LineId Id="31" Count="4" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="ConveyorSyncUnit.fillCellConveyors">

@@ -23,8 +23,6 @@ VAR_IN_OUT
 	suctionBottom : ARRAY[*] OF SuctionPad; (*1..2*)
 END_VAR
 VAR
-	conveyorPos : REAL; //may need to move this to SectionEx
-	
 	step : (IDLE, STAGING, LOAD_WB, PUSH, STRAP, RELEASE, COMPLETE := 1050);
 	
 	stageStepLeft, stageStepRight : INT;
@@ -47,7 +45,9 @@ VAR
 	suctionEnableTop, suctionEnableLeft, suctionEnableRight, suctionEnableBottom : BOOL;
 END_VAR]]></Declaration>
     <Implementation>
-      <ST><![CDATA[aoiBlocks();
+      <ST><![CDATA[conveyorPos := A21_LSC_C21.position;
+
+aoiBlocks();
 
 SUPER^();
 
@@ -2432,14 +2432,14 @@ END_IF
 
 CASE step OF
 	IDLE:
-		IF auto OR_ELSE execute THEN
+		IF auto OR_ELSE trigger.Q THEN
 			step := STAGING;
 		END_IF
 
 	LOAD_WB:
 		IF
 			directionCheckAndSet(conveyorPos, currentPair.position) AND 
-			( (auto AND done) OR_ELSE (NOT auto AND execute) )
+			( (auto AND done) OR_ELSE (NOT auto AND trigger.Q) )
 		THEN
 			robotLeft.clearCommand();
 			robotRight.clearCommand();
@@ -2452,7 +2452,6 @@ CASE step OF
 			
 			done := FALSE;
 			suctionEnableTop := suctionEnableLeft := suctionEnableRight := suctionEnableBottom := FALSE;
-			execute := FALSE;
 			
 			step := PUSH;
 			RETURN;
@@ -2471,14 +2470,12 @@ CASE step OF
 		
 	PUSH:
 		IF
-			(auto AND latchLeft AND latchRight AND pistonBottom.extended) OR_ELSE
-			(NOT auto AND execute)
+			(auto AND insertionLeft.contact AND insertionRight.contact AND pistonBottom.extended) OR_ELSE
+			(NOT auto AND trigger.Q)
 		THEN
 			insertionLeft.stop();
 			insertionRight.stop();
 			
-			latchLeft := latchRight := FALSE;
-			execute := FALSE;
 			step := STRAP;
 			RETURN;
 		END_IF
@@ -2497,19 +2494,9 @@ CASE step OF
 			RETURN;
 		END_IF
 		
-		
-		IF insertionLeft.Contact THEN
-			latchLeft := TRUE;
-		ELSIF NOT latchLeft THEN
-			insertionLeft.press();
-		END_IF
-		
-		IF insertionRight.Contact THEN
-			latchRight := TRUE;
-		ELSIF NOT latchRight THEN
-			insertionRight.press();
-		END_IF
 		pistonBottom.extend();
+		insertionLeft.press();
+		insertionRight.press();
 		
 	STRAP:
 		suctionRelease(IN:= , PT:= suctionReleaseDelay, Q=> , ET=> );
@@ -2534,9 +2521,8 @@ CASE step OF
 			strapper.strap();
 		END_IF
 		
-		IF execute THEN
+		IF trigger.Q THEN
 			suctionRelease.IN := FALSE;
-			execute := FALSE;
 			step := RELEASE;
 		END_IF
 		
@@ -2547,9 +2533,8 @@ CASE step OF
 		
 		IF 
 			(insertionLeft.screw.AtHome AND insertionRight.screw.AtHome AND pistonBottom.retracted) OR
-			execute
+			trigger.Q
 		THEN
-			execute := FALSE;
 			step := COMPLETE;
 		END_IF
 	
@@ -2650,17 +2635,6 @@ END_VAR
         <ST><![CDATA[ps_Completing := NOT occupied;]]></ST>
       </Implementation>
     </Method>
-    <Method Name="ps_Execute" Id="{53c1cce1-52a2-4557-8c8e-c609d5374b63}" FolderPath="PML States\">
-      <Declaration><![CDATA[METHOD PROTECTED ps_Execute : BOOL
-VAR_INPUT
-END_VAR
-VAR_OUTPUT
-	error : BOOL;
-END_VAR]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[SUPER^.ps_Execute();]]></ST>
-      </Implementation>
-    </Method>
     <Method Name="ps_Held" Id="{9d7440d6-bc19-48cc-b67b-cef2292c495c}" FolderPath="PML States\">
       <Declaration><![CDATA[METHOD PROTECTED ps_Held : BOOL
 VAR_INPUT
@@ -2694,16 +2668,6 @@ pistonBottom.stop();
 ps_Holding :=
 	NOT insertionLeft.active AND
 	NOT insertionRight.active;]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="ps_Idle" Id="{628c7b09-fba5-4346-a13d-9dfc0dc54180}" FolderPath="PML States\">
-      <Declaration><![CDATA[METHOD PROTECTED ps_Idle : BOOL
-VAR_INPUT
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[ps_Idle := execute;
-execute := FALSE;]]></ST>
       </Implementation>
     </Method>
     <Method Name="ps_Resetting" Id="{ed7fb93f-1f68-484d-bf76-f2c9f1db3c72}" FolderPath="PML States\">
@@ -2848,9 +2812,9 @@ VAR_OUTPUT
 	error : BOOL;
 END_VAR]]></Declaration>
       <Implementation>
-        <ST><![CDATA[SUPER^.runSectionTasks(auto := auto, error => error);
+        <ST><![CDATA[SUPER^.runSectionTasks(auto := auto, error => error); //basic implementation
 
-CASE status OF //add additional instructions for each state
+CASE status OF //add additional instructions for each status
 	SectionTask.IDLE:
 		//
 	
@@ -2860,7 +2824,7 @@ CASE status OF //add additional instructions for each state
 	SectionTask.ACTIVE:
 		//
 		
-	SectionTask.CLEARING:
+	SectionTask.DISCHARGE:
 		aoiLoadLeft.reset();
 		aoiLoadRight.reset();
 		
@@ -3075,6 +3039,7 @@ validateSuctionQuality :=
       </Implementation>
     </Method>
     <LineIds Name="WoodBunkEx">
+      <LineId Id="10691" Count="1" />
       <LineId Id="10641" Count="0" />
       <LineId Id="10643" Count="0" />
       <LineId Id="10548" Count="0" />
@@ -3225,14 +3190,22 @@ validateSuctionQuality :=
       <LineId Id="379" Count="0" />
       <LineId Id="373" Count="0" />
       <LineId Id="209" Count="4" />
-      <LineId Id="237" Count="35" />
+      <LineId Id="237" Count="16" />
+      <LineId Id="255" Count="17" />
       <LineId Id="274" Count="0" />
       <LineId Id="363" Count="0" />
-      <LineId Id="275" Count="17" />
-      <LineId Id="294" Count="20" />
+      <LineId Id="275" Count="3" />
+      <LineId Id="281" Count="11" />
+      <LineId Id="294" Count="5" />
+      <LineId Id="403" Count="0" />
+      <LineId Id="408" Count="0" />
+      <LineId Id="300" Count="0" />
+      <LineId Id="313" Count="1" />
       <LineId Id="392" Count="1" />
-      <LineId Id="315" Count="28" />
-      <LineId Id="347" Count="13" />
+      <LineId Id="315" Count="21" />
+      <LineId Id="338" Count="5" />
+      <LineId Id="347" Count="5" />
+      <LineId Id="354" Count="6" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="WoodBunkEx.ps_AbortCondition">
@@ -3266,9 +3239,6 @@ validateSuctionQuality :=
     <LineIds Name="WoodBunkEx.ps_Completing">
       <LineId Id="7" Count="0" />
     </LineIds>
-    <LineIds Name="WoodBunkEx.ps_Execute">
-      <LineId Id="42" Count="0" />
-    </LineIds>
     <LineIds Name="WoodBunkEx.ps_Held">
       <LineId Id="5" Count="0" />
     </LineIds>
@@ -3281,9 +3251,6 @@ validateSuctionQuality :=
       <LineId Id="15" Count="0" />
       <LineId Id="14" Count="0" />
       <LineId Id="16" Count="1" />
-    </LineIds>
-    <LineIds Name="WoodBunkEx.ps_Idle">
-      <LineId Id="5" Count="1" />
     </LineIds>
     <LineIds Name="WoodBunkEx.ps_Resetting">
       <LineId Id="15" Count="0" />

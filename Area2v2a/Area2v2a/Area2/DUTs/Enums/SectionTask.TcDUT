@@ -8,7 +8,7 @@ TYPE SectionTask :
 	IDLE,
 	ALIGNING,
 	ACTIVE,
-	CLEARING,
+	DISCHARGE,
 	COMPLETE,
 	
 	size

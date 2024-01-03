@@ -1731,8 +1731,26 @@ IF pairIndex + 1 < CONSTS.maxPairs THEN
 END_IF
 
 CASE masterLoadStep OF
-	0: //load this pair's side cardboards
-		masterLoadStep := 10;
+	0: //check if next pair (which is to be placed over this pair) has the same position as this pair
+		IF pairIndex + 1 >= CONSTS.maxPairs THEN //no next pair - NOTE: final pair is index 15 (16-1), not 16
+			masterLoadStep := 10;
+			loadStepLeft := loadStepRight := 0;
+			
+		ELSIF pair.position < nextPair.position THEN
+			masterLoadStep := 10;
+			loadStepLeft := loadStepRight := 0;
+		(*	
+		ELSIF MatchesMaterialType(pair:= nextPair, materialType:= 'CAR') AND_THEN loadCornerCardboards(pairIndex:= pairIndex + 1) THEN
+			masterLoadStep := 10;
+			loadStepLeft := loadStepRight := 0;
+		*)
+		ELSIF MatchesMaterialType(pair:= nextPair, materialPrefix:= 'COR') AND_THEN loadCornerGuards(pairIndex:= pairIndex + 1) THEN
+			masterLoadStep := 10;
+			loadStepLeft := loadStepRight := 0;
+			
+		END_IF
+		
+	10: //load this pair's side cardboards
 		IF
 			loadFlatCardboardsEx(
 				robot:= robotLeft, 
@@ -1756,34 +1774,14 @@ CASE masterLoadStep OF
 				includeBottom:= FALSE, 
 				error=> )
 		THEN
-			masterLoadStep := 10;
-			loadStepLeft := loadStepRight := 0;
-		END_IF
-		
-		
-	10: //next pair (which is to be placed over this pair) has the same position as this pair
-		IF pairIndex + 1 >= CONSTS.maxPairs THEN //no next pair - final pair is index 15 (16-1), not 16
 			masterLoadStep := 20;
 			loadStepLeft := loadStepRight := 0;
-			
-		ELSIF pair.position < nextPair.position THEN
-			masterLoadStep := 20;
-			loadStepLeft := loadStepRight := 0;
-		(*	
-		ELSIF MatchesMaterialType(pair:= nextPair, materialType:= 'CAR') AND_THEN loadCornerCardboards(pairIndex:= pairIndex + 1) THEN
-			masterLoadStep := 20;
-			loadStepLeft := loadStepRight := 0;
-		*)
-		ELSIF MatchesMaterialType(pair:= nextPair, materialType:= 'COR') AND_THEN loadCornerGuards(pairIndex:= pairIndex + 1) THEN
-			masterLoadStep := 20;
-			loadStepLeft := loadStepRight := 0;
-			
 		END_IF
 		
 	20: //load current pair
 		IF
-			MatchesMaterialType(pair:= pair, materialType:= 'CAR') AND_THEN loadCornerCardboards(pairIndex:= iPair) OR_ELSE
-			MatchesMaterialType(pair:= pair, materialType:= 'COR') AND_THEN loadCornerGuards(pairIndex:= iPair)
+			MatchesMaterialType(pair:= pair, materialPrefix:= 'CAR') AND_THEN loadCornerCardboards(pairIndex:= iPair) OR_ELSE
+			MatchesMaterialType(pair:= pair, materialPrefix:= 'COR') AND_THEN loadCornerGuards(pairIndex:= iPair)
 		THEN //is cardboard
 			loadStepLeft := loadStepRight := 0;
 			masterLoadStep := COMPLETE;
@@ -2554,15 +2552,14 @@ corrected sequence:
 
 CASE step OF
 	IDLE:
-		IF execute THEN
-			execute := FALSE;
+		IF trigger.Q THEN
 			step := LOAD_SIDES_CORNERS;
 		END_IF
 	
-	LOAD_SIDES_CORNERS:
+	LOAD_SIDES_CORNERS: //load
 		IF
 			(auto AND done) OR
-			(NOT auto AND execute)
+			(NOT auto AND trigger.Q)
 		THEN
 			aoiCornerCardboardLeft.reset();
 			aoiCornerCardboardRight.reset();
@@ -2584,7 +2581,7 @@ CASE step OF
 	LOAD_TOP_BOTTOM:
 		IF
 			(auto AND done) OR
-			(NOT auto AND execute)
+			(NOT auto AND trigger.Q)
 		THEN
 			aoiCornerCardboardLeft.reset();
 			aoiCornerCardboardRight.reset();
@@ -2606,7 +2603,7 @@ CASE step OF
 	PUSH:
 		IF
 			(auto AND latchLeft AND latchRight AND pistonBottom.extended) OR
-			(NOT auto AND execute)
+			(NOT auto AND trigger.Q)
 		THEN
 			step := TARGET_WRAP_POSITION;
 			RETURN;
@@ -2782,23 +2779,6 @@ END_VAR
         <ST><![CDATA[ps_Completing := NOT occupied;]]></ST>
       </Implementation>
     </Method>
-    <Method Name="ps_Execute" Id="{13d5106d-1f4d-4d49-93f3-7e4ba04d0dc5}" FolderPath="PML Inter. States\">
-      <Declaration><![CDATA[METHOD PROTECTED ps_Execute : BOOL
-VAR_INPUT
-END_VAR
-VAR_OUTPUT
-	error : BOOL;
-END_VAR]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[CASE pmlMode OF
-	0: //invalid mode
-	ePMLCustomUnitMode_Production:		ps_Execute := process(auto := TRUE, error => error);
-	ePMLCustomUnitMode_Maintenance:		ps_Execute := maintenance();
-	ePMLCustomUnitMode_Manual:			ps_Execute := manual();
-	ePMLCustomUnitMode_SemiAuto:		ps_Execute := process(auto := FALSE, error => error);
-END_CASE]]></ST>
-      </Implementation>
-    </Method>
     <Method Name="ps_Held" Id="{5952d544-ae8a-4198-afb3-ad748cffd145}" FolderPath="PML Inter. States\">
       <Declaration><![CDATA[METHOD PROTECTED ps_Held : BOOL
 VAR_INPUT
@@ -2831,16 +2811,6 @@ pistonBottom.stop();
 ps_Holding :=
 	NOT insertionLeft.active AND
 	NOT insertionRight.active;]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="ps_Idle" Id="{833a3359-6f49-4d4b-8154-fd42f1f9ff08}" FolderPath="PML Inter. States\">
-      <Declaration><![CDATA[METHOD PROTECTED ps_Idle : BOOL
-VAR_INPUT
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[ps_Idle := execute;
-execute := FALSE;]]></ST>
       </Implementation>
     </Method>
     <Method Name="ps_Resetting" Id="{161cd2ee-cfcf-492e-bbdb-d07619fae9d5}" FolderPath="PML Inter. States\">
@@ -3011,7 +2981,7 @@ CASE status OF
 	SectionTask.ACTIVE:
 		recipesCombined := FALSE;
 		
-	SectionTask.CLEARING:
+	SectionTask.DISCHARGE:
 		//
 		
 	SectionTask.COMPLETE:	
@@ -3105,35 +3075,13 @@ END_VAR
       <LineId Id="603" Count="1" />
       <LineId Id="488" Count="0" />
       <LineId Id="487" Count="0" />
-      <LineId Id="665" Count="1" />
-      <LineId Id="671" Count="0" />
-      <LineId Id="673" Count="8" />
-      <LineId Id="672" Count="0" />
-      <LineId Id="682" Count="0" />
-      <LineId Id="684" Count="8" />
-      <LineId Id="683" Count="0" />
-      <LineId Id="693" Count="1" />
-      <LineId Id="696" Count="0" />
+      <LineId Id="665" Count="0" />
+      <LineId Id="742" Count="15" />
       <LineId Id="695" Count="0" />
-      <LineId Id="669" Count="0" />
       <LineId Id="667" Count="0" />
-      <LineId Id="489" Count="0" />
-      <LineId Id="594" Count="0" />
-      <LineId Id="629" Count="0" />
-      <LineId Id="643" Count="0" />
-      <LineId Id="653" Count="0" />
-      <LineId Id="630" Count="0" />
-      <LineId Id="560" Count="0" />
-      <LineId Id="644" Count="0" />
-      <LineId Id="650" Count="0" />
-      <LineId Id="562" Count="1" />
-      <LineId Id="645" Count="0" />
-      <LineId Id="651" Count="0" />
-      <LineId Id="566" Count="0" />
-      <LineId Id="568" Count="0" />
-      <LineId Id="646" Count="0" />
-      <LineId Id="652" Count="0" />
-      <LineId Id="561" Count="0" />
+      <LineId Id="758" Count="0" />
+      <LineId Id="717" Count="24" />
+      <LineId Id="716" Count="0" />
       <LineId Id="631" Count="0" />
       <LineId Id="504" Count="0" />
       <LineId Id="518" Count="0" />
@@ -3278,7 +3226,8 @@ END_VAR
       <LineId Id="284" Count="2" />
       <LineId Id="277" Count="0" />
       <LineId Id="275" Count="0" />
-      <LineId Id="108" Count="7" />
+      <LineId Id="108" Count="2" />
+      <LineId Id="112" Count="3" />
       <LineId Id="288" Count="1" />
       <LineId Id="291" Count="0" />
       <LineId Id="290" Count="0" />
@@ -3353,10 +3302,6 @@ END_VAR
     <LineIds Name="CardboardEx.ps_Completing">
       <LineId Id="7" Count="0" />
     </LineIds>
-    <LineIds Name="CardboardEx.ps_Execute">
-      <LineId Id="34" Count="5" />
-      <LineId Id="10" Count="0" />
-    </LineIds>
     <LineIds Name="CardboardEx.ps_Held">
       <LineId Id="5" Count="0" />
     </LineIds>
@@ -3369,9 +3314,6 @@ END_VAR
       <LineId Id="15" Count="0" />
       <LineId Id="14" Count="0" />
       <LineId Id="16" Count="1" />
-    </LineIds>
-    <LineIds Name="CardboardEx.ps_Idle">
-      <LineId Id="5" Count="1" />
     </LineIds>
     <LineIds Name="CardboardEx.ps_Resetting">
       <LineId Id="15" Count="0" />

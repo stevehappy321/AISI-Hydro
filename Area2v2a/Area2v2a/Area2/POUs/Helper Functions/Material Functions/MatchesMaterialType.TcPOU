@@ -4,27 +4,25 @@
     <Declaration><![CDATA[FUNCTION MatchesMaterialType : BOOL
 VAR_INPUT
 	pair : REFERENCE TO PositionMaterials;
-	materialType : STRING;
+	materialPrefix : STRING;
 END_VAR
 VAR
 END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[MatchesMaterialType :=
-	FIND(pair.top, materialType) > 0 AND
-	FIND(pair.left, materialType) > 0 AND
-	FIND(pair.right, materialType) > 0 AND
-	FIND(pair.bottom, materialType) > 0 AND
+	FIND(pair.top, materialPrefix) > 0 AND
+	FIND(pair.left, materialPrefix) > 0 AND
+	FIND(pair.right, materialPrefix) > 0 AND
+	FIND(pair.bottom, materialPrefix) > 0 AND
 	
-	FIND(pair.topLeft, materialType) > 0 AND
-	FIND(pair.topRight, materialType) > 0 AND
-	FIND(pair.bottomLeft, materialType) > 0 AND
-	FIND(pair.bottomRight, materialType) > 0 ;]]></ST>
+	FIND(pair.topLeft, materialPrefix) > 0 AND
+	FIND(pair.topRight, materialPrefix) > 0 AND
+	FIND(pair.bottomLeft, materialPrefix) > 0 AND
+	FIND(pair.bottomRight, materialPrefix) > 0 ;]]></ST>
     </Implementation>
     <LineIds Name="MatchesMaterialType">
-      <LineId Id="7" Count="0" />
-      <LineId Id="10" Count="3" />
-      <LineId Id="18" Count="0" />
-      <LineId Id="14" Count="3" />
+      <LineId Id="31" Count="8" />
+      <LineId Id="17" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>
