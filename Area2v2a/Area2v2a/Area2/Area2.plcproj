@@ -17,28 +17,40 @@
     <LibraryReferences>{ee79a41c-73e9-42b6-b7b5-529231760065}</LibraryReferences>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Comms_ADS\AdsData.TcDUT">
+    <Compile Include="COMs\Comms_ADS\AdsData.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Comms_ADS\AdsMessage.TcDUT">
+    <Compile Include="COMs\Comms_ADS\AdsMessage.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Comms_ADS\AdsMessageQueue.TcPOU">
+    <Compile Include="COMs\Comms_ADS\AdsMessageQueue.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Comms_ADS\AdsSocket.TcPOU">
+    <Compile Include="COMs\Comms_ADS\AdsSocket.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Comms_ADS\AdsTcpUnitEx.TcPOU">
+    <Compile Include="COMs\Comms_ADS\AdsTcpUnitEx.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Comms_TCP\TcpServer1Vision.TcPOU">
+    <Compile Include="COMs\Comms_TCP\TcpServer1Vision.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Comms_TCP\Types\TcpData.TcDUT">
+    <Compile Include="COMs\Comms_TCP\Types\TcpData.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Comms_TCP\Types\TcpDataQueue.TcPOU">
+    <Compile Include="COMs\Comms_TCP\Types\TcpDataQueue.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="COMs\Comms_TCP\VisionFrame.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="COMs\Comms_TCP\VisionSuite.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="COMs\Local Devices\EcNetwork.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="COMs\Watchdog.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DUTs\Enums\AreaEnum.TcDUT">
@@ -57,12 +69,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DUTs\Enums\Materials\WoodBunk.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="DUTs\Enums\Robot Tasks\TaskA22.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="DUTs\Enums\Robot Tasks\TaskA26.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DUTs\Enums\SectionEnum.TcDUT">
@@ -155,6 +161,15 @@
     <Compile Include="DUTs\Hardware\Robots\KukaRobot.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="DUTs\Hardware\Robots\Tasks\TaskA21.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DUTs\Hardware\Robots\Tasks\TaskA22.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DUTs\Hardware\Robots\Tasks\TaskA26.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="DUTs\Hardware\Robots\RobotA21.TcPOU">
       <SubType>Code</SubType>
     </Compile>
@@ -165,12 +180,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DUTs\Hardware\ToolStorage.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="DUTs\ONE_BIT.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="DUTs\Enums\Robot Tasks\TaskA21.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DUTs\Bundle\Bundle.TcDUT">
@@ -221,15 +230,6 @@
     <Compile Include="DUTs\Enums\Surface.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="DUTs\VisionFrame.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="DUTs\VisionSuite.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="DUTs\Watchdog.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="EventLogging\EventLogger.TcIO">
       <SubType>Code</SubType>
     </Compile>
@@ -251,6 +251,9 @@
       <SubType>Code</SubType>
       <LinkAlways>true</LinkAlways>
     </Compile>
+    <Compile Include="HARDWARE_DISTRUBUTION\A24_A26.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="HARDWARE_DISTRUBUTION\ConveyorSyncUnit.TcPOU">
       <SubType>Code</SubType>
     </Compile>
@@ -258,9 +261,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="PlcTask.TcTTO">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\EcNetwork.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\Helper Functions\Document\CreateJsonDocumentManual.TcPOU">
@@ -288,6 +288,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\Helper Functions\General\TimestructToString.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\Helper Functions\General\WithinTolerance.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\Helper Functions\Hardware Modules\CheckEcNetwork.TcPOU">
@@ -339,9 +342,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\Helper Functions\Data Manipulation\JoinStrings.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\Helper Functions\Data Manipulation\WithinTolerance.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\MAIN.TcPOU">
@@ -408,9 +408,11 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Comms_TCP\Types" />
+    <Folder Include="COMs\Comms_ADS" />
+    <Folder Include="COMs\Comms_TCP" />
+    <Folder Include="COMs\Comms_TCP\Types" />
+    <Folder Include="COMs\Local Devices" />
     <Folder Include="DUTs\Enums\Materials" />
-    <Folder Include="DUTs\Enums\Robot Tasks" />
     <Folder Include="DUTs" />
     <Folder Include="DUTs\Enums" />
     <Folder Include="DUTs\Containers" />
@@ -423,11 +425,11 @@
     <Folder Include="DUTs\Hardware\Insertion Package" />
     <Folder Include="DUTs\Hardware\Conveyors" />
     <Folder Include="DUTs\Hardware\Robots" />
+    <Folder Include="DUTs\Hardware\Robots\Tasks" />
     <Folder Include="GVLs" />
-    <Folder Include="Comms_ADS" />
-    <Folder Include="Comms_TCP" />
     <Folder Include="EventLogging" />
     <Folder Include="HARDWARE_DISTRUBUTION" />
+    <Folder Include="COMs" />
     <Folder Include="POUs\Helper Functions\Hardware Modules" />
     <Folder Include="POUs\Helper Functions\Data Manipulation" />
     <Folder Include="Sections\A22 - Cardboard\AOIs" />

@@ -569,7 +569,7 @@ CASE status OF //add additional instructions for each state
 	SectionTask.IDLE:
 		//
 	
-	SectionTask.ALIGNING:
+	SectionTask.ALIGN:
 		//
 		
 	SectionTask.ACTIVE:

@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="TaskA26" Id="{85428761-490e-4a83-93dc-c714144a7672}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'to_string'}
+//{attribute 'strict'}
+TYPE TaskA26 :
+(
+	IDLE,
+	PICK_SPACER,
+	MEASURE,
+	
+	size
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

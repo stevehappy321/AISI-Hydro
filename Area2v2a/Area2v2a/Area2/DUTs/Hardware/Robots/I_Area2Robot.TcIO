@@ -2,7 +2,10 @@
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
   <Itf Name="I_Area2Robot" Id="{c7d4af52-e756-442f-8cd3-6cd2b5275232}">
     <Declaration><![CDATA[INTERFACE I_Area2Robot
-]]></Declaration>
+(*
+currently all robots use 20-WORD arrays inputs and outputs so they extend from KukaRobot
+if robot IOs are replaced with specific data types for each subarea, they should implement this interface instead
+*)]]></Declaration>
     <Folder Name="Properties" Id="{8e23db6e-6f12-42d9-88c7-9785df5fd15e}" />
     <Property Name="Busy" Id="{5d1e3d65-8e96-42cc-965c-93e6a9956736}" FolderPath="Properties\">
       <Declaration><![CDATA[//{attribute 'monitoring' := 'variable'}

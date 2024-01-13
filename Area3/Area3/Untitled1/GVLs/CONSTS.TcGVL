@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <GVL Name="CONSTS" Id="{a573b17f-fcb7-4b59-adff-7784b0b959c8}" ParameterList="True">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL CONSTANT
+	maxQueue : DINT := 64;
+	maxPairs : DINT := 16;
+	
+	numConveyorLines : INT := 6;
+	numBuffers : INT := 20;
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="Junction" Id="{7e1335d0-8c31-4598-8596-1c04f880fb59}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK Junction
+VAR_IN_OUT
+	conveyor1 : ConveyorLSC;
+	conveyor2 : ConveyorLSC;
+	conveyor3 : ConveyorLSC;
+	conveyor4 : ConveyorLSC;
+	conveyor5 : ConveyorLSC;
+	conveyor6 : ConveyorLSC;
+END_VAR
+VAR
+	nextBuffer : POINTER TO IndexedBuffer;
+	prevBuffer : POINTER TO IndexedBuffer;
+	
+	conveyors : ARRAY[1..CONSTS.numConveyorLines] OF POINTER TO ConveyorSC;
+	iBundles : ARRAY[1..CONSTS.numConveyorLines] OF INT := [6(-1)];
+	
+	step : SectionTask;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[CASE step OF
+	SectionTask.IDLE:
+		
+		
+	SectionTask.ALIGN:
+		
+		
+	SectionTask.ACTIVE:
+		(*
+		1	send all bundles that do no need area transfer over the junction 
+			-iterate through array of iterators
+				*if bundle does not need transfer then request the conveyor FWD
+				*if bundle needs transfer, then hold the conveyor
+			
+		2	 
+		*)
+	
+	
+END_CASE]]></ST>
+    </Implementation>
+    <LineIds Name="Junction">
+      <LineId Id="7" Count="0" />
+      <LineId Id="31" Count="0" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="33" Count="1" />
+      <LineId Id="39" Count="1" />
+      <LineId Id="35" Count="1" />
+      <LineId Id="43" Count="0" />
+      <LineId Id="45" Count="0" />
+      <LineId Id="47" Count="2" />
+      <LineId Id="44" Count="0" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="37" Count="1" />
+      <LineId Id="32" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

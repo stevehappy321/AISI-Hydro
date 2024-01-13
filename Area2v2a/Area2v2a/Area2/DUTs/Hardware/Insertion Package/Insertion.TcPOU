@@ -3,7 +3,7 @@
   <POU Name="Insertion" Id="{e64c167d-3486-466f-988e-1abff001b936}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK Insertion //2d insertion that combines a slider (alignment) and screw (push)
 VAR_INPUT //interface references to existing drives
-	slider : I_EncodedDrive;
+	slider : I_PositionalDrive;
 	screw : I_ContinuousDrive;
 END_VAR
 VAR_OUTPUT
@@ -110,15 +110,6 @@ screw.toHome();
 toHome := slider.AtHome AND screw.AtHome;]]></ST>
       </Implementation>
     </Method>
-    <Method Name="traverse" Id="{fc712161-6738-44fa-ab06-81d5556f4608}">
-      <Declaration><![CDATA[METHOD traverse : BOOL
-VAR_INPUT
-	direction : MC_Direction;
-END_VAR]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[slider.moveContinuous(direction := MC_Negative_Direction);]]></ST>
-      </Implementation>
-    </Method>
     <LineIds Name="Insertion">
       <LineId Id="314" Count="5" />
       <LineId Id="137" Count="0" />
@@ -152,9 +143,6 @@ END_VAR]]></Declaration>
       <LineId Id="5" Count="1" />
       <LineId Id="8" Count="0" />
       <LineId Id="7" Count="0" />
-    </LineIds>
-    <LineIds Name="Insertion.traverse">
-      <LineId Id="5" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

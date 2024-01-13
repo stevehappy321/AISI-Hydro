@@ -99,12 +99,18 @@ END_VAR
         <ST><![CDATA[]]></ST>
       </Implementation>
     </Method>
-    <Method Name="occupied" Id="{1a437e43-b177-4373-bb48-3c058bcf1a3f}">
-      <Declaration><![CDATA[METHOD occupied : BOOL]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[occupied := sensorExit OR sensorEntry;]]></ST>
-      </Implementation>
-    </Method>
+    <Property Name="IsOccupied" Id="{16c78265-4b7e-4883-a198-75114844ba18}">
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY IsOccupied : BOOL]]></Declaration>
+      <Get Name="Get" Id="{9eb19818-32b2-44a8-b587-b69207434e4c}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[IsOccupied := sensorExit OR sensorEntry;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
     <Method Name="reset" Id="{d40da114-e5c3-466f-8119-1749f88356bf}">
       <Declaration><![CDATA[METHOD reset : BOOL
 VAR_INPUT
@@ -137,10 +143,10 @@ END_VAR]]></Declaration>
     <Method Name="setRequest" Id="{c2bcb45d-32a3-4c3d-ac25-48dd409d79ec}">
       <Declaration><![CDATA[METHOD setRequest : BOOL
 VAR_INPUT
-	requestedMode : ConveyorMode;
+	newRequest : ConveyorMode;
 END_VAR]]></Declaration>
       <Implementation>
-        <ST><![CDATA[request := requestedMode;]]></ST>
+        <ST><![CDATA[request := newRequest;]]></ST>
       </Implementation>
     </Method>
     <Method Name="target" Id="{ea17b475-eaf3-4273-b8f8-a97119ee998d}">
@@ -180,8 +186,8 @@ END_VAR
     <LineIds Name="Conveyor.forward">
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="Conveyor.occupied">
-      <LineId Id="5" Count="0" />
+    <LineIds Name="Conveyor.IsOccupied.Get">
+      <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="Conveyor.reset">
       <LineId Id="5" Count="1" />

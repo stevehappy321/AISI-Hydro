@@ -5,9 +5,33 @@
 VAR_IN_OUT
 	robot : RobotA26;
 	robotSlider : ServoNC;
+	(*
+	A24_LRC_C01 : Conveyor;
+	A24_LRC_C03 : Conveyor;
+	A24_LRC_C05 : Conveyor;
+	A24_LRC_C07 : Conveyor;
+	A24_LRC_C09 : Conveyor;
+	A24_LRC_C11 : Conveyor;
+	A24_LRC_C13 : Conveyor;
+	
+	A24_LRC_C02 : ConveyorSC;
+	A24_LRC_C04 : ConveyorSC;
+	A24_LRC_C06 : ConveyorSC;
+	A24_LRC_C08 : ConveyorSC;
+	A24_LRC_C10 : ConveyorSC;
+	A24_LRC_C12 : ConveyorSC;
+	*)
 END_VAR
 VAR_INPUT
-	spacerPresent_A24_LRC_C02 : BOOL; //these conveyors move bundles from A2.7 to A2.4
+	conveyorOccupied_A24_LRC_C01 : BOOL; //odd number conveyors move the conveyor down the cell
+	conveyorOccupied_A24_LRC_C03 : BOOL;
+	conveyorOccupied_A24_LRC_C05 : BOOL;
+	conveyorOccupied_A24_LRC_C07 : BOOL;
+	conveyorOccupied_A24_LRC_C09 : BOOL;
+	conveyorOccupied_A24_LRC_C11 : BOOL;
+	conveyorOccupied_A24_LRC_C13 : BOOL;
+	
+	spacerPresent_A24_LRC_C02 : BOOL;
 	spacerPresent_A24_LRC_C04 : BOOL;
 	spacerPresent_A24_LRC_C06 : BOOL;
 	spacerPresent_A24_LRC_C08 : BOOL;
@@ -23,12 +47,15 @@ VAR_OUTPUT
 	failCounter : INT;
 END_VAR
 VAR
-	step : (IDLE, SLIDE, PICK_SPACER, COMPLETE);
-	iPosition : INT;
+	status : SectionTask;
+	step : (IDLE, SLIDE, PICK_SPACER);
+	iConveyorLine : INT;
 END_VAR
 VAR //slider positions
 	pickPos1, pickPos2 : LREAL;
-	centerPos : LREAL;
+END_VAR
+VAR_STAT CONSTANT
+	COMPLETE : INT := 1050;
 END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[ready := step = 0;
@@ -36,22 +63,35 @@ busy := step > 0;
 done := done;
 error := error;
 
-IF 
-	ConveyorSyncUnit.A24_SC_C01.IsOccupied OR
-	ConveyorSyncUnit.A24_SC_C03.IsOccupied OR
-	ConveyorSyncUnit.A24_SC_C05.IsOccupied OR
-	ConveyorSyncUnit.A24_SC_C07.IsOccupied OR
-	ConveyorSyncUnit.A24_SC_C09.IsOccupied OR
-	ConveyorSyncUnit.A24_SC_C11.IsOccupied OR
-	ConveyorSyncUnit.A24_SC_C13.IsOccupied
-THEN
-	robot.clearCommand();
+CASE status OF
+	SectionTask.IDLE: //do nothing
 	
-ELSE
-	//remove spacers from transfer conveyors in ascending order
-	process();
+	SectionTask.ALIGN: //receive incoming bundle
 	
-END_IF]]></ST>
+	SectionTask.ACTIVE: //measure new bundle
+		
+	SectionTask.DISCHARGE: //send bundle down cell, then clear spacers
+		IF 
+			conveyorOccupied_A24_LRC_C01 OR
+			conveyorOccupied_A24_LRC_C03 OR
+			conveyorOccupied_A24_LRC_C05 OR
+			conveyorOccupied_A24_LRC_C07 OR
+			conveyorOccupied_A24_LRC_C09 OR
+			conveyorOccupied_A24_LRC_C11 OR
+			conveyorOccupied_A24_LRC_C13
+		THEN
+			
+			robot.clearCommand();
+			
+		ELSIF process() THEN //remove spacers from transfer conveyors in ascending order
+			status := SectionTask.COMPLETE;
+			
+		END_IF
+		
+	SectionTask.COMPLETE: //reset, ready to receive next bundle
+		done := TRUE;
+	
+END_CASE]]></ST>
     </Implementation>
     <Method Name="process" Id="{0707ef1b-9ba5-4d26-b34d-69bdd29b3450}">
       <Declaration><![CDATA[METHOD process : BOOL
@@ -70,26 +110,27 @@ END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[{warning disable C0371}
 
-iPosition := MAX(1, iPosition); //value is always at least 1
+iConveyorLine := MAX(1, iConveyorLine); //value is always at least 1
 
 CASE step OF
 	IDLE:
 		IF DataIsEmpty(arr := ADR(spacersPresent), arrSize := SIZEOF(spacersPresent)) THEN
-			robotSlider.moveAbsolute(newTarget := centerPos);
+			robotSlider.toHome();
 			
-			iPosition := 0;
+			iConveyorLine := 0;
 			failCounter := 0;
 			process := TRUE;
 		
-		ELSIF NOT spacersPresent[iPosition] THEN
-			iPosition := iPosition + 1;
+		ELSIF NOT spacersPresent[iConveyorLine] THEN
+			iConveyorLine := iConveyorLine + 1;
 			
 		ELSIF robot.Ready THEN
 			step := SLIDE;
+			
 		END_IF
 		
 	SLIDE:
-		CASE iPosition OF
+		CASE iConveyorLine OF
 			1,2,3:		robotSlider.moveAbsolute(newTarget := pickPos1);
 			4,5,6:		robotSlider.moveAbsolute(newTarget := pickPos2);
 		END_CASE
@@ -110,13 +151,13 @@ CASE step OF
 			step := COMPLETE;
 		ELSE
 			robot.setGroup(group := 1, value := TaskA26.PICK_SPACER);
-			robot.setGroup(group := 2, value := iPosition);
+			robot.setGroup(group := 2, value := iConveyorLine);
 		END_IF
 		
 	COMPLETE:
 		robot.HoldMaterial := '';
 		
-		IF spacersPresent[iPosition] THEN
+		IF spacersPresent[iConveyorLine] THEN
 			failCounter := failCounter + 1;
 		END_IF
 		
@@ -129,17 +170,21 @@ END_CASE]]></ST>
     <LineIds Name="SpacerRecollectionUnit">
       <LineId Id="103" Count="2" />
       <LineId Id="101" Count="0" />
-      <LineId Id="169" Count="0" />
-      <LineId Id="9" Count="0" />
-      <LineId Id="30" Count="3" />
-      <LineId Id="39" Count="1" />
-      <LineId Id="34" Count="0" />
-      <LineId Id="41" Count="1" />
-      <LineId Id="93" Count="0" />
-      <LineId Id="44" Count="0" />
-      <LineId Id="94" Count="0" />
-      <LineId Id="48" Count="0" />
-      <LineId Id="45" Count="1" />
+      <LineId Id="262" Count="0" />
+      <LineId Id="261" Count="0" />
+      <LineId Id="263" Count="0" />
+      <LineId Id="265" Count="5" />
+      <LineId Id="280" Count="8" />
+      <LineId Id="367" Count="0" />
+      <LineId Id="289" Count="1" />
+      <LineId Id="307" Count="1" />
+      <LineId Id="310" Count="0" />
+      <LineId Id="279" Count="0" />
+      <LineId Id="278" Count="0" />
+      <LineId Id="274" Count="0" />
+      <LineId Id="295" Count="0" />
+      <LineId Id="277" Count="0" />
+      <LineId Id="264" Count="0" />
     </LineIds>
     <LineIds Name="SpacerRecollectionUnit.process">
       <LineId Id="49" Count="1" />
@@ -154,6 +199,7 @@ END_CASE]]></ST>
       <LineId Id="25" Count="0" />
       <LineId Id="28" Count="3" />
       <LineId Id="39" Count="0" />
+      <LineId Id="131" Count="0" />
       <LineId Id="33" Count="0" />
       <LineId Id="107" Count="1" />
       <LineId Id="110" Count="2" />

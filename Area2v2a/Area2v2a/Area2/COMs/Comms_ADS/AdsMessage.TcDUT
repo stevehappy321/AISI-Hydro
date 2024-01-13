@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="AdsMessage" Id="{6ed74fdb-07ec-43cd-a033-cbdc49a7b865}">
+    <Declaration><![CDATA[{attribute 'enable_dynamic_creation'}
+TYPE AdsMessage :
+STRUCT
+	recipient : STRING;
+	contents : AdsData;
+END_STRUCT
+END_TYPE]]></Declaration>
+  </DUT>
+</TcPlcObject>

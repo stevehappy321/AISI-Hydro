@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="AdsData" Id="{786bc738-f83b-4faf-a13f-bfee1139b87a}">
+    <Declaration><![CDATA[{attribute 'enable_dynamic_creation'}
+TYPE AdsData :
+STRUCT
+	description : EventsEnum; //purpose
+	
+	timestamp : TIMESTRUCT; //relevant timestamp (ex: arrival time)
+	
+	binaryData : ARRAY[0..100000] OF BYTE; //contents
+END_STRUCT
+END_TYPE]]></Declaration>
+  </DUT>
+</TcPlcObject>

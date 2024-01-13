@@ -4,7 +4,6 @@
     <Declaration><![CDATA[FUNCTION_BLOCK ABSTRACT GenericSubarea
 VAR_IN_OUT
 	bundlesQueue : ARRAY[*] OF Bundle;
-	bundlesBypass : ARRAY[*] OF BOOL;
 	
 	//ecDevices : ARRAY[0..EC_MAX_SLAVES] OF ST_EcSlaveConfigData; //devices
 	ecDeviceStates : ARRAY[*] OF ST_EcSlaveState; //device states

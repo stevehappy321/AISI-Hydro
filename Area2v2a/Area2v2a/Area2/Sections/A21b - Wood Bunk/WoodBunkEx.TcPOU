@@ -2124,7 +2124,6 @@ END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[{warning disable C0371}
 (*
-this is the new code for loading wood bunks from staging table to insertion
 loading sequences are independent as each side has its own step variable
 can be extended by changing the include<> parameters
 *)
@@ -2152,126 +2151,7 @@ load :=
 		includeBottom:= TRUE, 
 		error=> errorRight);
 		
-error := errorLeft OR errorRight;
-
-(*
-below is the old code for loading wood bunks from staging table to insertion
-it loads wood bunks in sets - top/bottom, then sides
-if one side is finished loading a set before the other, it waits until the other side is done before advancing the set
-*)
-(*
-IF robotLeft.error OR robotRight.error THEN
-	error := TRUE;
-	RETURN;
-	
-ELSIF 
-	(robotLeft.reservation <> sectionID AND_THEN NOT robotLeft.reserve(sectionID)) OR 
-	(robotRight.reservation <> sectionID AND_THEN NOT robotRight.reserve(sectionID))
-THEN //loading requires both robots be reserved together
-	RETURN;
-	
-ELSIF //robots have wrong tool
-	(robotLeft.tool <> sectionID AND_THEN NOT robotLeft.changeEOAT(targetTool := sectionID)) OR
-	(robotRight.tool <> sectionID AND_THEN NOT robotRight.changeEOAT(targetTool := sectionID))
-THEN
-	RETURN;
-	
-END_IF
-
-CASE loadStep OF
-	0: //top and bottom
-		IF aoiLoadLeft.done AND aoiLoadRight.done THEN
-			aoiLoadLeft.execute := aoiLoadRight.execute := FALSE;
-			aoiLoadLeft.material := aoiLoadRight.material := '';
-			
-			aoiLoadLeft.reset();
-			aoiLoadRight.reset();
-			loadStep := 10;
-			RETURN;
-		END_IF
-		
-		aoiLoadLeft.suctions := suctionTop;
-		aoiLoadLeft.surfaceID := Surface.TOP;
-		aoiLoadLeft.material := pair.top;
-		aoiLoadLeft.numPads := UPPER_BOUND(suctionTop, 1) - LOWER_BOUND(suctionTop, 1) + 1;
-		
-		aoiLoadRight.suctions := suctionBottom;
-		aoiLoadRight.surfaceID := Surface.BOTTOM;
-		aoiLoadRight.material := pair.bottom;
-		aoiLoadRight.numPads := UPPER_BOUND(suctionBottom, 1) - LOWER_BOUND(suctionBottom, 1) + 1;
-		
-		aoiLoadLeft.execute := NOT aoiLoadLeft.done AND NOT aoiLoadLeft.busy;
-		aoiLoadRight.execute := NOT aoiLoadRight.done AND NOT aoiLoadRight.busy;
-		
-	10: //sides
-		IF aoiLoadLeft.done AND aoiLoadRight.done THEN
-			aoiLoadLeft.execute := aoiLoadRight.execute := FALSE;
-			aoiLoadLeft.material := aoiLoadRight.material := '';
-			
-			aoiLoadLeft.reset();
-			aoiLoadRight.reset();
-			loadStep := COMPLETE;
-			RETURN;
-		END_IF
-		
-		aoiLoadLeft.suctions := suctionLeft;
-		aoiLoadLeft.surfaceID := Surface.LEFT;
-		aoiLoadLeft.material := pair.left;
-		aoiLoadLeft.numPads := UPPER_BOUND(suctionLeft, 1) - LOWER_BOUND(suctionLeft, 1) + 1;
-		
-		aoiLoadRight.suctions := suctionRight;
-		aoiLoadRight.surfaceID := Surface.RIGHT;
-		aoiLoadRight.material := pair.right;
-		aoiLoadRight.numPads := UPPER_BOUND(suctionRight, 1) - LOWER_BOUND(suctionRight, 1) + 1;
-		
-		aoiLoadLeft.execute := NOT aoiLoadLeft.done AND NOT aoiLoadLeft.busy;
-		aoiLoadRight.execute := NOT aoiLoadRight.done AND NOT aoiLoadRight.busy;
-		
-	COMPLETE:				
-		robotLeft.release(sectionID);
-		robotRight.release(sectionID);
-		
-		aoiLoadLeft.material := aoiLoadRight.material := '';
-		aoiLoadLeft.execute := aoiLoadRight.execute := FALSE;
-		
-		loadStep := 0;
-		load := TRUE;
-END_CASE
-
-//--------------------------------------------------
-IF aoiLoadLeft.recovery THEN //if loading in recovery mode - refill table, resume loading when finished
-	aoiLoadLeft.execute := stageEx(
-		robot:= robotLeft, 
-		aoiTemplate:= aoiTemplateLeft, 
-		aoiStaging:= aoiStageLeft, 
-		stageStep:= stageStepLeft, 
-		includeTop:= TRUE, 
-		includeLeft:= TRUE, 
-		includeRight:= FALSE, 
-		includeBottom:= FALSE, 
-		error=> );
-ELSE
-	//loadLeft.execute := NOT loadLeft.busy AND NOT loadLeft.done;
-END_IF
-//--------------------------------------------------
-IF aoiLoadRight.recovery THEN
-	aoiLoadRight.execute := stageEx(
-		robot:= robotRight, 
-		aoiTemplate:= aoiTemplateRight, 
-		aoiStaging:= aoiStageRight, 
-		stageStep:= stageStepRight, 
-		includeTop:= FALSE, 
-		includeLeft:= FALSE, 
-		includeRight:= TRUE, 
-		includeBottom:= TRUE, 
-		error=> );
-ELSE
-	//loadRight.execute := NOT loadRight.busy AND NOT loadRight.done;
-END_IF
-//--------------------------------------------------
-	
-error := aoiLoadLeft.error OR aoiLoadRight.error;
-*)]]></ST>
+error := errorLeft OR errorRight;]]></ST>
       </Implementation>
     </Method>
     <Method Name="loadEx" Id="{26e40d6d-60a4-4c2c-bba4-a7493624a410}" FolderPath="TaskEx\">
@@ -2818,7 +2698,7 @@ CASE status OF //add additional instructions for each status
 	SectionTask.IDLE:
 		//
 	
-	SectionTask.ALIGNING:
+	SectionTask.ALIGN:
 		stage(error => error);
 		
 	SectionTask.ACTIVE:
@@ -3053,7 +2933,8 @@ validateSuctionQuality :=
     </LineIds>
     <LineIds Name="WoodBunkEx.load">
       <LineId Id="1193" Count="0" />
-      <LineId Id="1915" Count="2" />
+      <LineId Id="1915" Count="0" />
+      <LineId Id="1917" Count="0" />
       <LineId Id="1920" Count="0" />
       <LineId Id="1883" Count="0" />
       <LineId Id="1931" Count="0" />
@@ -3065,60 +2946,7 @@ validateSuctionQuality :=
       <LineId Id="1907" Count="2" />
       <LineId Id="1900" Count="4" />
       <LineId Id="1895" Count="0" />
-      <LineId Id="1905" Count="0" />
-      <LineId Id="1880" Count="0" />
-      <LineId Id="1911" Count="0" />
-      <LineId Id="1910" Count="0" />
-      <LineId Id="1913" Count="1" />
-      <LineId Id="1918" Count="0" />
-      <LineId Id="1912" Count="0" />
-      <LineId Id="1879" Count="0" />
-      <LineId Id="1574" Count="4" />
-      <LineId Id="1746" Count="2" />
-      <LineId Id="1579" Count="7" />
-      <LineId Id="1572" Count="0" />
-      <LineId Id="1405" Count="0" />
-      <LineId Id="1107" Count="0" />
-      <LineId Id="1627" Count="0" />
-      <LineId Id="1669" Count="0" />
-      <LineId Id="1673" Count="0" />
-      <LineId Id="1683" Count="0" />
-      <LineId Id="1803" Count="2" />
-      <LineId Id="1674" Count="0" />
-      <LineId Id="1864" Count="0" />
-      <LineId Id="1863" Count="0" />
-      <LineId Id="1850" Count="11" />
-      <LineId Id="1835" Count="0" />
-      <LineId Id="1137" Count="1" />
-      <LineId Id="1798" Count="2" />
-      <LineId Id="1806" Count="2" />
-      <LineId Id="1801" Count="0" />
-      <LineId Id="1878" Count="0" />
-      <LineId Id="1797" Count="0" />
-      <LineId Id="1866" Count="11" />
-      <LineId Id="1819" Count="0" />
-      <LineId Id="1330" Count="0" />
-      <LineId Id="1185" Count="0" />
-      <LineId Id="1189" Count="1" />
-      <LineId Id="1500" Count="0" />
-      <LineId Id="1685" Count="0" />
-      <LineId Id="1501" Count="0" />
-      <LineId Id="1191" Count="0" />
-      <LineId Id="1503" Count="0" />
-      <LineId Id="1192" Count="0" />
-      <LineId Id="1361" Count="0" />
-      <LineId Id="1696" Count="0" />
-      <LineId Id="1629" Count="6" />
-      <LineId Id="1637" Count="7" />
-      <LineId Id="1686" Count="0" />
-      <LineId Id="1688" Count="0" />
-      <LineId Id="1647" Count="4" />
-      <LineId Id="1653" Count="6" />
-      <LineId Id="1628" Count="0" />
-      <LineId Id="1493" Count="0" />
-      <LineId Id="1733" Count="0" />
-      <LineId Id="1390" Count="0" />
-      <LineId Id="1881" Count="0" />
+      <LineId Id="1942" Count="1" />
     </LineIds>
     <LineIds Name="WoodBunkEx.loadEx">
       <LineId Id="280" Count="0" />

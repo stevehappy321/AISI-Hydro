@@ -360,7 +360,7 @@ END_VAR
 FOR i:=LOWER_BOUND(conveyorsArr, 1) TO UPPER_BOUND(conveyorsArr, 1) BY 1 DO
 	
 	CASE status OF
-		SectionTask.ALIGNING, -100:
+		SectionTask.ALIGN, -100:
 			//all conveyors requested to same mode
 			conveyorsArr[i]^.setRequest(requestedConveyorMode);
 			
@@ -605,11 +605,11 @@ END_VAR]]></Declaration>
         <ST><![CDATA[CASE status OF
 	SectionTask.IDLE:
 		IF BundleIsValid(currentBundle) THEN			
-			status := SectionTask.ALIGNING;
+			status := SectionTask.ALIGN;
 			done := FALSE;
 		END_IF
 	
-	SectionTask.ALIGNING:		
+	SectionTask.ALIGN:		
 		pConveyorMode := ConveyorMode.FORWARD;
 		
 		IF occupied THEN
@@ -671,7 +671,7 @@ END_VAR]]></Declaration>
 		pConveyorMode := ConveyorMode.FORWARD;
 		
 		IF NOT occupied AND conveyorPos = 0 THEN
-			status := SectionTask.ALIGNING;
+			status := SectionTask.ALIGN;
 		END_IF
 		
 END_CASE]]></ST>

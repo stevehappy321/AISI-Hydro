@@ -41,7 +41,6 @@ VAR
 	//parallel arrays - bundle, bypass
 	numBundles : INT;
 	bundlesQueue : ARRAY[0..CONSTS.maxQueue] OF Bundle;
-	bundlesBypass : ARRAY[0..CONSTS.maxQueue] OF BOOL;
 END_VAR
 VAR //sections
 	spacerRecollector : SpacerRecollectionUnit;
@@ -99,10 +98,8 @@ backlog := numBundlesQueue > 5;
 
 initSections();
 
-//fillBundlesQueue(); //for random testing only
-
 blocks();
-	
+
 runPML();
 
 runSubareas();
@@ -550,35 +547,36 @@ END_VAR
 METHOD PRIVATE receive : BOOL
 VAR
 	i : INT;
-	shiftIndex : INT := -1;
-	invalidBundle : Bundle;
+	etaIndex : INT := -1;
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[FOR i:=0 TO CONSTS.maxQueue BY 1 DO //find the bundle in the ETA queue
 	IF expectedBundles[i] = bundleIn.id THEN
-		shiftIndex := i;
+		etaIndex := i;
 		EXIT;
 	END_IF
 END_FOR
 
-IF shiftIndex > -1 THEN //if the bundle is found in the ETA queue, shift everything down
+IF etaIndex > -1 THEN //if the bundle is found in the ETA queue, shift everything down
 	MEMMOVE(
-		ADR(expectedBundles[shiftIndex]), 
-		ADR(expectedBundles[shiftIndex + 1]), 
-		SIZEOF(STRING) * TO_UINT(CONSTS.maxQueue - shiftIndex));
+		ADR(expectedBundles[etaIndex]), 
+		ADR(expectedBundles[MAX(etaIndex + 1, CONSTS.maxQueue)]), 
+		SIZEOF(STRING) * TO_UINT(CONSTS.maxQueue - etaIndex));
 		
 	MEMMOVE(
-		ADR(expectedArrivals[shiftIndex]), 
-		ADR(expectedArrivals[shiftIndex + 1]), 
-		SIZEOF(TIMESTRUCT) * TO_UINT(CONSTS.maxQueue - shiftIndex) );
+		ADR(expectedArrivals[etaIndex]), 
+		ADR(expectedArrivals[MAX(etaIndex + 1, CONSTS.maxQueue)]), 
+		SIZEOF(TIMESTRUCT) * TO_UINT(CONSTS.maxQueue - etaIndex) );
+		
+	MEMSET(ADR(expectedBundles[CONSTS.maxQueue]), 0, SIZEOF(expectedBundles[0]));
+	MEMSET(ADR(expectedArrivals[CONSTS.maxQueue]), 0, SIZEOF(expectedArrivals[0]));	
 		
 	numEtaBundles := numEtaBundles - 1;
 END_IF
 
 FOR i:=0 TO CONSTS.maxQueue BY 1 DO
-	IF BundleIsValid(bundlesQueue[i]) AND NOT bundlesBypass[i] THEN
+	IF NOT BundleIsValid(bundlesQueue[i]) THEN
 		bundlesQueue[i] := bundleIn;
-		bundlesBypass[i] := FALSE;
 		
 		receive := TRUE;
 		RETURN;
@@ -772,7 +770,7 @@ this structure should drastically reduce the visibility of hardware modules and 
                           <v n="LValue">false</v>
                           <v n="Boolean">false</v>
                           <v n="IsInstance">true</v>
-                          <v n="Id">198L</v>
+                          <v n="Id">213L</v>
                         </o>
                         <o n="OutputItems" t="OutputItemList">
                           <l2 n="OutputItems" cet="Operand">
@@ -906,25 +904,6 @@ this structure should drastically reduce the visibility of hardware modules and 
                           </o>
                           <o>
                             <o n="Operand" t="Operand">
-                              <v n="Operand">"bundlesBypass"</v>
-                              <v n="Type">"ARRAY [0..CONSTS.maxQueue] OF BOOL"</v>
-                              <v n="Comment">""</v>
-                              <v n="SymbolComment">""</v>
-                              <v n="Address">""</v>
-                              <o n="Flags" t="Flags">
-                                <v n="Flags">0</v>
-                                <v n="Fixed">false</v>
-                                <v n="Extensible">false</v>
-                              </o>
-                              <v n="LValue">false</v>
-                              <v n="Boolean">false</v>
-                              <v n="IsInstance">false</v>
-                              <v n="Id">191L</v>
-                            </o>
-                            <v n="Id">190L</v>
-                          </o>
-                          <o>
-                            <o n="Operand" t="Operand">
                               <v n="Operand">"ecDiagnostics_EK1200.slaveStates"</v>
                               <v n="Type">"ARRAY [0..EC_MAX_SLAVES] OF ST_EcSlaveState"</v>
                               <v n="Comment">""</v>
@@ -1004,7 +983,6 @@ this structure should drastically reduce the visibility of hardware modules and 
                           <l2 n="Names" cet="String">
                             <v>EN</v>
                             <v>bundlesQueue</v>
-                            <v>bundlesBypass</v>
                             <v>ecDeviceStates</v>
                             <v>ecIndex0</v>
                             <v>ecIndex1</v>
@@ -1013,7 +991,6 @@ this structure should drastically reduce the visibility of hardware modules and 
                           <l2 n="Types" cet="String">
                             <v>BOOL</v>
                             <v>POINTER TO Bundle</v>
-                            <v>POINTER TO BOOL</v>
                             <v>POINTER TO ST_EcSlaveState</v>
                             <v>DINT</v>
                             <v>DINT</v>
@@ -1044,7 +1021,7 @@ this structure should drastically reduce the visibility of hardware modules and 
                         <n n="STSnippet" />
                         <v n="ContainsExtensibleInputs">false</v>
                         <v n="ProvidesSTSnippet">false</v>
-                        <v n="Id">199L</v>
+                        <v n="Id">214L</v>
                       </o>
                     </l2>
                     <l2 n="Connectors" />
@@ -1076,7 +1053,7 @@ this structure should drastically reduce the visibility of hardware modules and 
                           <v n="LValue">false</v>
                           <v n="Boolean">false</v>
                           <v n="IsInstance">true</v>
-                          <v n="Id">110L</v>
+                          <v n="Id">215L</v>
                         </o>
                         <o n="OutputItems" t="OutputItemList">
                           <l2 n="OutputItems" cet="Operand">
@@ -1210,25 +1187,6 @@ this structure should drastically reduce the visibility of hardware modules and 
                           </o>
                           <o>
                             <o n="Operand" t="Operand">
-                              <v n="Operand">"bundlesBypass"</v>
-                              <v n="Type">"ARRAY [0..CONSTS.maxQueue] OF BOOL"</v>
-                              <v n="Comment">""</v>
-                              <v n="SymbolComment">""</v>
-                              <v n="Address">""</v>
-                              <o n="Flags" t="Flags">
-                                <v n="Flags">0</v>
-                                <v n="Fixed">false</v>
-                                <v n="Extensible">false</v>
-                              </o>
-                              <v n="LValue">false</v>
-                              <v n="Boolean">false</v>
-                              <v n="IsInstance">false</v>
-                              <v n="Id">14L</v>
-                            </o>
-                            <v n="Id">13L</v>
-                          </o>
-                          <o>
-                            <o n="Operand" t="Operand">
                               <v n="Operand">"ecDiagnostics_EK1200.slaveStates"</v>
                               <v n="Type">"ARRAY [0..EC_MAX_SLAVES] OF ST_EcSlaveState"</v>
                               <v n="Comment">""</v>
@@ -1289,7 +1247,6 @@ this structure should drastically reduce the visibility of hardware modules and 
                           <l2 n="Names" cet="String">
                             <v>EN</v>
                             <v>bundlesQueue</v>
-                            <v>bundlesBypass</v>
                             <v>ecDeviceStates</v>
                             <v>ecIndex0</v>
                             <v>ecIndex1</v>
@@ -1297,7 +1254,6 @@ this structure should drastically reduce the visibility of hardware modules and 
                           <l2 n="Types" cet="String">
                             <v>BOOL</v>
                             <v>POINTER TO Bundle</v>
-                            <v>POINTER TO BOOL</v>
                             <v>POINTER TO ST_EcSlaveState</v>
                             <v>DINT</v>
                             <v>DINT</v>
@@ -1327,7 +1283,7 @@ this structure should drastically reduce the visibility of hardware modules and 
                         <n n="STSnippet" />
                         <v n="ContainsExtensibleInputs">false</v>
                         <v n="ProvidesSTSnippet">false</v>
-                        <v n="Id">111L</v>
+                        <v n="Id">216L</v>
                       </o>
                     </l2>
                     <l2 n="Connectors" />
@@ -1359,7 +1315,7 @@ this structure should drastically reduce the visibility of hardware modules and 
                           <v n="LValue">false</v>
                           <v n="Boolean">false</v>
                           <v n="IsInstance">true</v>
-                          <v n="Id">113L</v>
+                          <v n="Id">217L</v>
                         </o>
                         <o n="OutputItems" t="OutputItemList">
                           <l2 n="OutputItems" cet="Operand">
@@ -1493,25 +1449,6 @@ this structure should drastically reduce the visibility of hardware modules and 
                           </o>
                           <o>
                             <o n="Operand" t="Operand">
-                              <v n="Operand">"bundlesBypass"</v>
-                              <v n="Type">"ARRAY [0..CONSTS.maxQueue] OF BOOL"</v>
-                              <v n="Comment">""</v>
-                              <v n="SymbolComment">""</v>
-                              <v n="Address">""</v>
-                              <o n="Flags" t="Flags">
-                                <v n="Flags">0</v>
-                                <v n="Fixed">false</v>
-                                <v n="Extensible">false</v>
-                              </o>
-                              <v n="LValue">false</v>
-                              <v n="Boolean">false</v>
-                              <v n="IsInstance">false</v>
-                              <v n="Id">125L</v>
-                            </o>
-                            <v n="Id">124L</v>
-                          </o>
-                          <o>
-                            <o n="Operand" t="Operand">
                               <v n="Operand">"ecDiagnostics_EK1200.slaveStates"</v>
                               <v n="Type">"ARRAY [0..EC_MAX_SLAVES] OF ST_EcSlaveState"</v>
                               <v n="Comment">""</v>
@@ -1572,7 +1509,6 @@ this structure should drastically reduce the visibility of hardware modules and 
                           <l2 n="Names" cet="String">
                             <v>EN</v>
                             <v>bundlesQueue</v>
-                            <v>bundlesBypass</v>
                             <v>ecDeviceStates</v>
                             <v>ecIndex0</v>
                             <v>ecIndex1</v>
@@ -1580,7 +1516,6 @@ this structure should drastically reduce the visibility of hardware modules and 
                           <l2 n="Types" cet="String">
                             <v>BOOL</v>
                             <v>POINTER TO Bundle</v>
-                            <v>POINTER TO BOOL</v>
                             <v>POINTER TO ST_EcSlaveState</v>
                             <v>DINT</v>
                             <v>DINT</v>
@@ -1610,7 +1545,7 @@ this structure should drastically reduce the visibility of hardware modules and 
                         <n n="STSnippet" />
                         <v n="ContainsExtensibleInputs">false</v>
                         <v n="ProvidesSTSnippet">false</v>
-                        <v n="Id">114L</v>
+                        <v n="Id">218L</v>
                       </o>
                     </l2>
                     <l2 n="Connectors" />
@@ -1642,7 +1577,7 @@ this structure should drastically reduce the visibility of hardware modules and 
                           <v n="LValue">false</v>
                           <v n="Boolean">false</v>
                           <v n="IsInstance">true</v>
-                          <v n="Id">133L</v>
+                          <v n="Id">219L</v>
                         </o>
                         <o n="OutputItems" t="OutputItemList">
                           <l2 n="OutputItems" cet="Operand">
@@ -1776,25 +1711,6 @@ this structure should drastically reduce the visibility of hardware modules and 
                           </o>
                           <o>
                             <o n="Operand" t="Operand">
-                              <v n="Operand">"bundlesBypass"</v>
-                              <v n="Type">"ARRAY [0..CONSTS.maxQueue] OF BOOL"</v>
-                              <v n="Comment">""</v>
-                              <v n="SymbolComment">""</v>
-                              <v n="Address">""</v>
-                              <o n="Flags" t="Flags">
-                                <v n="Flags">0</v>
-                                <v n="Fixed">false</v>
-                                <v n="Extensible">false</v>
-                              </o>
-                              <v n="LValue">false</v>
-                              <v n="Boolean">false</v>
-                              <v n="IsInstance">false</v>
-                              <v n="Id">145L</v>
-                            </o>
-                            <v n="Id">144L</v>
-                          </o>
-                          <o>
-                            <o n="Operand" t="Operand">
                               <v n="Operand">"ecDiagnostics_EK1200.slaveStates"</v>
                               <v n="Type">"ARRAY [0..EC_MAX_SLAVES] OF ST_EcSlaveState"</v>
                               <v n="Comment">""</v>
@@ -1874,7 +1790,6 @@ this structure should drastically reduce the visibility of hardware modules and 
                           <l2 n="Names" cet="String">
                             <v>EN</v>
                             <v>bundlesQueue</v>
-                            <v>bundlesBypass</v>
                             <v>ecDeviceStates</v>
                             <v>ecIndex0</v>
                             <v>ecIndex1</v>
@@ -1883,7 +1798,6 @@ this structure should drastically reduce the visibility of hardware modules and 
                           <l2 n="Types" cet="String">
                             <v>BOOL</v>
                             <v>POINTER TO Bundle</v>
-                            <v>POINTER TO BOOL</v>
                             <v>POINTER TO ST_EcSlaveState</v>
                             <v>DINT</v>
                             <v>DINT</v>
@@ -1914,7 +1828,7 @@ this structure should drastically reduce the visibility of hardware modules and 
                         <n n="STSnippet" />
                         <v n="ContainsExtensibleInputs">false</v>
                         <v n="ProvidesSTSnippet">false</v>
-                        <v n="Id">134L</v>
+                        <v n="Id">220L</v>
                       </o>
                     </l2>
                     <l2 n="Connectors" />
@@ -1946,7 +1860,7 @@ this structure should drastically reduce the visibility of hardware modules and 
                           <v n="LValue">false</v>
                           <v n="Boolean">false</v>
                           <v n="IsInstance">true</v>
-                          <v n="Id">155L</v>
+                          <v n="Id">221L</v>
                         </o>
                         <o n="OutputItems" t="OutputItemList">
                           <l2 n="OutputItems" cet="Operand">
@@ -2080,25 +1994,6 @@ this structure should drastically reduce the visibility of hardware modules and 
                           </o>
                           <o>
                             <o n="Operand" t="Operand">
-                              <v n="Operand">"bundlesBypass"</v>
-                              <v n="Type">"ARRAY [0..CONSTS.maxQueue] OF BOOL"</v>
-                              <v n="Comment">""</v>
-                              <v n="SymbolComment">""</v>
-                              <v n="Address">""</v>
-                              <o n="Flags" t="Flags">
-                                <v n="Flags">0</v>
-                                <v n="Fixed">false</v>
-                                <v n="Extensible">false</v>
-                              </o>
-                              <v n="LValue">false</v>
-                              <v n="Boolean">false</v>
-                              <v n="IsInstance">false</v>
-                              <v n="Id">167L</v>
-                            </o>
-                            <v n="Id">166L</v>
-                          </o>
-                          <o>
-                            <o n="Operand" t="Operand">
                               <v n="Operand">"ecDiagnostics_EK1200.slaveStates"</v>
                               <v n="Type">"ARRAY [0..EC_MAX_SLAVES] OF ST_EcSlaveState"</v>
                               <v n="Comment">""</v>
@@ -2197,7 +2092,6 @@ this structure should drastically reduce the visibility of hardware modules and 
                           <l2 n="Names" cet="String">
                             <v>EN</v>
                             <v>bundlesQueue</v>
-                            <v>bundlesBypass</v>
                             <v>ecDeviceStates</v>
                             <v>ecIndex0</v>
                             <v>ecIndex1</v>
@@ -2207,7 +2101,6 @@ this structure should drastically reduce the visibility of hardware modules and 
                           <l2 n="Types" cet="String">
                             <v>BOOL</v>
                             <v>POINTER TO Bundle</v>
-                            <v>POINTER TO BOOL</v>
                             <v>POINTER TO ST_EcSlaveState</v>
                             <v>DINT</v>
                             <v>DINT</v>
@@ -2239,7 +2132,7 @@ this structure should drastically reduce the visibility of hardware modules and 
                         <n n="STSnippet" />
                         <v n="ContainsExtensibleInputs">false</v>
                         <v n="ProvidesSTSnippet">false</v>
-                        <v n="Id">156L</v>
+                        <v n="Id">222L</v>
                       </o>
                     </l2>
                     <l2 n="Connectors" />
@@ -2274,14 +2167,13 @@ this structure should drastically reduce the visibility of hardware modules and 
 VAR_INPUT
 END_VAR]]></Declaration>
       <Implementation>
-        <ST><![CDATA[//shift down parallel arrays
+        <ST><![CDATA[//shift down bundles queue
 MEMMOVE(ADR(bundlesQueue[0]), ADR(bundlesQueue[1]), SIZEOF(Bundle) * TO_UINT(CONSTS.maxQueue));
-MEMMOVE(ADR(bundlesBypass[0]), ADR(bundlesBypass[1]), SIZEOF(BOOL) * TO_UINT(CONSTS.maxQueue));
 
 //decrement each section's iterator to realign with their correct bundle
 //paperSection.shiftIterator();
 //cardboardCornerGuardSection.shiftIterator();
-//chipboardSection.shiftIterator();
+chipboardSection.shiftIterator();
 woodBunkSection.shiftIterator();
 //outputSection.shiftIterator();]]></ST>
       </Implementation>
@@ -2310,9 +2202,11 @@ END_IF]]></ST>
     <LineIds Name="MAIN">
       <LineId Id="5284" Count="0" />
       <LineId Id="5198" Count="15" />
-      <LineId Id="5215" Count="1" />
-      <LineId Id="5218" Count="3" />
-      <LineId Id="5233" Count="0" />
+      <LineId Id="5401" Count="0" />
+      <LineId Id="5219" Count="0" />
+      <LineId Id="5396" Count="0" />
+      <LineId Id="5221" Count="0" />
+      <LineId Id="5395" Count="0" />
       <LineId Id="5253" Count="0" />
       <LineId Id="5316" Count="0" />
       <LineId Id="5254" Count="20" />
@@ -2457,17 +2351,11 @@ END_IF]]></ST>
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="MAIN.receive">
-      <LineId Id="147" Count="19" />
-      <LineId Id="209" Count="0" />
-      <LineId Id="211" Count="3" />
-      <LineId Id="230" Count="0" />
-      <LineId Id="229" Count="0" />
-      <LineId Id="227" Count="0" />
-      <LineId Id="215" Count="0" />
-      <LineId Id="210" Count="0" />
-      <LineId Id="232" Count="0" />
-      <LineId Id="231" Count="0" />
-      <LineId Id="233" Count="1" />
+      <LineId Id="247" Count="16" />
+      <LineId Id="280" Count="2" />
+      <LineId Id="264" Count="6" />
+      <LineId Id="272" Count="7" />
+      <LineId Id="234" Count="0" />
     </LineIds>
     <LineIds Name="MAIN.runPML">
       <LineId Id="31" Count="0" />
@@ -2503,9 +2391,7 @@ END_IF]]></ST>
     </LineIds>
     <LineIds Name="MAIN.shiftBundles">
       <LineId Id="39" Count="0" />
-      <LineId Id="28" Count="0" />
-      <LineId Id="37" Count="0" />
-      <LineId Id="29" Count="5" />
+      <LineId Id="28" Count="6" />
       <LineId Id="26" Count="0" />
     </LineIds>
     <LineIds Name="MAIN.transfer">

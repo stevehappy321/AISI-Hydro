@@ -2967,7 +2967,7 @@ CASE status OF
 	SectionTask.IDLE:
 		RETURN;
 	
-	SectionTask.ALIGNING:
+	SectionTask.ALIGN:
 		IF NOT recipesCombined THEN
 			combine(
 				currentBundle.cardboard, 

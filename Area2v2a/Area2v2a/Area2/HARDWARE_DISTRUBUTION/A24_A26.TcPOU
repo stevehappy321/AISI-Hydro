@@ -1,0 +1,190 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="A24_A26" Id="{45661656-f465-4c56-89dd-1e9b298b17c5}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK A24_A26 EXTENDS GenericSubarea
+VAR_IN_OUT
+	spacerRecollector : SpacerRecollectionUnit;
+END_VAR
+VAR
+	robot7 : RobotA26;
+	robotSliderA26 : ServoNC;
+END_VAR
+VAR //sensors to detect spacer on transfer conveyors
+	spacerPresent_A24_LRC_C02 AT %I* : BOOL;
+	spacerPresent_A24_LRC_C04 AT %I* : BOOL;
+	spacerPresent_A24_LRC_C06 AT %I* : BOOL;
+	spacerPresent_A24_LRC_C08 AT %I* : BOOL;
+	spacerPresent_A24_LRC_C10 AT %I* : BOOL;
+	spacerPresent_A24_LRC_C12 AT %I* : BOOL;
+END_VAR
+VAR
+	conveyors : ARRAY[1..6] OF POINTER TO Conveyor;
+	step : (IDLE, RECEIVE, MEASURE, SEND, VACANT); //idle, align, active, discharge, complete - replacable with SectionTask enum
+	step2 : SectionTask;
+END_VAR
+(*
+A2.4 and A2.6 have interdependent processes
+this is a prototype FB that contains the data for both subareas
+*)]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[SUPER^();
+
+CASE step OF
+	IDLE:
+		allConveyorsRequest(newRequest := ConveyorMode.IDLE);
+		
+		IF TRUE (*incoming bundle*) THEN
+			step := RECEIVE;
+		END_IF
+		
+	RECEIVE:
+		allConveyorsRequest(newRequest := ConveyorMode.STOP);
+		
+		IF TRUE (*area 3 is done transferring*) THEN
+			step := MEASURE;
+		END_IF
+		
+	MEASURE:
+		
+		
+	SEND:
+		allConveyorsRequest(newRequest := ConveyorMode.FORWARD);
+		
+		IF allConveyorsVacant() THEN
+			step := VACANT;
+		END_IF
+		
+	VACANT:
+		allConveyorsRequest(newRequest := ConveyorMode.IDLE);
+		step := 0;
+		
+END_CASE]]></ST>
+    </Implementation>
+    <Folder Name="Conveyors" Id="{3f427cd1-a7cf-425d-a1ea-6f0b204ca6a0}" />
+    <Method Name="allConveyorsRequest" Id="{d879df56-0e56-475f-ba6a-6dcdc91dd427}" FolderPath="Conveyors\">
+      <Declaration><![CDATA[METHOD PROTECTED allConveyorsRequest : BOOL
+VAR_INPUT
+	newRequest : ConveyorMode;
+END_VAR
+VAR
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i:=1 TO 6 BY 1 DO
+	conveyors[i]^.setRequest(newRequest := newRequest);
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="allConveyorsVacant" Id="{324082cd-6db2-4a58-8d6e-68b80ec0f760}" FolderPath="Conveyors\">
+      <Declaration><![CDATA[METHOD PROTECTED allConveyorsVacant : BOOL
+VAR_INPUT
+END_VAR
+VAR
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i:=1 TO 6 BY 1 DO
+	IF conveyors[i]^.IsOccupied THEN
+		RETURN;
+	END_IF
+END_FOR
+
+allConveyorsVacant := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="callHardware" Id="{e7b7cbec-84f5-4301-8372-5c925f50471f}">
+      <Declaration><![CDATA[METHOD PROTECTED callHardware : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="runModules" Id="{3e067aef-3c96-4d69-9340-7f45388eb0d5}">
+      <Declaration><![CDATA[METHOD PROTECTED runModules : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <NWL>
+          <XmlArchive>
+            <Data>
+              <o xml:space="preserve" t="NWLImplementationObject">
+                <v n="NetworkListComment">""</v>
+                <v n="DefaultViewMode">"Ld"</v>
+                <l2 n="NetworkList" cet="Network">
+                  <o>
+                    <v n="ILActive">false</v>
+                    <v n="FBDValid">false</v>
+                    <v n="ILValid">false</v>
+                    <l2 n="ILLines" />
+                    <v n="Comment">""</v>
+                    <v n="Title">""</v>
+                    <v n="Label">""</v>
+                    <v n="OutCommented">false</v>
+                    <l2 n="NetworkItems" />
+                    <l2 n="Connectors" />
+                    <v n="Id">5L</v>
+                  </o>
+                </l2>
+                <v n="BranchCounter">1</v>
+                <v n="ValidIds">true</v>
+              </o>
+            </Data>
+            <TypeList>
+              <Type n="Boolean">System.Boolean</Type>
+              <Type n="Int32">System.Int32</Type>
+              <Type n="Int64">System.Int64</Type>
+              <Type n="Network">{d9a99d73-b633-47db-b876-a752acb25871}</Type>
+              <Type n="NWLImplementationObject">{25e509de-33d4-4447-93f8-c9e4ea381c8b}</Type>
+              <Type n="String">System.String</Type>
+            </TypeList>
+          </XmlArchive>
+        </NWL>
+      </Implementation>
+    </Method>
+    <Method Name="setupHardware" Id="{de28281e-6dde-4862-887a-b60896c5a8c0}">
+      <Declaration><![CDATA[METHOD PROTECTED setupHardware : BOOL
+VAR
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[conveyors[1] := ADR(ConveyorSyncUnit.A24_LRC_C02);
+conveyors[2] := ADR(ConveyorSyncUnit.A24_LRC_C04);
+conveyors[3] := ADR(ConveyorSyncUnit.A24_LRC_C06);
+conveyors[4] := ADR(ConveyorSyncUnit.A24_LRC_C08);
+conveyors[5] := ADR(ConveyorSyncUnit.A24_LRC_C10);
+conveyors[6] := ADR(ConveyorSyncUnit.A24_LRC_C12);]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="A24_A26">
+      <LineId Id="141" Count="4" />
+      <LineId Id="171" Count="0" />
+      <LineId Id="147" Count="9" />
+      <LineId Id="207" Count="1" />
+      <LineId Id="210" Count="0" />
+      <LineId Id="157" Count="8" />
+      <LineId Id="168" Count="2" />
+      <LineId Id="47" Count="0" />
+    </LineIds>
+    <LineIds Name="A24_A26.allConveyorsRequest">
+      <LineId Id="5" Count="0" />
+      <LineId Id="8" Count="1" />
+    </LineIds>
+    <LineIds Name="A24_A26.allConveyorsVacant">
+      <LineId Id="5" Count="1" />
+      <LineId Id="10" Count="1" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="12" Count="0" />
+    </LineIds>
+    <LineIds Name="A24_A26.callHardware">
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="A24_A26.setupHardware">
+      <LineId Id="25" Count="4" />
+      <LineId Id="21" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

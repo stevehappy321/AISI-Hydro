@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="VisionSuite" Id="{4cd8f18e-831f-4a09-8f72-328a33643bb8}">
+    <Declaration><![CDATA[TYPE VisionSuite :
+STRUCT
+	json : STRING(1000);
+	frame : VisionFrame;
+	data : TcpData;
+END_STRUCT
+END_TYPE]]></Declaration>
+  </DUT>
+</TcPlcObject>

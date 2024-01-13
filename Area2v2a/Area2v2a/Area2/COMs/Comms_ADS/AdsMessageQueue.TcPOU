@@ -1,0 +1,272 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="AdsMessageQueue" Id="{31555f0d-7c4f-4350-b3a4-ff1b5982d4dd}" SpecialFunc="None">
+    <Declaration><![CDATA[{attribute 'call_after_init'}
+FUNCTION_BLOCK AdsMessageQueue
+VAR
+	//elements : FB_BA_DynamicArray := (uiEntrySize := SIZEOF(POINTER TO AdsMessage), uiMinExpCount := 4);
+	
+	elements : FB_BA_StaticArray := (uiEntrySize := SIZEOF(POINTER TO AdsMessage), pExtMemory := ADR(arr), uiExtMemorySize := SIZEOF(arr));
+	arr : ARRAY[0..99] OF POINTER TO AdsMessage;
+	
+	length : INT := 0;
+	entrySize : UDINT;
+END_VAR
+VAR_STAT CONSTANT
+	maxElements : INT := 100;
+END_VAR
+(*
+this container stores dynamically generated AdsData Structs
+AdsData to be added are passed by reference, then this function block allocates a structure to be stored
+AdsData are get() by reference and poll() by value
+*)]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="clear" Id="{db44bf77-29ba-44a4-b4b0-ab8e1f12b8c0}">
+      <Declaration><![CDATA[METHOD clear : BOOL
+VAR
+	i : INT;
+	tempRef : REFERENCE TO AdsMessage;
+	tempAdr : POINTER TO AdsMessage;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i:=0 TO length-1 BY 1 DO
+	tempRef := get(index := i, getSize => );
+	tempAdr := ADR(tempRef);
+	IF tempAdr <> 0 THEN
+		__DELETE(tempAdr);
+	END_IF
+	
+END_FOR
+
+elements.Reset();
+length := 0;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="contains" Id="{a3bbf896-9f8a-48ee-84b2-aeaeb529bc15}">
+      <Declaration><![CDATA[METHOD contains : BOOL //check contents, not pointer value
+VAR_INPUT
+	value : REFERENCE TO AdsMessage;
+END_VAR
+VAR_OUTPUT
+	atIndex : INT;
+END_VAR
+VAR
+	temp : REFERENCE TO AdsMessage;
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF length = 0 THEN
+	contains := FALSE;
+	RETURN;
+END_IF
+
+FOR i:=0 TO length-1 BY 1 DO
+	temp := get(index := i, getSize => );
+	
+	IF 
+		SIZEOF(value) = entrySize AND //same size
+		MEMCMP(ADR(temp), ADR(value), SIZEOF(entrySize)) = 0 //same data
+	THEN
+		contains := TRUE;
+		atIndex := i;
+		RETURN;
+	END_IF
+	
+END_FOR
+contains := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="get" Id="{217c607c-584c-47a6-bd6b-45b399a5afab}">
+      <Declaration><![CDATA[METHOD get : REFERENCE TO AdsMessage
+VAR_INPUT
+	index : INT;
+END_VAR
+VAR_OUTPUT
+	getSize : UDINT;
+	ok : BOOL;
+END_VAR
+VAR
+	temp : POINTER TO AdsMessage;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF
+	length = 0 OR
+	index < 0 OR
+	index >= length
+THEN
+	RETURN;
+END_IF
+
+ok := elements.GetEntry(diIndex := index, pResultEntry := ADR(temp));
+get REF= temp^;
+
+getSize := SIZEOF(get);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="isEmpty" Id="{9a77362f-d3ac-4821-a848-453c2a700378}">
+      <Declaration><![CDATA[METHOD isEmpty : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[isEmpty := length = 0;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="poll" Id="{2750ad6b-3a36-4b2f-96d7-5f4c37362aba}">
+      <Declaration><![CDATA[METHOD poll : AdsMessage
+VAR_OUTPUT
+	getSize : ULINT;
+END_VAR
+VAR
+	tempRef : REFERENCE TO AdsMessage;
+	tempPtr : POINTER TO AdsMessage;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF length > 0 THEN
+	tempRef REF= get(index := 0, getSize => getSize);
+	//poll := get(index := 0, getSize => getSize);
+	poll := tempRef;
+	
+	tempPtr := ADR(tempRef);
+	__DELETE(tempPtr);
+	
+	elements.RemoveEntry(diIndex := 0);
+	
+	length := length - 1;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="push" Id="{2868282b-9ddd-4f98-bf42-e70797839065}">
+      <Declaration><![CDATA[METHOD push : BOOL
+VAR_INPUT
+	value : REFERENCE TO AdsMessage;
+END_VAR
+VAR
+	temp : POINTER TO AdsMessage;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF length < maxElements THEN
+	temp := __NEW(AdsMessage);
+	temp^ := value;
+	
+	push := elements.AddEntryPtr(pEntry := temp);
+	
+	length := length + 1;
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="set" Id="{581121c0-b6ec-4618-813a-c1cf00207d6e}">
+      <Declaration><![CDATA[METHOD set : BOOL
+VAR_INPUT
+	i : INT;
+	value : REFERENCE TO AdsMessage;
+END_VAR
+VAR
+	temp : REFERENCE TO AdsMessage;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF length = 0 THEN
+	RETURN;
+END_IF
+
+IF i >= 0 AND i < length THEN
+	temp REF= get(i);
+	temp := value;
+	
+	set := TRUE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="setup" Id="{efba3dbc-737b-427d-a6d2-60b710fa693f}">
+      <Declaration><![CDATA[{attribute 'call_after_init'}
+METHOD setup : BOOL
+VAR_INPUT
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[entrySize := SIZEOF(AdsMessage);
+
+clear();]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="size" Id="{0fa383f9-597d-49f8-9fce-9ad607a5f6e6}">
+      <Declaration><![CDATA[METHOD size : INT]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[size := length;]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="AdsMessageQueue">
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsMessageQueue.clear">
+      <LineId Id="53" Count="9" />
+      <LineId Id="6" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsMessageQueue.contains">
+      <LineId Id="21" Count="0" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="25" Count="0" />
+      <LineId Id="24" Count="0" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="52" Count="0" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="59" Count="0" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="81" Count="0" />
+      <LineId Id="67" Count="0" />
+      <LineId Id="69" Count="0" />
+      <LineId Id="60" Count="0" />
+      <LineId Id="66" Count="0" />
+      <LineId Id="62" Count="0" />
+      <LineId Id="61" Count="0" />
+      <LineId Id="43" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="14" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsMessageQueue.get">
+      <LineId Id="10" Count="0" />
+      <LineId Id="43" Count="3" />
+      <LineId Id="21" Count="0" />
+      <LineId Id="36" Count="1" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="41" Count="1" />
+      <LineId Id="29" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsMessageQueue.isEmpty">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsMessageQueue.poll">
+      <LineId Id="69" Count="0" />
+      <LineId Id="90" Count="0" />
+      <LineId Id="88" Count="0" />
+      <LineId Id="91" Count="3" />
+      <LineId Id="78" Count="0" />
+      <LineId Id="70" Count="0" />
+      <LineId Id="74" Count="0" />
+      <LineId Id="71" Count="1" />
+    </LineIds>
+    <LineIds Name="AdsMessageQueue.push">
+      <LineId Id="73" Count="0" />
+      <LineId Id="76" Count="4" />
+      <LineId Id="74" Count="1" />
+      <LineId Id="17" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsMessageQueue.set">
+      <LineId Id="22" Count="3" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="26" Count="0" />
+      <LineId Id="44" Count="2" />
+      <LineId Id="13" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsMessageQueue.setup">
+      <LineId Id="5" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="AdsMessageQueue.size">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

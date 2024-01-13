@@ -2,10 +2,75 @@
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
   <POU Name="A24" Id="{9825abd9-77b4-48ca-9d54-54afdff6fff9}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK A24 EXTENDS GenericSubarea
-]]></Declaration>
+VAR
+	conveyors : ARRAY[1..6] OF POINTER TO Conveyor;
+END_VAR
+VAR
+	step : (IDLE, RECEIVE, SEND, VACANT);
+END_VAR]]></Declaration>
     <Implementation>
-      <ST><![CDATA[SUPER^();]]></ST>
+      <ST><![CDATA[SUPER^();
+
+CASE step OF
+	IDLE:
+		allConveyorsRequest(newRequest := ConveyorMode.IDLE);
+		
+		IF TRUE(*incoming bundle*) THEN
+			step := RECEIVE;
+		END_IF
+		
+	RECEIVE:
+		allConveyorsRequest(newRequest := ConveyorMode.STOP);
+		
+		IF TRUE (*area 3 is done transferring*) THEN
+			step := SEND;
+		END_IF
+		
+	SEND:
+		allConveyorsRequest(newRequest := ConveyorMode.FORWARD);
+		
+		IF allConveyorsVacant() THEN
+			step := VACANT;
+		END_IF
+		
+	VACANT:
+		allConveyorsRequest(newRequest := ConveyorMode.IDLE);
+		step := 0;
+		
+END_CASE]]></ST>
     </Implementation>
+    <Folder Name="Conveyors" Id="{8b2c3f28-68fb-4af7-bbe7-e360f5d9a9c4}" />
+    <Method Name="allConveyorsRequest" Id="{afc9e351-1478-4461-9636-ece7d59e3457}" FolderPath="Conveyors\">
+      <Declaration><![CDATA[METHOD PROTECTED allConveyorsRequest : BOOL
+VAR_INPUT
+	newRequest : ConveyorMode;
+END_VAR
+VAR
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i:=1 TO 6 BY 1 DO
+	conveyors[i]^.setRequest(newRequest := newRequest);
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="allConveyorsVacant" Id="{11e98575-d900-40a7-b40a-04660dd3e276}" FolderPath="Conveyors\">
+      <Declaration><![CDATA[METHOD PROTECTED allConveyorsVacant : BOOL
+VAR_INPUT
+END_VAR
+VAR
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i:=1 TO 6 BY 1 DO
+	IF conveyors[i]^.IsOccupied THEN
+		RETURN;
+	END_IF
+END_FOR
+
+allConveyorsVacant := TRUE;]]></ST>
+      </Implementation>
+    </Method>
     <Method Name="callHardware" Id="{c8ac936c-7d12-438b-a0a6-3c27a72b6d3c}">
       <Declaration><![CDATA[METHOD PROTECTED callHardware : BOOL
 VAR_INPUT
@@ -64,17 +129,38 @@ VAR
 	i : INT;
 END_VAR]]></Declaration>
       <Implementation>
-        <ST><![CDATA[]]></ST>
+        <ST><![CDATA[conveyors[1] := ADR(ConveyorSyncUnit.A24_LRC_C02);
+conveyors[2] := ADR(ConveyorSyncUnit.A24_LRC_C04);
+conveyors[3] := ADR(ConveyorSyncUnit.A24_LRC_C06);
+conveyors[4] := ADR(ConveyorSyncUnit.A24_LRC_C08);
+conveyors[5] := ADR(ConveyorSyncUnit.A24_LRC_C10);
+conveyors[6] := ADR(ConveyorSyncUnit.A24_LRC_C12);]]></ST>
       </Implementation>
     </Method>
     <LineIds Name="A24">
+      <LineId Id="141" Count="4" />
+      <LineId Id="171" Count="0" />
+      <LineId Id="147" Count="18" />
+      <LineId Id="168" Count="2" />
+      <LineId Id="47" Count="0" />
+    </LineIds>
+    <LineIds Name="A24.allConveyorsRequest">
       <LineId Id="5" Count="0" />
+      <LineId Id="8" Count="1" />
+    </LineIds>
+    <LineIds Name="A24.allConveyorsVacant">
+      <LineId Id="5" Count="1" />
+      <LineId Id="10" Count="1" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="12" Count="0" />
     </LineIds>
     <LineIds Name="A24.callHardware">
       <LineId Id="9" Count="0" />
     </LineIds>
     <LineIds Name="A24.setupHardware">
       <LineId Id="5" Count="0" />
+      <LineId Id="17" Count="4" />
     </LineIds>
   </POU>
 </TcPlcObject>

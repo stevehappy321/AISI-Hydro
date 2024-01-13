@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="AddToBundlesArray" Id="{da469e5e-07e9-4d53-8efa-674a41b6607c}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION AddToBundlesArray : BOOL
+VAR_INPUT
+	arr : POINTER TO Bundle;
+	
+END_VAR
+VAR
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[FOR i:=0 TO CONSTS.maxQueue BY 1 DO
+	IF BundleIsValid(bundlesQueue[i]) AND NOT bundlesBypass[i] THEN
+		bundlesQueue[i] := bundleIn;
+		bundlesBypass[i] := FALSE;
+		
+		receive := TRUE;
+		RETURN;
+	END_IF
+END_FOR]]></ST>
+    </Implementation>
+    <LineIds Name="AddToBundlesArray">
+      <LineId Id="8" Count="7" />
+      <LineId Id="7" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

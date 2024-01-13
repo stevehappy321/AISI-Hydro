@@ -1,0 +1,358 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="IndexedBuffer" Id="{05296bf2-cb04-45ac-92fd-055cc5e5d88c}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK IndexedBuffer
+VAR_IN_OUT
+	bundlesQueue : ARRAY[*] OF Bundle;
+	
+	conveyor1 : ConveyorSC; //left/outer
+	conveyor2 : ConveyorSC;
+	conveyor3 : ConveyorSC;
+	conveyor4 : ConveyorSC;
+	conveyor5 : ConveyorSC;
+	conveyor6 : ConveyorSC; //right/inner
+END_VAR
+VAR_OUTPUT
+	requestedMode : ConveyorMode;
+	trueMode : ConveyorMode;
+END_VAR
+VAR
+	nextBuffer : POINTER TO IndexedBuffer; //no next buffer = junction*
+	prevBuffer : POINTER TO IndexedBuffer;
+	
+	conveyors : ARRAY[1..CONSTS.numConveyorLines] OF POINTER TO ConveyorSC;
+	iBundles : ARRAY[1..CONSTS.numConveyorLines] OF INT := [6(-1)];
+	
+	step : SectionTask;
+END_VAR
+VAR
+	i : INT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[(*
+this FB represents an indexed buffer for area 3
+up to 6 bundles per buffer, 1 per conveyor line
+	assumes 6 independent conveyer drivers
+*)
+
+fillConveyorsArray();
+setConveyorMode();
+
+(*
+each section will read and copy the iterators from the previous buffer when ready
+	buffers cannot write their iterators to the next buffer as the next buffer may still be active
+*)
+
+CASE step OF
+	SectionTask.IDLE:
+		requestedMode := ConveyorMode.IDLE;
+	
+		IF prevBuffer <> 0 THEN //if has previous buffer, get the iterators from there
+			step := SEL(prevBuffer^.iteratorsAreValid(), 0, SectionTask.ALIGN);
+			(*
+			IF prevBuffer^.iteratorsAreValid() THEN
+				step := SectionTask.ALIGN;
+			END_IF
+			*)
+		ELSIF iteratorsAreValid() THEN //this is the first buffer - conveyor-bundle iterators should be assigned via receiveNewIndexes()
+			step := SectionTask.DISCHARGE; //since bundles are already on the buffer, next step should be discharge
+			
+		END_IF
+	(*
+	SectionTask.ACTIVE:
+		CASE masterConveyorTrueMode OF
+			
+		END_CASE
+	*)
+	SectionTask.ALIGN:
+		requestedMode := ConveyorMode.FORWARD;
+		
+		IF NOT allConveyorsVacant() THEN //at least 1 conveyor is occupied
+			iBundles := SEL(prevBuffer <> 0, iBundles, prevBuffer^.iBundles);
+			step := SectionTask.DISCHARGE;
+		END_IF
+		
+	SectionTask.ACTIVE: //
+	
+	SectionTask.DISCHARGE:		
+		IF nextBuffer <> 0 THEN
+			requestedMode := ConveyorMode.FORWARD;
+			
+			IF allConveyorsVacant() THEN //all conveyors vacant
+				step := SectionTask.COMPLETE;
+			END_IF
+			
+		ELSE //no next buffer - upcoming junction
+			(*
+			0 - set all conveyors to stop
+			1 - stop conveyors at exit sensor
+			2 - identify the conveyors which carry bundles that do not need transfer
+				move those conveyors forward
+				set their respective bundle iterators to 0 when vacant
+				remaining occupied conveyors carry bundles that require transfer
+			3 - transfer the remaining bundles in order of lowest index
+				
+			*)
+			
+		END_IF
+		
+		
+	SectionTask.COMPLETE:
+		requestedMode := ConveyorMode.IDLE;
+		
+		resetIterators();
+		step := 0;
+		
+END_CASE]]></ST>
+    </Implementation>
+    <Folder Name="Conveyors" Id="{1fe3e051-cbac-4bf3-85b5-de2d27420a2c}" />
+    <Folder Name="Hidden" Id="{26a23429-fdbb-4c6c-9895-c0940a0ef45d}" />
+    <Method Name="allConveyorsOccupied" Id="{c24ea4eb-3729-426f-8508-b627694e0cbe}" FolderPath="Conveyors\">
+      <Declaration><![CDATA[METHOD PROTECTED allConveyorsOccupied : BOOL
+VAR_INPUT
+END_VAR
+VAR
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i:=1 TO CONSTS.numConveyorLines BY 1 DO
+	IF NOT conveyors[i]^.IsOccupied THEN
+		RETURN;
+	END_IF
+END_FOR
+
+allConveyorsOccupied := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="allConveyorsVacant" Id="{842725e9-555f-4f73-83ee-f9427bf1651f}" FolderPath="Conveyors\">
+      <Declaration><![CDATA[METHOD PROTECTED allConveyorsVacant : BOOL
+VAR_INPUT
+END_VAR
+VAR
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i:=1 TO CONSTS.numConveyorLines BY 1 DO
+	IF conveyors[i]^.IsOccupied THEN
+		RETURN;
+	END_IF
+END_FOR
+
+allConveyorsVacant := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="computeLinks" Id="{a6ff1a02-d43e-4f20-a651-fb63e407c34c}" FolderPath="Hidden\">
+      <Declaration><![CDATA[METHOD PROTECTED computeLinks : BOOL
+VAR_OUTPUT
+	priorityRequest : ConveyorMode;
+	trueMode : ConveyorMode;
+END_VAR
+VAR
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i:=1 TO CONSTS.numConveyorLines BY 1 DO //calculate the highest priority request
+	priorityRequest := MAX(priorityRequest, conveyors[i]^.requestedMode);
+END_FOR
+
+FOR i:=1 TO CONSTS.numConveyorLines BY 1 DO //set all conveyors to that highest priority request
+	conveyors[i]^.setRequest(newRequest:= priorityRequest);
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="connectTo" Id="{216d5f49-06cb-4f39-bbc5-2791d64ebae8}">
+      <Declaration><![CDATA[METHOD connectTo : BOOL
+VAR_INPUT
+	next : POINTER TO IndexedBuffer;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[nextBuffer := next;
+
+IF next <> 0 THEN
+	next^.prevBuffer := THIS;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="conveyorsAtSensorExit" Id="{4a4ef1e6-eef9-491e-af7f-fe134b7a25a8}" FolderPath="Conveyors\">
+      <Declaration><![CDATA[METHOD conveyorsAtSensorExit : BOOL
+VAR
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i:=1 TO CONSTS.numConveyorLines BY 1 DO
+	IF iBundles[i] <> -1 THEN
+		
+		RETURN;
+	END_IF
+END_FOR
+
+conveyorsAtSensorExit := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="fillConveyorsArray" Id="{a951dee5-7153-4a73-bec3-29b5a1103a67}" FolderPath="Hidden\">
+      <Declaration><![CDATA[METHOD PROTECTED fillConveyorsArray : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[{warning disable C0371}
+conveyors[1] := ADR(conveyor1);
+conveyors[2] := ADR(conveyor2);
+conveyors[3] := ADR(conveyor3);
+conveyors[4] := ADR(conveyor4);
+conveyors[5] := ADR(conveyor5);
+conveyors[6] := ADR(conveyor6);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="iteratorsAreValid" Id="{789f4073-c4df-42ef-a20b-6e8a4d1c0196}" FolderPath="Hidden\">
+      <Declaration><![CDATA[METHOD PROTECTED iteratorsAreValid : BOOL
+VAR
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i:=1 TO CONSTS.numConveyorLines BY 1 DO
+	IF iBundles[i] <> -1 THEN
+		iteratorsAreValid := TRUE;
+		RETURN;
+	END_IF
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="receiveNewIterators" Id="{148288dc-8073-48c3-bb0d-a90fb232de9f}">
+      <Declaration><![CDATA[METHOD receiveNewIterators : BOOL
+VAR_INPUT
+	iLine1 : INT;
+	iLine2 : INT;
+	iLine3 : INT;
+	iLine4 : INT;
+	iLine5 : INT;
+	iLine6 : INT;
+END_VAR
+//6 ints containing the new array indexes of the new bundles in bundlesQueue, 1 for each respective conveyor line
+//-1 indicates unused, non-negative are real indexes]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[iBundles[1] := iLine1;
+iBundles[2] := iLine1;
+iBundles[3] := iLine1;
+iBundles[4] := iLine1;
+iBundles[5] := iLine1;
+iBundles[6] := iLine1;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="resetIterators" Id="{df840ce7-d550-4484-8304-6b194661333d}" FolderPath="Hidden\">
+      <Declaration><![CDATA[METHOD PROTECTED resetIterators : BOOL
+VAR_INPUT
+END_VAR
+VAR
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i:=1 TO CONSTS.numConveyorLines BY 1 DO
+	iBundles[i] := -1;
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="setConveyorMode" Id="{03a04949-3224-4665-97cf-714d47794c97}" FolderPath="Hidden\">
+      <Declaration><![CDATA[METHOD PROTECTED setConveyorMode : BOOL
+VAR
+	i : INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i:=1 TO CONSTS.numConveyorLines BY 1 DO
+	conveyors[i]^.setRequest(newRequest:= requestedMode);
+END_FOR
+
+FOR i:=1 TO CONSTS.numConveyorLines BY 1 DO
+	trueMode := MAX(trueMode, conveyors[i]^.trueMode);
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="IndexedBuffer">
+      <LineId Id="1078" Count="0" />
+      <LineId Id="1081" Count="0" />
+      <LineId Id="1084" Count="0" />
+      <LineId Id="1090" Count="0" />
+      <LineId Id="1080" Count="0" />
+      <LineId Id="1079" Count="0" />
+      <LineId Id="1002" Count="12" />
+      <LineId Id="1076" Count="1" />
+      <LineId Id="1073" Count="2" />
+      <LineId Id="1016" Count="14" />
+      <LineId Id="1072" Count="0" />
+      <LineId Id="1032" Count="1" />
+      <LineId Id="1100" Count="1" />
+      <LineId Id="1034" Count="1" />
+      <LineId Id="1091" Count="0" />
+      <LineId Id="1103" Count="1" />
+      <LineId Id="1094" Count="1" />
+      <LineId Id="1092" Count="0" />
+      <LineId Id="1096" Count="1" />
+      <LineId Id="1106" Count="0" />
+      <LineId Id="1122" Count="0" />
+      <LineId Id="1108" Count="0" />
+      <LineId Id="1118" Count="1" />
+      <LineId Id="1125" Count="0" />
+      <LineId Id="1120" Count="1" />
+      <LineId Id="1124" Count="0" />
+      <LineId Id="1107" Count="0" />
+      <LineId Id="1123" Count="0" />
+      <LineId Id="1093" Count="0" />
+      <LineId Id="1040" Count="7" />
+      <LineId Id="275" Count="0" />
+    </LineIds>
+    <LineIds Name="IndexedBuffer.allConveyorsOccupied">
+      <LineId Id="5" Count="0" />
+      <LineId Id="13" Count="2" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="11" Count="0" />
+    </LineIds>
+    <LineIds Name="IndexedBuffer.allConveyorsVacant">
+      <LineId Id="5" Count="0" />
+      <LineId Id="13" Count="2" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="11" Count="0" />
+    </LineIds>
+    <LineIds Name="IndexedBuffer.computeLinks">
+      <LineId Id="8" Count="5" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="IndexedBuffer.connectTo">
+      <LineId Id="5" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="8" Count="0" />
+      <LineId Id="10" Count="1" />
+    </LineIds>
+    <LineIds Name="IndexedBuffer.conveyorsAtSensorExit">
+      <LineId Id="6" Count="4" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="14" Count="0" />
+      <LineId Id="13" Count="0" />
+    </LineIds>
+    <LineIds Name="IndexedBuffer.fillConveyorsArray">
+      <LineId Id="11" Count="0" />
+      <LineId Id="5" Count="5" />
+    </LineIds>
+    <LineIds Name="IndexedBuffer.iteratorsAreValid">
+      <LineId Id="5" Count="1" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="10" Count="1" />
+      <LineId Id="7" Count="0" />
+    </LineIds>
+    <LineIds Name="IndexedBuffer.receiveNewIterators">
+      <LineId Id="12" Count="4" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="IndexedBuffer.resetIterators">
+      <LineId Id="6" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="IndexedBuffer.setConveyorMode">
+      <LineId Id="5" Count="0" />
+      <LineId Id="8" Count="1" />
+      <LineId Id="11" Count="2" />
+      <LineId Id="10" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,191 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="ConveyorSC" Id="{d3063b85-1d0e-4601-ab41-5fdef5457493}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK ConveyorSC
+VAR_INPUT
+	bEnable : BOOL;
+END_VAR
+VAR_OUTPUT
+	trueMode : ConveyorMode;
+	requestedMode : ConveyorMode;
+	
+	error AT %I* : BOOL;
+	position AT %I* : REAL;
+	velocity AT %I* : REAL;
+	
+	sensorEntry AT %I* : BOOL := TRUE;
+	sensorExit AT %I* : BOOL;
+END_VAR
+VAR
+	enable AT %Q* : BOOL := TRUE;
+	direction AT %Q* : BOOL; //FALSE = forward, TRUE = backward
+	pulse AT %Q* : BOOL;
+	reset AT %Q* : BOOL;	
+END_VAR
+VAR
+	//nextConveyor : POINTER TO ConveyorSC;
+	//prevConveyor : POINTER TO ConveyorSC;
+	
+	pulser : TP; //pulses are assumed to be low-high-low
+END_VAR
+VAR_STAT CONSTANT
+	pulseWidth : TIME := T#50MS;
+END_VAR
+(*
+standard slat conveyor - no lifter
+compliant with PLCopen motion control
+*)]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[enable := bEnable;
+
+override();
+
+sequence();]]></ST>
+    </Implementation>
+    <Folder Name="Private" Id="{1a888f12-4db7-4903-9f4c-6c8f1d797dc1}" />
+    <Folder Name="Properties" Id="{1765f27b-9fb2-425e-b273-a472c5a609e9}" />
+    <Folder Name="Unused" Id="{1c2f1e14-da9a-4098-b511-317af27de399}" />
+    <Method Name="backward" Id="{e8202226-4ec6-4684-856e-619a6d551d16}" FolderPath="Unused\">
+      <Declaration><![CDATA[METHOD backward : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="forward" Id="{1da2a125-0c3e-4b60-939d-889602df2c25}" FolderPath="Unused\">
+      <Declaration><![CDATA[METHOD forward : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="IsOccupied" Id="{b0b7aab6-d707-4fd5-b282-0025795c566b}" FolderPath="Properties\">
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY IsOccupied : BOOL]]></Declaration>
+      <Get Name="Get" Id="{cf0344a5-3161-4da7-ba48-678c5bd761bd}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[IsOccupied := sensorExit OR sensorEntry;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="join" Id="{a0cf54f0-e20b-4bf6-a83b-b1805adbdb65}">
+      <Declaration><![CDATA[METHOD join : BOOL
+VAR_INPUT
+	conveyor : POINTER TO ConveyorSC;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//nextConveyor := conveyor;
+//conveyor^.prevConveyor := THIS;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="override" Id="{8e6f4597-0bc4-436a-ab2a-8db6201b5164}" FolderPath="Private\">
+      <Declaration><![CDATA[METHOD PROTECTED override : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="reset" Id="{bc427059-4ffe-412e-a00d-70dfddb646fc}">
+      <Declaration><![CDATA[METHOD reset : BOOL
+VAR_INPUT
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[position := 0;
+velocity := velocity; //no change]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="sequence" Id="{4423a6bc-d34b-4c46-82c9-1d91c2591f42}" FolderPath="Private\">
+      <Declaration><![CDATA[METHOD PROTECTED sequence : BOOL
+VAR_INPUT
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[direction := (trueMode = ConveyorMode.BACKWARD); //set direction bit
+
+pulser(IN:= , PT:= pulseWidth, Q=> pulse, ET=> );
+pulser.IN := 
+	enable AND 
+	NOT error AND 
+	NOT reset AND 
+	(trueMode = ConveyorMode.FORWARD OR trueMode = ConveyorMode.BACKWARD)
+	AND pulser.Q; //ends pulse itself]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="setMode" Id="{5dc00876-44a2-4178-b0ed-3fd9c716e599}">
+      <Declaration><![CDATA[METHOD setMode : BOOL
+VAR_INPUT
+	mode : ConveyorMode;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[trueMode := mode;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="setRequest" Id="{87bf1b84-a271-46b8-9a30-1c3e8e6aad73}">
+      <Declaration><![CDATA[METHOD setRequest : BOOL
+VAR_INPUT
+	newRequest : ConveyorMode;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[requestedMode := newRequest;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="target" Id="{cbc2aa81-2d60-42f2-80e1-cf506a3bd543}">
+      <Declaration><![CDATA[METHOD target : BOOL
+VAR_INPUT
+	targetPosition : REAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="ConveyorSC">
+      <LineId Id="630" Count="1" />
+      <LineId Id="422" Count="0" />
+      <LineId Id="438" Count="0" />
+      <LineId Id="352" Count="0" />
+    </LineIds>
+    <LineIds Name="ConveyorSC.backward">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="ConveyorSC.forward">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="ConveyorSC.IsOccupied.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="ConveyorSC.join">
+      <LineId Id="5" Count="0" />
+      <LineId Id="7" Count="0" />
+    </LineIds>
+    <LineIds Name="ConveyorSC.override">
+      <LineId Id="15" Count="0" />
+    </LineIds>
+    <LineIds Name="ConveyorSC.reset">
+      <LineId Id="5" Count="1" />
+    </LineIds>
+    <LineIds Name="ConveyorSC.sequence">
+      <LineId Id="114" Count="7" />
+      <LineId Id="45" Count="0" />
+    </LineIds>
+    <LineIds Name="ConveyorSC.setMode">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="ConveyorSC.setRequest">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="ConveyorSC.target">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
